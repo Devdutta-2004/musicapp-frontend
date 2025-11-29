@@ -68,7 +68,12 @@ export default function MusicApp() {
   /* ---------- fetch songs (randomize library on fetch) ---------- */
   async function fetchSongs() {
     try {
-      const res = await axios.get('/api/songs');
+      // Use REACT_APP_API_BASE_URL if present (set in Vercel / .env.local)
+      const API = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/+$/,''); // strip trailing slash
+      const requestUrl = API ? `${API}/api/songs` : '/api/songs';
+      console.log('Fetching songs from', requestUrl);
+
+      const res = await axios.get(requestUrl);
       const data = (res.data || []).map(s => ({
         ...s,
         liked: !!s.liked,
@@ -373,13 +378,6 @@ export default function MusicApp() {
             </button>
           </div>
         </div>
-
-        {/* SEARCH BAR */}
-        {/* <img
-          src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(window.location.href)}`}
-          alt="QR Code"
-          style={{ borderRadius: 12 }}
-        /> */}
 
         <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', }}>
           <input
