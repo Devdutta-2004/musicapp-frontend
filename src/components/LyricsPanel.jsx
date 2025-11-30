@@ -1,4 +1,4 @@
-// src/components/LyricsPanel.jsx (REPLACE ENTIRE FILE)
+// src/components/LyricsPanel.jsx (FIXED VERSION)
 import React, { useEffect, useState, useRef } from 'react';
 
 export default function LyricsPanel({ song }) {
@@ -30,19 +30,26 @@ export default function LyricsPanel({ song }) {
       setLoading(true);
       setError(null);
       try {
-        // FIXED: Now uses the full URL to fetch lyrics
+        // Fetch lyrics
         const resp = await fetch(`${API_BASE}/api/lyrics?songId=${encodeURIComponent(song.id)}`);
         
         if (!resp.ok) {
-           // If 404, it just means no lyrics exist yet, which is fine
+           // If 404, it just means no lyrics exist yet
            if (resp.status !== 404) throw new Error("Failed to fetch");
         }
 
         const json = await resp.json();
         if (cancelled) return;
         
-        const entry = json?.entry || null;
-        if (entry) {
+        // ----------------------------------------------------------
+        // 🔥 CRITICAL FIX IS HERE
+        // Your backend GET request returns the object directly: { lyrics: "...", source: "..." }
+        // Your POST request returns it wrapped: { entry: { ... } }
+        // This line handles BOTH cases automatically:
+        // ----------------------------------------------------------
+        const entry = json.entry || json; 
+
+        if (entry && (entry.lyrics || entry.source)) {
           setLyrics(entry.lyrics || '');
           setMeta({ source: entry.source, updatedAt: entry.updatedAt });
           setEditing(false);
@@ -53,7 +60,6 @@ export default function LyricsPanel({ song }) {
         }
       } catch (err) {
         console.error(err);
-        // We generally don't show an error on load, just empty state
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -75,7 +81,6 @@ export default function LyricsPanel({ song }) {
     setLoading(true);
     setError(null);
     try {
-      // FIXED: Uses full URL to save lyrics
       const resp = await fetch(`${API_BASE}/api/lyrics`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -103,7 +108,6 @@ export default function LyricsPanel({ song }) {
     setLoading(true);
     setError(null);
     try {
-      // FIXED: Uses full URL to delete lyrics
       await fetch(`${API_BASE}/api/lyrics?songId=${encodeURIComponent(song.id)}`, { method: 'DELETE' });
       setLyrics('');
       setMeta(null);
