@@ -426,29 +426,55 @@ g */
 
 /* --- MOBILE SPECIFIC COLLAPSE --- */
 @media (max-width: 768px) {
-  
-  /* Collapsed on Mobile = Tiny Header Only */
+  .app-shell {
+    flex-direction: column-reverse;
+    height: auto;
+    overflow-x: hidden;
+    width: 100vw;
+    padding: 0;
+  }
+
+  /* When Expanded: Full Library */
+  .library {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto;
+    border-radius: 24px 24px 0 0;
+    background: #0b0b11; 
+    padding: 20px;
+    margin-top: -20px; 
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    z-index: 10;
+  }
+
+  /* When Collapsed: Tiny Floating Bar */
   .library.collapsed {
     height: 60px !important;
     min-height: 60px !important;
-    overflow: hidden;
-    padding: 0 20px;
-    margin-top: 0;
-    width: 100% !important;
-    max-width: 100% !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: transparent !important; /* Transparent! */
+    box-shadow: none !important;
+    padding: 10px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: auto !important; /* Only as wide as button */
+    z-index: 50;
   }
 
-  /* Hide the song list entirely when collapsed on mobile */
-  .library.collapsed .song-list {
+  /* Hide everything except toggle button when collapsed */
+  .library.collapsed .song-list, 
+  .library.collapsed .search-input,
+  .library.collapsed h3 {
     display: none;
   }
 
-  /* Adjust the header layout when collapsed on mobile */
-  .library.collapsed > div:first-child {
+  .player-area {
     width: 100%;
-    margin: 0;
+    padding: 20px 10px;
+    min-height: 100vh;
   }
+  
+  /* Fix controls */
+  .content-split { flex-direction: column; gap: 20px; padding: 10px; }
+  .glow-container { width: 70vw; height: 70vw; max-width: 280px; max-height: 280px; }
 }
