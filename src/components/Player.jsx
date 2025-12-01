@@ -30,11 +30,9 @@ export default function Player({
   const [seeking, setSeeking] = useState(false);
   const [buffering, setBuffering] = useState(false);
 
-  // stuck-resume detection
   const stuckAttemptsRef = useRef(0);
   const stuckIntervalRef = useRef(null);
 
-  // Update range visual fill
   function updateRange(percent) {
     const el = rangeRef.current;
     if (!el) return;
@@ -49,43 +47,16 @@ export default function Player({
     return `${m}:${ss}`;
   }
 
-  // attempt play and handle returned promise politely
   function attemptPlay() {
     const a = audioRef.current;
     if (!a) return;
     stuckAttemptsRef.current = 0;
     const p = a.play();
     if (p && typeof p.catch === 'function') {
-      p.catch(() => {
-        // suppress autoplay rejection noise
-      });
+      p.catch(() => {});
     }
   }
 
-  // --- NEW: MEDIA SESSION API (Fixes Background Play & Lock Screen) ---
-  useEffect(() => {
-    if (!song || !('mediaSession' in navigator)) return;
-
-    // 1. Tell Android/iOS what song is playing
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: song.title,
-      artist: song.artistName,
-      album: "Groove Music",
-      artwork: [
-        { src: song.coverUrl || song.artistImageUrl || PERSON_PLACEHOLDER, sizes: '512x512', type: 'image/png' }
-      ]
-    });
-
-    // 2. Connect Lock Screen Buttons to React Functions
-    navigator.mediaSession.setActionHandler('play', () => { onToggle(); });
-    navigator.mediaSession.setActionHandler('pause', () => { onToggle(); });
-    navigator.mediaSession.setActionHandler('previoustrack', () => { if(onPrev) onPrev(); });
-    navigator.mediaSession.setActionHandler('nexttrack', () => { if(onNext) onNext(); });
-
-  }, [song, onToggle, onNext, onPrev]);
-  // ----------------------------------------------------
-
-  // Attach robust event listeners to audio element
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -105,22 +76,10 @@ export default function Player({
     }
 
     function onWaiting() { setBuffering(true); }
-
-    function onCanPlay() {
-      setBuffering(false);
-      if (playing) attemptPlay();
-    }
-
+    function onCanPlay() { setBuffering(false); if (playing) attemptPlay(); }
     function onStalled() { setBuffering(true); }
-
-    function onEndedInternal() {
-      if (typeof onEnded === 'function') onEnded();
-    }
-
-    function onError(e) {
-      console.warn('Audio error', e);
-      setBuffering(false);
-    }
+    function onEndedInternal() { if (typeof onEnded === 'function') onEnded(); }
+    function onError(e) { console.warn('Audio error', e); setBuffering(false); }
 
     audio.addEventListener('loadedmetadata', onLoadedMetadata);
     audio.addEventListener('timeupdate', onTimeUpdate);
@@ -138,49 +97,32 @@ export default function Player({
       audio.removeEventListener('stalled', onStalled);
       audio.removeEventListener('ended', onEndedInternal);
       audio.removeEventListener('error', onError);
-      if (stuckIntervalRef.current) {
-        clearInterval(stuckIntervalRef.current);
-        stuckIntervalRef.current = null;
-      }
+      if (stuckIntervalRef.current) { clearInterval(stuckIntervalRef.current); stuckIntervalRef.current = null; }
     };
   }, [duration, seeking, playing, onEnded, time]);
 
-  // When song changes: load src
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    setTime(0);
-    setDuration(0);
-    setBuffering(false);
-    stuckAttemptsRef.current = 0;
+    setTime(0); setDuration(0); setBuffering(false); stuckAttemptsRef.current = 0;
 
     if (!song || !song.streamUrl) {
       try { audio.pause(); } catch(_) {}
-      audio.removeAttribute('src');
-      audio.load();
+      audio.removeAttribute('src'); audio.load();
       return;
     }
 
     const safeUrl = encodeURI(song.streamUrl);
     if (audio.src !== new URL(safeUrl, window.location.href).href && audio.src !== safeUrl) {
-       audio.src = safeUrl;
-       try { audio.load(); } catch (_) {}
+       audio.src = safeUrl; try { audio.load(); } catch (_) {}
     }
 
-    if (playing) {
-      setTimeout(() => attemptPlay(), 50);
-    }
+    if (playing) { setTimeout(() => attemptPlay(), 50); }
   }, [song?.id, song?.streamUrl]);
 
-  // When playing prop changes
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
-    // Update Media Session State (Locked Screen Play/Pause Icon)
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.playbackState = playing ? "playing" : "paused";
-    }
 
     if (playing) {
       attemptPlay();
@@ -204,22 +146,14 @@ export default function Player({
       }
     } else {
       try { audio.pause(); } catch (_) {}
-      if (stuckIntervalRef.current) {
-        clearInterval(stuckIntervalRef.current);
-        stuckIntervalRef.current = null;
-        stuckAttemptsRef.current = 0;
-      }
+      if (stuckIntervalRef.current) { clearInterval(stuckIntervalRef.current); stuckIntervalRef.current = null; stuckAttemptsRef.current = 0; }
     }
   }, [playing]);
 
   function handleSeekChange(e) {
     const val = Number(e.target.value);
     const audio = audioRef.current;
-    if (!audio) {
-      setTime(val);
-      updateRange(duration ? (val / duration) * 100 : 0);
-      return;
-    }
+    if (!audio) { setTime(val); updateRange(duration ? (val / duration) * 100 : 0); return; }
     audio.currentTime = isFinite(val) ? val : 0;
     setTime(audio.currentTime);
     updateRange(duration ? (audio.currentTime / duration) * 100 : 0);
@@ -270,45 +204,33 @@ export default function Player({
         <div className="time-right" aria-hidden style={{ fontSize: 12 }}>{formatTime(duration)}</div>
       </div>
 
-      <div className="controls" style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 12 }}>
+      {/* --- CONTROLS ROW (FIXED SPACING) --- */}
+      <div className="controls" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 24, padding: '0 8px' }}>
         <button className={`icon-btn ${shuffle ? "active" : ""}`} onClick={onToggleShuffle} aria-pressed={shuffle} title="Shuffle">
-          <Shuffle size={18}/>
+          <Shuffle size={20}/>
         </button>
         <button className="icon-btn" onClick={handlePrev} title="Previous">
-          <SkipBack size={22}/>
+          <SkipBack size={26}/>
         </button>
         <button
           className="play-btn"
           onClick={handleToggle}
           title={playing ? 'Pause' : 'Play'}
           aria-pressed={playing}
-          style={{
-            background: 'transparent',
-            border: '2px solid var(--neon)',
-            color: 'var(--neon)',
-            boxShadow: '0 12px 30px rgba(64,254,252,0.06)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 60,
-            height: 60,
-            borderRadius: '50%',
-            padding: 0,
-          }}
         >
-          {playing ? <Pause size={28}/> : <Play size={28}/>}
+          {playing ? <Pause size={32}/> : <Play size={32}/>}
         </button>
         <button className="icon-btn" onClick={handleNext} title="Next">
-          <SkipForward size={22}/>
+          <SkipForward size={26}/>
         </button>
         <button className={`icon-btn ${repeatMode !== "off" ? "active" : ""}`} onClick={onToggleRepeat} title={`Repeat (${repeatMode})`} aria-pressed={repeatMode !== 'off'}>
-          {repeatMode === "one" ? <Repeat1 size={18}/> : <Repeat size={18}/>}
+          {repeatMode === "one" ? <Repeat1 size={20}/> : <Repeat size={20}/>}
         </button>
-        <div style={{ width: 8 }} />
+        
+        {/* Like Button (Added to main controls row for mobile) */}
         <button className={`icon-btn ${song?.liked ? "liked" : ""}`} onClick={onToggleLike} title={song?.liked ? 'Unlike' : 'Like'} aria-pressed={!!song?.liked}>
-          <Heart size={18}/>
+          <Heart size={20} fill={song?.liked ? "currentColor" : "none"}/>
         </button>
-        {buffering && <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginLeft: 8 }}>Buffering…</div>}
       </div>
 
       <audio
