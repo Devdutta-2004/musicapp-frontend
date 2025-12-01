@@ -397,3 +397,58 @@ g */
   background: rgba(0,0,0,0.3); 
   color: var(--text-primary);
 }
+/* --- COLLAPSIBLE LIBRARY STYLES --- */
+
+/* Transition for smooth collapse */
+.library {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Collapsed State (Desktop): Centered Icons */
+.library.collapsed {
+  padding: 12px 6px; /* Tighter padding */
+}
+
+.library.collapsed .song-item {
+  justify-content: center;
+  padding: 8px 0;
+  background: transparent; /* Cleaner look */
+}
+
+.library.collapsed .song-item:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+/* When collapsed, hide scrollbar but allow scroll */
+.library.collapsed .song-list::-webkit-scrollbar {
+  display: none; 
+}
+
+/* --- MOBILE SPECIFIC COLLAPSE --- */
+@media (max-width: 768px) {
+  
+  /* Collapsed on Mobile = Tiny Header Only */
+  .library.collapsed {
+    height: 60px !important;
+    min-height: 60px !important;
+    overflow: hidden;
+    padding: 0 20px;
+    margin-top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Hide the song list entirely when collapsed on mobile */
+  .library.collapsed .song-list {
+    display: none;
+  }
+
+  /* Adjust the header layout when collapsed on mobile */
+  .library.collapsed > div:first-child {
+    width: 100%;
+    margin: 0;
+  }
+}
