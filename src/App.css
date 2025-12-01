@@ -1,4 +1,4 @@
-/* src/App.css — Final App-Like Polish */
+/* src/App.css — Premium Theme + Mobile Fixes */
 
 :root {
   --neon: #40fefc;
@@ -17,8 +17,8 @@ html, body, #root {
   background: var(--bg-primary);
   color: #edf0ff;
   font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
-  overflow: hidden; /* Prevent scrolling the whole app */
-  overscroll-behavior: none; /* Stop "bounce" scroll on mobile */
+  overflow: hidden; 
+  overscroll-behavior: none;
 }
 
 .app-shell {
@@ -101,104 +101,60 @@ html, body, #root {
 .big-title { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.5px; margin-bottom: 6px; }
 .big-artist { font-size: 17px; color: #ccc; font-weight: 500; }
 
-/* --- PREMIUM SLIDER (Perfectly Centered) --- */
-.slider-row { width: 100%; display: flex; align-items: center; gap: 14px; margin-bottom: 20px; height: 30px; /* fixed height for alignment */ }
-
-.neon-range {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 4px; /* Thin track */
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.15);
-  outline: none;
-  cursor: pointer;
-  position: relative;
-  margin: 0; /* Reset margins */
-}
-
-/* Thumb Styling - Math for centering: (ThumbHeight - TrackHeight) / 2 * -1 */
-/* (14px - 4px) / 2 = 5px. So margin-top: -5px */
-.neon-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--neon);
-  box-shadow: 0 0 10px var(--neon);
-  cursor: pointer;
-  margin-top: -5px; /* Perfect center */
-  transition: transform 0.1s;
-}
+/* Slider */
+.slider-row { width: 100%; display: flex; align-items: center; gap: 14px; margin-bottom: 20px; height: 30px; }
+.neon-range { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.15); outline: none; cursor: pointer; position: relative; margin: 0; }
+.neon-range::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--neon); box-shadow: 0 0 10px var(--neon); cursor: pointer; margin-top: -5px; transition: transform 0.1s; }
 .neon-range::-webkit-slider-thumb:active { transform: scale(1.4); }
 
 .play-btn {
   width:64px; height:64px; border-radius:50%; border:2px solid var(--neon);
   background: transparent; color: var(--neon); display:flex; align-items:center; justify-content:center;
-  cursor:pointer; box-shadow: 0 4px 18px rgba(64,254,252,0.08);
-  transition: transform .18s ease;
+  cursor:pointer; box-shadow: 0 4px 18px rgba(64,254,252,0.08); transition: transform .18s ease;
 }
 .play-btn:hover { transform: scale(1.08); box-shadow: 0 10px 40px rgba(64,254,252,0.14); }
 
-/* --- QUEUE LAYOUT FIX --- */
+/* Queue Layout */
 .queue-panel { margin-top:20px; background: rgba(255,255,255,0.02); border-radius:16px; padding:16px; border: 1px solid rgba(255,255,255,0.03); }
 .queue-header { display:flex; justify-content:space-between; margin-bottom:12px; align-items: center; }
-
-/* The Queue Item Container */
-.queue-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* Push actions to right */
-  gap: 12px;
-  padding: 8px;
-  border-radius: 10px;
-  margin-bottom: 4px;
-  transition: background 0.2s;
-  background: transparent;
-}
+.queue-item { display:flex; align-items:center; justify-content: space-between; gap: 12px; padding: 8px; border-radius: 10px; margin-bottom: 4px; background: transparent; }
 .queue-item:hover { background: rgba(255,255,255,0.04); }
 .queue-item.current { background: rgba(64,254,252,0.05); border: 1px solid rgba(64,254,252,0.1); }
-
-/* Left side of Queue (Img + Text) */
-.q-left {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex: 1;      /* Take all available space */
-  min-width: 0; /* Allow shrinking for text ellipsis */
-}
+.q-left { display:flex; gap:12px; align-items:center; flex: 1; min-width: 0; }
 .q-cover { width:42px; height:42px; border-radius:6px; object-fit: cover; flex-shrink: 0; }
-.q-meta { flex: 1; min-width: 0; overflow: hidden; } /* Ensure text truncates */
+.q-meta { flex: 1; min-width: 0; overflow: hidden; }
 .q-title { font-size:14px; font-weight:700; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; color: #fff; }
 .q-artist { font-size:12px; color:#aaa; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; }
+.q-actions { display:flex; align-items:center; gap: 2px; flex-shrink: 0; }
 
-/* Right side of Queue (Buttons) */
-.q-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px; /* Tighter gap on mobile */
-  flex-shrink: 0; /* Don't squash buttons */
-}
+/* Lyrics */
+.lyrics-right { flex:1; padding-top:20px; display:flex; flex-direction:column; }
+.lyrics-heading { font-size:24px; font-weight:700; color: #fff; margin-bottom:16px; }
+.lyrics-box { background: rgba(255,255,255,0.03); border-radius:12px; padding:20px; height:70%; overflow-y:auto; color:#aaa; font-size:16px; line-height:1.6; flex:1 1 auto; max-height: calc(100vh - 200px); }
 
-/* ------------------ MOBILE & MINI PLAYER ------------------ */
+/* Utilities */
 .mini-player, .mobile-only-header { display: none; }
+*::-webkit-scrollbar { width:6px; }
+*::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius:4px; }
 
+/* ------------------ MOBILE LAYOUT (The Fix) ------------------ */
 @media (max-width: 768px) {
   .app-shell { flex-direction: column; height: 100vh; overflow: hidden; }
 
-  /* STATE 1: LIBRARY OPEN */
+  /* Library Open */
   .library:not(.collapsed) {
     width: 100% !important; max-width: 100% !important; height: 100%;
     border-radius: 0; margin: 0; padding-bottom: 90px; z-index: 10;
   }
   .player-area.mobile-hidden { display: none; }
 
-  /* Mini Player */
+  /* Premium Mini Player */
   .mini-player {
     display: flex; position: fixed; bottom: 16px; left: 12px; right: 12px;
     height: 68px; background: rgba(15, 15, 20, 0.85); backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px;
     align-items: center; padding: 0 12px; z-index: 100;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6); cursor: pointer;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5); cursor: pointer;
   }
   .mini-cover { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
   .mini-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 2px; }
@@ -206,35 +162,34 @@ html, body, #root {
   .mini-progress { position: absolute; bottom: -1px; left: 14px; right: 14px; height: 2px; background: rgba(255,255,255,0.1); overflow: hidden; }
   .mini-progress-fill { height: 100%; background: var(--neon); box-shadow: 0 0 8px var(--neon); }
 
-  /* STATE 2: PLAYER FULL SCREEN (APP MODE) */
+  /* Player Full Screen */
   .library.collapsed { display: none; }
 
   .player-area {
-    display: block;
-    position: fixed; /* LOCKS TO SCREEN */
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: var(--bg-primary);
-    z-index: 200; /* Above everything */
-    padding: 20px 20px 40px 20px;
-    overflow-y: auto;
+    display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg-primary); z-index: 200;
+    padding: 20px 20px 40px 20px; overflow-y: auto;
   }
 
-  .mobile-only-header { display: flex; justify-content: flex-start; padding-bottom: 10px; }
-  .content-split { flex-direction: column; padding: 0; gap: 24px; }
-  .glow-container { width: 80vw; height: 80vw; max-width: 300px; max-height: 300px; }
+  /* === FIX OVERLAPPING (Lyrics vs Queue) === */
+  .content-split { flex-direction: column; padding: 0; gap: 30px; }
   
-  /* Fix Lyrics Scrolling */
-  .lyrics-right { height: auto; min-height: 300px; padding-bottom: 40px; }
-  
-  /* Fix Queue on Mobile */
-  .queue-panel { margin-top: 0; padding-bottom: 80px; }
-  .q-actions .icon-btn { width: 32px; height: 32px; } /* Smaller buttons on mobile */
+  .nowplaying-left { width: 100%; flex: 0 0 auto; }
+  .glow-container { width: 75vw; height: 75vw; max-width: 300px; max-height: 300px; margin-bottom: 20px; }
+
+  /* Fixed Height for Lyrics on Mobile so it doesn't push Queue off screen */
+  .lyrics-right { 
+    width: 100%; 
+    height: 320px; /* Fixed height */
+    flex: 0 0 auto; 
+    margin-bottom: 20px; 
+  }
+
+  .queue-panel { margin-top: 0; padding-bottom: 80px; width: 100%; }
   
   /* Fix Controls Row */
   .controls { justify-content: space-between; width: 100%; margin-top: 24px; padding: 0 4px; }
   .play-btn { width: 68px; height: 68px; }
+  
+  .mobile-only-header { display: flex; justify-content: flex-start; padding-bottom: 10px; }
 }
-
-/* Utilities */
-*::-webkit-scrollbar { width:6px; }
-*::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius:4px; }
