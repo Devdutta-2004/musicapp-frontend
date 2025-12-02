@@ -496,7 +496,7 @@ export default function MusicApp() {
            
            {/* Mini Progress Bar - CONNECTED TO STATE */}
            <div className="mini-progress">
-             <div className="mini-progress-fill" style={{ width: `${songProgress}%` transition: 'width 0.1s linear'}}></div>
+             <div className="mini-progress-fill" style={{ width: `${songProgress}%` ,transition: 'width 0.1s linear'}}></div>
            </div>
         </div>
       )}
