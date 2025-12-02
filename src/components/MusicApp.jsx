@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
+// REPLACE THIS WITH YOUR GIF FILE NAME IN THE PUBLIC FOLDER
+const LOADING_GIF = '/loading.gif'; 
 
 function CoverImage({ srcs = [], alt, className }) {
   const [src, setSrc] = useState(srcs.find(Boolean) || PERSON_PLACEHOLDER);
@@ -86,9 +88,8 @@ export default function MusicApp() {
       console.error('fetchSongs', e);
       setSongs([]);
     } finally {
-      // Force a tiny delay so the user sees the cool animation for at least 1.5s
-      // even if the internet is super fast (prevents flickering)
-      setTimeout(() => setIsLoading(false), 1500);
+      // Keep a small delay so users can see your cool GIF
+      setTimeout(() => setIsLoading(false), 2000);
     }
   }
 
@@ -229,21 +230,6 @@ export default function MusicApp() {
   return (
     <div className="app-shell" style={{ alignItems: 'stretch' }}>
       
-      {/* === FULL SCREEN LOADING OVERLAY === */}
-      {isLoading && (
-        <div className="loading-overlay">
-           <div className="loading-content">
-             <div className="music-bars big-bars">
-               <div className="bar"></div>
-               <div className="bar"></div>
-               <div className="bar"></div>
-               <div className="bar"></div>
-             </div>
-             <div className="loading-text">Loading Rhino Music...</div>
-           </div>
-        </div>
-      )}
-
       {/* --- LIBRARY SIDEBAR --- */}
       <aside 
         className={`library card-surface ${isLibraryCollapsed ? 'collapsed' : ''}`} 
@@ -309,51 +295,62 @@ export default function MusicApp() {
           {showUpload && !isLibraryCollapsed ? (
             <div className="upload-area"><UploadCard onUploaded={() => { fetchSongs(); setShowUpload(false); }} /></div>
           ) : (
-            <div className="song-list" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', paddingRight: isLibraryCollapsed ? 0 : 4 }}>
-              {visibleSongs.length === 0 && <div style={{ padding: 12, color: 'var(--text-secondary)' }}>No songs found.</div>}
-              {visibleSongs.map(s => (
-                <div key={s.id} className="song-item" onDoubleClick={() => playSong(s)} title={s.title}>
-                  <CoverImage srcs={[s.coverUrl, s.artistImageUrl, PERSON_PLACEHOLDER]} alt={s.title} className="cover" />
-                  
-                  {!isLibraryCollapsed && (
-                    <>
-                      <div className="song-info">
-                        <div className="title" title={s.title}>{s.title}</div>
-                        <div className="artist" title={s.artistName}>{s.artistName}</div>
-                      </div>
-
-                      <div className="like-wrap">
-                        <button className={`icon-btn ${s.liked ? 'liked' : ''}`} onClick={() => toggleLike(s.id)}>
-                          <Heart size={18} fill={s.liked ? "currentColor" : "none"} />
-                        </button>
-                      </div>
-
-                      <div className="more-wrap" ref={menuRef}>
-                        <button className="icon-btn" onClick={(ev) => { ev.stopPropagation(); setOpenMenuSongId(openMenuSongId === s.id ? null : s.id); }}>
-                          <MoreHorizontal size={18}/>
-                        </button>
-                        {openMenuSongId === s.id && (
-                          <div className="more-menu" onClick={(ev) => ev.stopPropagation()}>
-                            <button className="menu-item" onClick={() => addToQueue(s.id)}>
-                                <ListPlus size={16} style={{marginRight: 8}}/> Add to queue
-                            </button>
-                            <button className="menu-item" onClick={() => playNextNow(s.id)}>
-                                <SkipForward size={16} style={{marginRight: 8}}/> Play next
-                            </button>
-                            <button className="menu-item" onClick={() => { playSong(s); setOpenMenuSongId(null); }}>
-                                <PlayCircle size={16} style={{marginRight: 8}}/> Play now
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <button className="icon-btn play-mini" onClick={() => playSong(s)}>
-                        <Play size={16} fill="currentColor" />
-                      </button>
-                    </>
-                  )}
+            <div className="song-list" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', paddingRight: isLibraryCollapsed ? 0 : 4, position: 'relative' }}>
+              
+              {/* === GIF LOADER (Below Header) === */}
+              {isLoading ? (
+                <div className="loading-container">
+                   {/* MAKE SURE TO ADD 'loading.gif' TO YOUR PUBLIC FOLDER */}
+                   <img src={LOADING_GIF} alt="Loading..." className="loading-gif" onError={(e) => e.target.style.display='none'} />
+                   <div className="loading-text">Dropping the beat...</div>
                 </div>
-              ))}
+              ) : visibleSongs.length === 0 ? (
+                 <div style={{ padding: 12, color: 'var(--text-secondary)' }}>No songs found.</div>
+              ) : (
+                visibleSongs.map(s => (
+                  <div key={s.id} className="song-item" onDoubleClick={() => playSong(s)} title={s.title}>
+                    <CoverImage srcs={[s.coverUrl, s.artistImageUrl, PERSON_PLACEHOLDER]} alt={s.title} className="cover" />
+                    
+                    {!isLibraryCollapsed && (
+                      <>
+                        <div className="song-info">
+                          <div className="title" title={s.title}>{s.title}</div>
+                          <div className="artist" title={s.artistName}>{s.artistName}</div>
+                        </div>
+
+                        <div className="like-wrap">
+                          <button className={`icon-btn ${s.liked ? 'liked' : ''}`} onClick={() => toggleLike(s.id)}>
+                            <Heart size={18} fill={s.liked ? "currentColor" : "none"} />
+                          </button>
+                        </div>
+
+                        <div className="more-wrap" ref={menuRef}>
+                          <button className="icon-btn" onClick={(ev) => { ev.stopPropagation(); setOpenMenuSongId(openMenuSongId === s.id ? null : s.id); }}>
+                            <MoreHorizontal size={18}/>
+                          </button>
+                          {openMenuSongId === s.id && (
+                            <div className="more-menu" onClick={(ev) => ev.stopPropagation()}>
+                              <button className="menu-item" onClick={() => addToQueue(s.id)}>
+                                  <ListPlus size={16} style={{marginRight: 8}}/> Add to queue
+                              </button>
+                              <button className="menu-item" onClick={() => playNextNow(s.id)}>
+                                  <SkipForward size={16} style={{marginRight: 8}}/> Play next
+                              </button>
+                              <button className="menu-item" onClick={() => { playSong(s); setOpenMenuSongId(null); }}>
+                                  <PlayCircle size={16} style={{marginRight: 8}}/> Play now
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <button className="icon-btn play-mini" onClick={() => playSong(s)}>
+                          <Play size={16} fill="currentColor" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>
