@@ -47,66 +47,50 @@ html, body, #root {
   overflow: hidden; /* Ensures child overflow doesn't break layout */
 }
 
-/* --- FULL SCREEN LOADING OVERLAY --- */
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: var(--bg-primary); /* Matches app background */
-  z-index: 9999; /* Sit on top of everything */
+/* --- NEW GIF LOADER --- */
+.loading-container {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
+  
+  /* Takes up full height of the list area */
+  width: 100%;
+  height: 100%; 
+  min-height: 300px;
+  
+  /* Translucent Background as requested */
+  background: rgba(6, 6, 11, 0.6); 
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  
+  position: absolute; /* Ensures it overlays any list content if present */
+  top: 0;
+  left: 0;
+  z-index: 50;
 }
 
-.loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-}
-
-.music-bars {
-  display: flex;
-  align-items: flex-end;
-  height: 60px; /* Big bars */
-  gap: 8px;
-}
-
-.bar {
-  width: 10px;
-  background: var(--neon);
-  animation: bounce 1s infinite ease-in-out;
-  border-radius: 4px;
-}
-
-/* Staggered Animation for Wave Effect */
-.bar:nth-child(1) { height: 20%; animation-delay: 0.0s; background: var(--neon-pink); }
-.bar:nth-child(2) { height: 80%; animation-delay: 0.2s; }
-.bar:nth-child(3) { height: 50%; animation-delay: 0.4s; }
-.bar:nth-child(4) { height: 30%; animation-delay: 0.1s; background: var(--neon-pink); }
-
-@keyframes bounce {
-  0%, 100% { height: 20%; }
-  50% { height: 100%; }
+.loading-gif {
+  width: 150px; /* Adjust based on your GIF size */
+  height: auto;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 0 10px rgba(64, 254, 252, 0.4)); /* Adds a neon glow to your vector art */
 }
 
 .loading-text {
   color: #fff;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   letter-spacing: 1px;
   animation: pulse 1.5s infinite;
   text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(255, 59, 240, 0.5); /* Neon pink text glow */
 }
 
 @keyframes pulse {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
+  0% { opacity: 0.6; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0.6; transform: scale(0.98); }
 }
 
 /* ------------------ Library (Sidebar) ------------------ */
