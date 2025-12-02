@@ -1,4 +1,4 @@
-/* src/App.css — Final Vivid Electric Purple & Aligned Slider */
+/* src/App.css — Final Version: Electric Purple + Dropdowns + Hover Effects */
 
 /* 1. UNIVERSAL RESET */
 * {
@@ -9,9 +9,8 @@
 }
 
 :root {
-  /* --- VIVID ELECTRIC PURPLE THEME --- */
-  /* This is a much brighter, saturated purple */
-  --neon: #d946ef;        
+  /* --- ELECTRIC PURPLE THEME --- */
+  --neon: #d946ef;        /* Vivid Electric Purple */
   --neon-hover: #c026d3;   
   --neon-pink: #ff3bf0;    
   
@@ -103,6 +102,15 @@ html, body, #root {
 .library h3 { margin: 6px 0 16px; font-weight: 800; font-size: 20px; color: #fff; }
 .library .song-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-bottom: 12px; }
 
+/* === UPLOAD AREA ANIMATION === */
+.upload-area {
+  animation: fadeSlideIn 0.3s ease forwards;
+}
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Song List Row */
 .song-item {
   display: flex; align-items: center; gap: 12px; padding: 10px;
@@ -110,6 +118,7 @@ html, body, #root {
   background: transparent;
   transition: background 0.2s ease;
   cursor: pointer;
+  position: relative; /* Context for dropdown */
 }
 .song-item:hover { background: rgba(255,255,255,0.04); }
 .song-item .cover { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; flex: 0 0 50px; background: #111; }
@@ -117,7 +126,56 @@ html, body, #root {
 .song-info .title { font-weight:600; font-size:15px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .song-info .artist { margin-top:4px; font-size:13px; color:#aaa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-/* Buttons & Icons */
+/* === THREE DOT DROPDOWN MENU === */
+.more-wrap { position: relative; }
+
+.more-menu {
+  position: absolute;
+  right: 0;
+  top: 30px; /* Slight offset below the button */
+  width: 150px;
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: menuIn 0.15s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+@keyframes menuIn {
+  from { opacity: 0; transform: scale(0.95) translateY(-5px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #ddd;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.menu-item:hover {
+  background: var(--neon);
+  color: #000; /* Black text on neon purple background */
+  font-weight: 600;
+}
+
+/* === BUTTONS & HOVER EFFECTS === */
 .icon-btn {
   display:inline-flex; align-items:center; justify-content:center;
   width:40px; height:40px; border-radius:10px; border:none;
@@ -129,12 +187,30 @@ html, body, #root {
 .icon-btn.liked { color: #ff4d7a; filter: drop-shadow(0 0 8px #ff4d7a); }
 .icon-btn.danger:hover { color: #ff4d7a; }
 
+/* Library Top Buttons (QR, Upload, Collapse) */
 .small-btn {
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-  color: #ddd; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
-  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.05); 
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #ddd; 
+  padding: 6px 12px; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  font-weight: 600;
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .small-btn.icon-only { padding: 8px; }
+
+/* NEW: Library Button Hover Effect */
+.small-btn:hover {
+  border-color: var(--neon);
+  color: var(--neon);
+  background: rgba(217, 70, 239, 0.1); /* Subtle purple tint */
+  box-shadow: 0 0 15px rgba(217, 70, 239, 0.2);
+  transform: translateY(-1px);
+}
 
 .search-input {
   flex: 1; padding: 10px 12px; border-radius: 8px;
@@ -154,78 +230,38 @@ html, body, #root {
 .big-title { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.5px; margin-bottom: 6px; }
 .big-artist { font-size: 17px; color: #ccc; font-weight: 500; }
 
-/* === SLIDER (FIXED SYMMETRY) === */
+/* === SLIDER === */
 .slider-row { width: 100%; display: flex; align-items: center; gap: 14px; margin-bottom: 20px; height: 30px; }
 
 .neon-range {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 4px; /* Track Height */
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.15);
-  outline: none;
-  cursor: pointer;
-  position: relative;
-  margin: 0;
-  vertical-align: middle;
+  -webkit-appearance: none; width: 100%; height: 4px; border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15); outline: none; cursor: pointer; position: relative; margin: 0; vertical-align: middle;
 }
-
-/* Track styles */
-.neon-range::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 4px;
-  background: transparent; 
-}
-
-/* Thumb styles - FIXED ALIGNMENT */
+.neon-range::-webkit-slider-runnable-track { height: 4px; border-radius: 4px; background: transparent; }
 .neon-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  height: 16px; /* Slightly larger for clarity */
-  width: 16px;
-  border-radius: 50%;
-  background: var(--neon);
-  /* Intense Glow */
-  box-shadow: 0 0 10px var(--neon), 0 0 5px #fff; 
-  cursor: pointer;
-  
-  /* MATH: (Track Height - Thumb Height) / 2 */
-  /* (4px - 16px) / 2 = -6px */
-  margin-top: -6px; 
-  
-  transition: transform 0.1s;
+  -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+  background: var(--neon); box-shadow: 0 0 10px var(--neon), 0 0 5px #fff; 
+  cursor: pointer; margin-top: -6px; transition: transform 0.1s;
 }
-
 .neon-range::-webkit-slider-thumb:active { transform: scale(1.4); }
 
 /* --- PLAY BUTTON --- */
 .play-btn {
-  width: 72px; 
-  height: 72px; 
-  border-radius: 50%; 
-  border: none;
-  background: var(--neon); 
-  color: #050508; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center;
-  cursor: pointer; 
+  width: 72px; height: 72px; border-radius: 50%; border: none;
+  background: var(--neon); color: #050508; 
+  display: flex; align-items: center; justify-content: center; cursor: pointer; 
   box-shadow: 0 8px 32px rgba(217, 70, 239, 0.3); 
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 .play-btn:hover { 
-  transform: scale(1.05); 
-  background: var(--neon-hover);
-  box-shadow: 0 12px 48px rgba(217, 70, 239, 0.5);
-  filter: brightness(1.1);
+  transform: scale(1.05); background: var(--neon-hover);
+  box-shadow: 0 12px 48px rgba(217, 70, 239, 0.5); filter: brightness(1.1);
 }
-
 .play-btn:active { transform: scale(0.95); }
 
 /* Queue Layout */
 .queue-panel { margin-top:20px; background: rgba(255,255,255,0.02); border-radius:16px; padding:16px; border: 1px solid rgba(255,255,255,0.03); }
 .queue-header { display:flex; justify-content:space-between; margin-bottom:12px; align-items: center; }
-
 .queue-controls { display: flex; align-items: center; gap: 12px; }
 
 .queue-item { 
