@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
-// REPLACE THIS WITH YOUR GIF FILE NAME IN THE PUBLIC FOLDER
 const LOADING_GIF = '/loading.svg'; 
 
 function CoverImage({ srcs = [], alt, className }) {
@@ -25,14 +24,14 @@ function CoverImage({ srcs = [], alt, className }) {
 }
 
 export default function MusicApp() {
-  const [songs, setSongs] = useState([]);               
-  const [queue, setQueue] = useState([]);               
+  const [songs, setSongs] = useState([]);                
+  const [queue, setQueue] = useState([]);                
   const [currentIndex, setCurrentIndex] = useState(-1); 
   const [playing, setPlaying] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [repeatMode, setRepeatMode] = useState('off'); 
   const [shuffle, setShuffle] = useState(false);
-  
+   
   // Loading State
   const [isLoading, setIsLoading] = useState(true);
 
@@ -185,7 +184,7 @@ export default function MusicApp() {
   }
 
   function playAtIndex(idx) { if (idx < 0 || idx >= queue.length) return; setCurrentIndex(idx); setPlaying(true); }
-  
+   
   function removeAtIndex(idx) {
     setQueue(prev => {
       const newQ = prev.slice(0, idx).concat(prev.slice(idx + 1));
@@ -297,12 +296,21 @@ export default function MusicApp() {
           ) : (
             <div className="song-list" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', paddingRight: isLibraryCollapsed ? 0 : 4, position: 'relative' }}>
               
-              {/* === GIF LOADER (Below Header) === */}
+              {/* === CLEAN SVG LOADER === */}
               {isLoading ? (
                 <div className="loading-container">
-                   {/* MAKE SURE TO ADD 'loading.gif' TO YOUR PUBLIC FOLDER */}
-                   <img src={LOADING_GIF} alt="Loading..." className="loading-gif" onError={(e) => e.target.style.display='none'} />
-                   <div className="loading-text">Dropping the beat...</div>
+                  <svg 
+                    className="loading-logo" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                  </svg>
+                  <div className="loading-text">Loading Library</div>
                 </div>
               ) : visibleSongs.length === 0 ? (
                  <div style={{ padding: 12, color: 'var(--text-secondary)' }}>No songs found.</div>
