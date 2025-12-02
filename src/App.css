@@ -1,4 +1,4 @@
-/* src/App.css — Final Version: #9146ff Electric Violet */
+/* src/App.css — Final Version: Fixed Play Button Shape & Contrast */
 
 /* 1. UNIVERSAL RESET */
 * {
@@ -10,9 +10,9 @@
 
 :root {
   /* --- ELECTRIC VIOLET THEME (#9146ff) --- */
-  --neon: #9146ff;        /* The specific color you requested */
-  --neon-hover: #7c2cf2;  /* Slightly deeper violet for hover state */
-  --neon-pink: #ff3bf0;   /* Kept for logo match */
+  --neon: #9146ff;        
+  --neon-hover: #7c2cf2;  
+  --neon-pink: #ff3bf0;   
   
   --scroll-thumb: rgba(255,255,255,0.03);
   --scroll-thumb-hover: rgba(255,255,255,0.06);
@@ -160,7 +160,7 @@ html, body, #root {
 
 .menu-item:hover {
   background: var(--neon);
-  color: #fff; /* White text on violet looks better */
+  color: #fff; 
   font-weight: 600;
 }
 
@@ -194,7 +194,7 @@ html, body, #root {
 .small-btn:hover {
   border-color: var(--neon);
   color: var(--neon);
-  background: rgba(145, 70, 255, 0.1); /* Subtle violet tint */
+  background: rgba(145, 70, 255, 0.1); 
   box-shadow: 0 0 15px rgba(145, 70, 255, 0.2);
   transform: translateY(-1px);
 }
@@ -233,19 +233,39 @@ html, body, #root {
 }
 .neon-range::-webkit-slider-thumb:active { transform: scale(1.4); }
 
-/* --- PLAY BUTTON --- */
+/* --- PLAY BUTTON (FIXED) --- */
 .play-btn {
-  width: 72px; height: 72px; border-radius: 50%; border: none;
-  background: var(--neon); color: #fff; 
-  display: flex; align-items: center; justify-content: center; cursor: pointer; 
-  /* Shadow matched to #9146ff (RGB: 145, 70, 255) */
+  /* Dimensions locked to prevent oval shape */
+  width: 72px; 
+  height: 72px; 
+  min-width: 72px; 
+  min-height: 72px;
+  flex-shrink: 0; /* CRITICAL: Prevents squishing on mobile */
+  
+  border-radius: 50%; 
+  border: none;
+  background: var(--neon); 
+  
+  /* Text/Icon color fixed to WHITE */
+  color: #ffffff; 
+  
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  cursor: pointer; 
   box-shadow: 0 8px 32px rgba(145, 70, 255, 0.3); 
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .play-btn:hover { 
-  transform: scale(1.05); background: var(--neon-hover);
-  box-shadow: 0 12px 48px rgba(145, 70, 255, 0.5); filter: brightness(1.1);
+  transform: scale(1.05); 
+  background: var(--neon-hover);
+  /* Force color to stay white on hover */
+  color: #ffffff; 
+  box-shadow: 0 12px 48px rgba(145, 70, 255, 0.5); 
+  filter: brightness(1.1);
 }
+
 .play-btn:active { transform: scale(0.95); }
 
 /* Queue Layout */
@@ -259,7 +279,6 @@ html, body, #root {
   background: transparent; 
 }
 .queue-item:hover { background: rgba(255,255,255,0.04); }
-/* Queue Current Item Highlight using #9146ff */
 .queue-item.current { background: rgba(145, 70, 255, 0.1); border: 1px solid rgba(145, 70, 255, 0.2); }
 
 .q-left { display:flex; gap:12px; align-items:center; flex: 1; min-width: 0; }
