@@ -9,7 +9,8 @@ import { QRCodeCanvas } from "qrcode.react";
 import { 
   Heart, Trash2, ArrowUp, ArrowDown, Play, Pause,
   MoreHorizontal, Plus, ListMusic, Shuffle, 
-  PanelLeftClose, PanelLeftOpen, QrCode, ChevronDown 
+  PanelLeftClose, PanelLeftOpen, QrCode, ChevronDown,
+  Search, Upload, ListPlus, SkipForward, PlayCircle
 } from "lucide-react";
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -260,7 +261,7 @@ export default function MusicApp() {
                </div>
 
                <button className="small-btn" onClick={() => setShowUpload(v => !v)} title="Upload">
-                  {showUpload ? 'Back' : <Plus size={18}/>}
+                  {showUpload ? 'Back' : <Upload size={18}/>}
                </button>
                <button className="small-btn" onClick={() => toggleShuffle()} title="Shuffle Library">
                   <Shuffle size={18} color={shuffle ? 'var(--neon)' : 'white'} />
@@ -271,12 +272,16 @@ export default function MusicApp() {
 
         {!isLibraryCollapsed && (
           <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', }}>
-            <input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search..."
-              className="search-input"
-            />
+             <div style={{ position: 'relative', flex: 1 }}>
+                <Search size={16} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                <input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search..."
+                className="search-input"
+                style={{ paddingLeft: 32, width: '100%' }}
+                />
+            </div>
             {searchTerm && <button className="small-btn" onClick={() => setSearchTerm('')}>Clear</button>}
           </div>
         )}
@@ -310,9 +315,15 @@ export default function MusicApp() {
                         </button>
                         {openMenuSongId === s.id && (
                           <div className="more-menu" onClick={(ev) => ev.stopPropagation()}>
-                            <button className="menu-item" onClick={() => addToQueue(s.id)}>Add to queue</button>
-                            <button className="menu-item" onClick={() => playNextNow(s.id)}>Play next</button>
-                            <button className="menu-item" onClick={() => { playSong(s); setOpenMenuSongId(null); }}>Play now</button>
+                            <button className="menu-item" onClick={() => addToQueue(s.id)}>
+                                <ListPlus size={16} style={{marginRight: 8}}/> Add to queue
+                            </button>
+                            <button className="menu-item" onClick={() => playNextNow(s.id)}>
+                                <SkipForward size={16} style={{marginRight: 8}}/> Play next
+                            </button>
+                            <button className="menu-item" onClick={() => { playSong(s); setOpenMenuSongId(null); }}>
+                                <PlayCircle size={16} style={{marginRight: 8}}/> Play now
+                            </button>
                           </div>
                         )}
                       </div>
@@ -439,24 +450,24 @@ export default function MusicApp() {
       {current && !isLibraryCollapsed && (
         <div className="mini-player" onClick={() => setIsLibraryCollapsed(true)}>
            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-              <img src={current.coverUrl || current.artistImageUrl || PERSON_PLACEHOLDER} className="mini-cover" onError={(e)=>e.currentTarget.src=PERSON_PLACEHOLDER}/>
-              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+             <img src={current.coverUrl || current.artistImageUrl || PERSON_PLACEHOLDER} className="mini-cover" onError={(e)=>e.currentTarget.src=PERSON_PLACEHOLDER}/>
+             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                  <div className="mini-title">{current.title}</div>
                  <div className="mini-artist">{current.artistName}</div>
-              </div>
+             </div>
            </div>
            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button className="icon-btn" onClick={(e) => { e.stopPropagation(); toggleLike(current.id); }}>
+             <button className="icon-btn" onClick={(e) => { e.stopPropagation(); toggleLike(current.id); }}>
                  <Heart size={20} fill={current.liked ? "var(--neon-pink)" : "none"} color={current.liked ? "var(--neon-pink)" : "white"} />
-              </button>
-              <button className="icon-btn" onClick={(e) => { e.stopPropagation(); setPlaying(p => !p); }}>
+             </button>
+             <button className="icon-btn" onClick={(e) => { e.stopPropagation(); setPlaying(p => !p); }}>
                  {playing ? <Pause size={24} fill="white"/> : <Play size={24} fill="white"/>}
-              </button>
+             </button>
            </div>
            
            {/* Mini Progress Bar */}
            <div className="mini-progress">
-              <div className="mini-progress-fill" style={{ width: '100%', animation: playing ? 'progress 30s linear' : 'none' }}></div>
+             <div className="mini-progress-fill" style={{ width: '100%', animation: playing ? 'progress 30s linear' : 'none' }}></div>
            </div>
         </div>
       )}
