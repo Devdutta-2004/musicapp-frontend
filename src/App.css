@@ -130,7 +130,7 @@ html, body, #root {
 /* Lyrics */
 .lyrics-right { flex:1; padding-top:20px; display:flex; flex-direction:column; }
 .lyrics-heading { font-size:24px; font-weight:700; color: #fff; margin-bottom:16px; }
-.lyrics-box { background: rgba(255,255,255,0.03); border-radius:12px; padding:20px; height:70%; overflow-y:auto; color:#aaa; font-size:16px; line-height:1.6; flex:1 1 auto; max-height: calc(100vh - 170px); }
+.lyrics-box { background: rgba(255,255,255,0.03); border-radius:12px; padding:20px; height:70%; overflow-y:auto; color:#aaa; font-size:16px; line-height:1.6; flex:1 1 auto; max-height: calc(100vh - 200px); }
 
 /* Utilities */
 .mini-player, .mobile-only-header { display: none; }
@@ -206,7 +206,7 @@ html, body, #root {
   /* 4. Lyrics Panel */
   .lyrics-right {
     width: 100%;
-    height: 400px; /* Force fixed height */
+    height: 580px; /* Force fixed height */
     flex: 0 0 auto; /* Don't shrink */
     margin-bottom: 20px;
   }
