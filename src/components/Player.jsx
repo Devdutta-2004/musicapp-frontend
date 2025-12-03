@@ -29,8 +29,6 @@ export default function Player({
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [seeking, setSeeking] = useState(false);
-  
-  // This state tracks if the audio is loading/stuck
   const [buffering, setBuffering] = useState(false);
 
   // Ref to prevent infinite loops with the progress bar
@@ -43,8 +41,6 @@ export default function Player({
   function updateRange(percent) {
     const el = rangeRef.current;
     if (!el) return;
-    // Only update the background gradient if NOT buffering
-    // (CSS handles the buffering animation)
     if (!buffering) {
         el.style.background = `linear-gradient(90deg, var(--neon) ${percent}%, rgba(255,255,255,0.07) ${percent}%)`;
     }
@@ -79,7 +75,7 @@ export default function Player({
     function onLoadedMetadata(e) {
       const d = Math.floor(e.target.duration) || 0;
       setDuration(d);
-      setBuffering(false); // Metadata loaded means we are getting there
+      setBuffering(false);
       updateRange(d ? (audio.currentTime / d) * 100 : 0);
     }
 
@@ -92,11 +88,11 @@ export default function Player({
       }
     }
 
-    function onLoadStart() { setBuffering(true); } // Show line immediately when loading starts
-    function onWaiting() { setBuffering(true); }   // Show line if internet causes a pause
+    function onLoadStart() { setBuffering(true); }
+    function onWaiting() { setBuffering(true); }
     
     function onCanPlay() { 
-        setBuffering(false); // Hide line when ready
+        setBuffering(false);
         if (playing) attemptPlay(); 
     }
     
@@ -124,13 +120,13 @@ export default function Player({
       audio.removeEventListener('error', onError);
       if (stuckIntervalRef.current) { clearInterval(stuckIntervalRef.current); stuckIntervalRef.current = null; }
     };
-  }, [duration, seeking, playing, onEnded, time]); // Dependencies
+  }, [duration, seeking, playing, onEnded, time]);
 
   // --- SOURCE CHANGE ---
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    setTime(0); setDuration(0); setBuffering(true); // Default to buffering on new song
+    setTime(0); setDuration(0); setBuffering(true);
     stuckAttemptsRef.current = 0;
 
     if (!song || !song.streamUrl) {
@@ -214,7 +210,6 @@ export default function Player({
         <div className="time-left" aria-hidden style={{ fontSize: 12 }}>{formatTime(time)}</div>
         <input
           ref={rangeRef}
-          // Here we apply the 'buffering' class if the state is true
           className={`range neon-range ${buffering ? 'buffering' : ''}`}
           type="range"
           min={0}
@@ -266,6 +261,8 @@ export default function Player({
         autoPlay={playing}
         playsInline
         style={{ display: 'none' }}
+        // === FIXED: THIS MAKES REPEAT ONE WORK ===
+        loop={repeatMode === 'one'} 
       />
     </div>
   );
