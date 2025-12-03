@@ -1,6 +1,7 @@
 // src/components/UploadCard.jsx
 import React, { useState } from "react";
 import axios from "axios";
+import '../App.css'; // Ensure CSS is imported
 
 export default function UploadCard({ onUploaded }) {
   const [file, setFile] = useState(null);
@@ -14,8 +15,6 @@ export default function UploadCard({ onUploaded }) {
 
   // -------------------------------------------------------------------------
   // 🛑 TODO: PASTE YOUR RENDER BACKEND URL HERE
-  // Go to your Render Dashboard -> Copy the URL (e.g. https://music-app.onrender.com)
-  // Do NOT add a slash "/" at the end.
   // -------------------------------------------------------------------------
   const API_BASE = "https://groove-j0kw.onrender.com"; 
   // -------------------------------------------------------------------------
@@ -24,7 +23,6 @@ export default function UploadCard({ onUploaded }) {
     e.preventDefault();
     if (!file) return alert("Please choose an audio file.");
 
-    // Check if user forgot to replace the URL
     if (API_BASE.includes("REPLACE_THIS")) {
       return alert("Setup Error: You forgot to paste your Render Backend URL inside UploadCard.jsx!");
     }
@@ -41,7 +39,6 @@ export default function UploadCard({ onUploaded }) {
     setProgress(0);
 
     try {
-      // FIXED: Now uses the absolute URL to your backend
       const url = `${API_BASE}/api/songs/upload`;
       console.log("Uploading to:", url);
 
@@ -54,7 +51,6 @@ export default function UploadCard({ onUploaded }) {
         },
       });
 
-      // reset
       setFile(null);
       setCoverImage(null);
       setArtistImage(null);
@@ -79,64 +75,77 @@ export default function UploadCard({ onUploaded }) {
   };
 
   return (
-    <div style={{ background: "#111", padding: 12, borderRadius: 8 }}>
-      <strong style={{ display: "block", marginBottom: 8 }}>
-        Upload a song
-      </strong>
+    <div className="upload-card">
+      <strong className="upload-title">Upload a Song</strong>
 
       <form onSubmit={submit}>
-        <div style={{ marginBottom: 8 }}>
-          <input type="file" accept="audio/*" onChange={(e) => setFile(e.target.files[0])} />
+        <div className="form-group">
+          <label className="file-label-text">Audio File *</label>
+          <input 
+            className="file-input" 
+            type="file" 
+            accept="audio/*" 
+            onChange={(e) => setFile(e.target.files[0])} 
+          />
         </div>
 
-        <div style={{ marginBottom: 8 }}>
+        <div className="form-group">
           <input
-            placeholder="Title (optional)"
+            className="upload-input"
+            placeholder="Song Title (optional)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
         </div>
 
-        <div style={{ marginBottom: 8 }}>
+        <div className="form-group">
           <input
-            placeholder="Artist name (optional)"
+            className="upload-input"
+            placeholder="Artist Name (optional)"
             value={artistName}
             onChange={(e) => setArtistName(e.target.value)}
           />
         </div>
 
-        <div style={{ marginBottom: 8 }}>
+        <div className="form-group">
           <input
-            placeholder="Album (optional)"
+            className="upload-input"
+            placeholder="Album Name (optional)"
             value={album}
             onChange={(e) => setAlbum(e.target.value)}
           />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ fontSize: 12, color: "#ccc", display: "block", marginBottom: 4 }}>
-            Artist Image (optional)
-          </label>
-          <input type="file" accept="image/*" onChange={(e) => setArtistImage(e.target.files[0])} />
+        <div className="form-group">
+          <label className="file-label-text">Artist Image (optional)</label>
+          <input 
+            className="file-input" 
+            type="file" 
+            accept="image/*" 
+            onChange={(e) => setArtistImage(e.target.files[0])} 
+          />
         </div>
 
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ fontSize: 12, color: "#ccc", display: "block", marginBottom: 4 }}>
-            Cover Image (optional)
-          </label>
-          <input type="file" accept="image/*" onChange={(e) => setCoverImage(e.target.files[0])} />
+        <div className="form-group">
+          <label className="file-label-text">Cover Image (optional)</label>
+          <input 
+            className="file-input" 
+            type="file" 
+            accept="image/*" 
+            onChange={(e) => setCoverImage(e.target.files[0])} 
+          />
         </div>
 
-        <button type="submit" disabled={loading} style={{ padding: "8px 12px" }}>
-          {loading ? "Uploading..." : "Upload"}
+        <button className="upload-btn" type="submit" disabled={loading}>
+          {loading ? "Uploading..." : "Upload Song"}
         </button>
 
         {loading && (
-          <div style={{ marginTop: 8 }}>
-            <div style={{ height: 6, background: "#222", borderRadius: 6, overflow: "hidden" }}>
-              <div style={{ width: `${progress}%`, height: "100%", background: "#11b84a" }} />
+          <div className="upload-progress-container">
+            <div className="progress-track">
+              <div className="progress-fill" style={{ width: `${progress}%` }} />
             </div>
-            <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>{progress}%</div>
+            <div className="progress-text">{progress}%</div>
           </div>
         )}
       </form>
