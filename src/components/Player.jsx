@@ -22,7 +22,7 @@ export default function Player({
   onToggleShuffle,
   hideCover = false,
   hideMeta = false,
-  onProgress, // <--- 1. NEW PROP ADDED HERE
+  onProgress, 
 }) {
   const audioRef = useRef(null);
   const rangeRef = useRef(null);
@@ -30,6 +30,10 @@ export default function Player({
   const [duration, setDuration] = useState(0);
   const [seeking, setSeeking] = useState(false);
   const [buffering, setBuffering] = useState(false);
+
+  // --- CRITICAL FIX: Use Ref for progress to prevent re-render loops ---
+  const onProgressRef = useRef(onProgress);
+  useEffect(() => { onProgressRef.current = onProgress; }, [onProgress]);
 
   const stuckAttemptsRef = useRef(0);
   const stuckIntervalRef = useRef(null);
@@ -53,7 +57,6 @@ export default function Player({
     if (!a) return;
     stuckAttemptsRef.current = 0;
     
-    // Only attempt to play if currently paused to prevent interruption errors
     if (a.paused) {
         const p = a.play();
         if (p && typeof p.catch === 'function') {
@@ -78,20 +81,16 @@ export default function Player({
         setTime(t);
         updateRange(duration ? (t / duration) * 100 : 0);
         
-        // --- 2. NEW: Send progress back to parent for Mini Player ---
-        if (onProgress) onProgress(t, duration); 
+        // Use the Ref so we don't restart the useEffect
+        if (onProgressRef.current) onProgressRef.current(t, duration); 
       }
     }
 
     function onWaiting() { setBuffering(true); }
-    
-    // This event is critical for background play. 
-    // It fires when the browser is ready to play.
     function onCanPlay() { 
         setBuffering(false); 
         if (playing) attemptPlay(); 
     }
-    
     function onStalled() { setBuffering(true); }
     function onEndedInternal() { if (typeof onEnded === 'function') onEnded(); }
     function onError(e) { console.warn('Audio error', e); setBuffering(false); }
@@ -114,9 +113,9 @@ export default function Player({
       audio.removeEventListener('error', onError);
       if (stuckIntervalRef.current) { clearInterval(stuckIntervalRef.current); stuckIntervalRef.current = null; }
     };
-  }, [duration, seeking, playing, onEnded, time, onProgress]); // Added onProgress to deps
+    // Removed 'onProgress' from dependencies to stop the loop
+  }, [duration, seeking, playing, onEnded, time]); 
 
-  // --- SOURCE CHANGE EFFECT ---
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -133,12 +132,8 @@ export default function Player({
        audio.src = safeUrl; 
        try { audio.load(); } catch (_) {}
     }
-
-    // REMOVED: setTimeout logic. 
-    // The autoPlay attribute on the <audio> tag now handles this natively.
   }, [song?.id, song?.streamUrl]);
 
-  // --- PLAY/PAUSE TOGGLE & WATCHDOG ---
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -223,7 +218,6 @@ export default function Player({
         <div className="time-right" aria-hidden style={{ fontSize: 12 }}>{formatTime(duration)}</div>
       </div>
 
-      {/* --- CONTROLS ROW (FIXED SPACING) --- */}
       <div className="controls" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 24, padding: '0 8px' }}>
         <button className={`icon-btn ${shuffle ? "active" : ""}`} onClick={onToggleShuffle} aria-pressed={shuffle} title="Shuffle">
           <Shuffle size={20}/>
@@ -246,7 +240,6 @@ export default function Player({
           {repeatMode === "one" ? <Repeat1 size={20}/> : <Repeat size={20}/>}
         </button>
         
-        {/* Like Button (Added to main controls row for mobile) */}
         <button className={`icon-btn ${song?.liked ? "liked" : ""}`} onClick={onToggleLike} title={song?.liked ? 'Unlike' : 'Like'} aria-pressed={!!song?.liked}>
           <Heart size={20} fill={song?.liked ? "currentColor" : "none"}/>
         </button>
@@ -255,9 +248,9 @@ export default function Player({
       <audio
         ref={audioRef}
         src={song?.streamUrl ? encodeURI(song.streamUrl) : undefined} 
-        preload="auto"          // UPDATED: Preload auto helps background buffering
-        autoPlay={playing}      // UPDATED: Forces native browser play
-        playsInline             // UPDATED: Required for iOS stability
+        preload="auto"
+        autoPlay={playing}
+        playsInline
         style={{ display: 'none' }}
       />
     </div>
