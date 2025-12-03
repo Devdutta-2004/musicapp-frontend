@@ -9,7 +9,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import { 
   Heart, Trash2, ArrowUp, ArrowDown, Play, Pause,
   MoreHorizontal, Plus, ListMusic, Shuffle, 
-  PanelLeftClose, PanelLeftOpen, QrCode, ChevronDown,
+  QrCode, ChevronDown, ChevronLeft, ChevronRight, // <--- CHANGED ICONS
   Search, Upload, ListPlus, SkipForward, PlayCircle
 } from "lucide-react";
 
@@ -240,8 +240,7 @@ export default function MusicApp() {
           maxWidth: isLibraryCollapsed ? '80px' : '720px' 
         }}
       >
-        {/* === HEADER: LEFT (Logo/Refresh) | RIGHT (Controls) === */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: isLibraryCollapsed ? 0 : 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: isLibraryCollapsed ? 0 : 12 }}>
           
           {/* LEFT SIDE: Logo & Text (Click to Refresh) */}
           <div 
@@ -249,10 +248,10 @@ export default function MusicApp() {
             style={{ 
               display: 'flex', 
               alignItems: 'center', 
-              gap: 12, 
+              gap: 10, 
               cursor: 'pointer',
               flex: 1, 
-              minWidth: 0,
+              minWidth: 0, /* Allows text to truncate if needed */
               userSelect: 'none'
             }}
             title="Refresh App"
@@ -260,15 +259,18 @@ export default function MusicApp() {
             <img 
               src="/logo192.png" 
               alt="JAM" 
-              style={{ width: 28, height: 28, objectFit: 'contain' }}
+              style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }}
             />
-            {!isLibraryCollapsed && <h3 style={{ margin: 0 }}>Library</h3>}
+            {!isLibraryCollapsed && (
+              <h3 style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Library
+              </h3>
+            )}
           </div>
 
-          {/* RIGHT SIDE: Action Buttons */}
-          <div style={{ display: 'flex', gap: 8 }}>
+          {/* RIGHT SIDE: Action Buttons (Fixed width container prevents cutoff) */}
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
              
-             {/* Only show QR and Upload when Expanded */}
              {!isLibraryCollapsed && (
                <>
                  <div style={{ position: 'relative' }}>
@@ -288,14 +290,14 @@ export default function MusicApp() {
                </>
              )}
 
-             {/* Collapse Button: NOW AT THE EXTREME RIGHT (Replaces Shuffle) */}
+             {/* COLLAPSE/EXPAND: Uses Simple Arrows now */}
              <button 
                 className="small-btn icon-only" 
                 onClick={() => setIsLibraryCollapsed(v => !v)} 
                 title={isLibraryCollapsed ? "Expand Library" : "Collapse Library"}
                 style={{ zIndex: 50 }} 
              >
-                {isLibraryCollapsed ? <PanelLeftOpen size={18}/> : <PanelLeftClose size={18}/>}
+                {isLibraryCollapsed ? <ChevronRight size={22}/> : <ChevronLeft size={22}/>}
              </button>
           </div>
         </div>
