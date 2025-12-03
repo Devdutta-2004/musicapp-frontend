@@ -35,7 +35,7 @@ export default function MusicApp() {
   // Loading State
   const [isLoading, setIsLoading] = useState(true);
 
-  // NEW: State to track song progress for mini-player
+  // State to track song progress for mini-player
   const [songProgress, setSongProgress] = useState(0);
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -90,7 +90,6 @@ export default function MusicApp() {
       console.error('fetchSongs', e);
       setSongs([]);
     } finally {
-      // Keep a small delay so users can see your cool GIF
       setTimeout(() => setIsLoading(false), 2000);
     }
   }
@@ -252,7 +251,28 @@ export default function MusicApp() {
                 {isLibraryCollapsed ? <PanelLeftOpen size={18}/> : <PanelLeftClose size={18}/>}
           </button>
 
-          {!isLibraryCollapsed && <h3 style={{ margin: 0, flex: 1 }}>Library</h3>}
+          {/* === 1. CLICKABLE REFRESH HEADER (Logo + Text) === */}
+          {!isLibraryCollapsed && (
+            <div 
+              onClick={() => window.location.reload()} 
+              style={{ 
+                flex: 1, 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 12, 
+                cursor: 'pointer',
+                userSelect: 'none'
+              }}
+              title="Click to Refresh App"
+            >
+              <img 
+                src="/logo192.png" 
+                alt="JAM" 
+                style={{ width: 28, height: 28, objectFit: 'contain' }}
+              />
+              <h3 style={{ margin: 0 }}>Library</h3>
+            </div>
+          )}
 
           {!isLibraryCollapsed && (
             <div style={{ display: 'flex', gap: 8 }}>
@@ -402,7 +422,7 @@ export default function MusicApp() {
                       onToggleShuffle={toggleShuffle}
                       hideCover={true}
                       hideMeta={true}
-                      // --- NEW: Pass progress callback ---
+                      // Progress callback
                       onProgress={(curr, total) => setSongProgress(total ? (curr / total) * 100 : 0)}
                     />
                   </div>
@@ -496,7 +516,13 @@ export default function MusicApp() {
            
            {/* Mini Progress Bar - CONNECTED TO STATE */}
            <div className="mini-progress">
-             <div className="mini-progress-fill" style={{ width: `${songProgress}%` ,transition: 'width 0.1s linear'}}></div>
+             <div 
+                className="mini-progress-fill" 
+                style={{ 
+                  width: `${songProgress}%`,
+                  transition: 'width 0.1s linear'
+                }}
+             ></div>
            </div>
         </div>
       )}
