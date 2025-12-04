@@ -304,9 +304,11 @@ html, body, #root {
 *::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius:4px; }
 
 /* ------------------ MOBILE LAYOUT FIXES ------------------ */
+/* ------------------ MOBILE LAYOUT FIXES (With Animations) ------------------ */
 @media (max-width: 768px) {
   .app-shell { flex-direction: column; height: 100vh; overflow: hidden; width: 100%; }
 
+  /* === UPDATED LIBRARY === */
   .library:not(.collapsed) {
     width: 100% !important; 
     max-width: 100% !important; 
@@ -317,40 +319,49 @@ html, body, #root {
     z-index: 10;
   }
   
+  /* Keep Library visible in background when Player is open (for smooth animation) */
+  .library.collapsed {
+    display: flex !important; /* Force visible */
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    z-index: 1; /* Behind player */
+  }
+  
   .library > div:first-child { gap: 8px !important; }
   .library > div:first-child > div:last-child { gap: 4px !important; }
   .library h3 { font-size: 18px; }
 
-  .player-area.mobile-hidden { display: none; }
-
-  /* === 2. UPDATED MINI PLAYER (MORE TRANSPARENT) === */
-  .mini-player {
-    display: flex; position: fixed; bottom: 16px; left: 12px; right: 12px;
-    height: 68px; 
-    
-    /* More Transparent & Glassy */
-    background: rgba(15, 15, 20, 0.45); 
-    backdrop-filter: blur(40px) saturate(180%); 
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    
-    border: 1px solid rgba(255, 255, 255, 0.08); 
-    border-radius: 14px;
-    align-items: center; padding: 0 12px; z-index: 100;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6); cursor: pointer;
-  }
-  
-  .mini-cover { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
-  .mini-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 2px; }
-  .mini-artist { font-size: 13px; color: #bbb; }
-  .mini-progress { position: absolute; bottom: -1px; left: 14px; right: 14px; height: 2px; background: rgba(255,255,255,0.1); overflow: hidden; }
-  .mini-progress-fill { height: 100%; background: var(--neon); box-shadow: 0 0 8px var(--neon); }
-
-  .library.collapsed { display: none; }
+  /* === ANIMATED FULL SCREEN PLAYER === */
   .player-area {
-    display: flex; flex-direction: column; position: fixed; top: 0; left: 0; 
-    width: 100%; height: 100%; background: var(--bg-primary); z-index: 200;
-    padding: 20px 16px; overflow-y: auto; overflow-x: hidden; max-width: 100vw;
+    display: flex; 
+    flex-direction: column; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: var(--bg-primary); 
+    z-index: 200;
+    padding: 20px 16px; 
+    overflow-y: auto; 
+    overflow-x: hidden; 
+    max-width: 100vw;
+    
+    /* ANIMATION MAGIC */
+    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s ease;
+    transform: translateY(0); /* Fully Visible */
+    opacity: 1;
   }
+
+  /* Hidden State (Slides Down) */
+  .player-area.mobile-hidden {
+    display: flex !important; /* Keep layout alive for animation */
+    transform: translateY(100%); /* Push off screen to bottom */
+    opacity: 1; /* Keep opacity 1 so it looks solid sliding down */
+    pointer-events: none; /* Prevent clicks when hidden */
+  }
+
   .mobile-only-header { display: flex; justify-content: flex-start; padding-bottom: 10px; flex-shrink: 0; }
   .content-split { display: flex; flex-direction: column; height: auto; padding: 0; gap: 24px; flex-shrink: 0; width: 100%; }
   .nowplaying-left { width: 100%; flex: 0 0 auto; }
@@ -360,6 +371,28 @@ html, body, #root {
   .lyrics-right { width: 100%; height: 580px; flex: 0 0 auto; margin-bottom: 20px; }
   .queue-panel { margin-top: 20px; width: 100%; flex: 0 0 auto; padding-bottom: 60px; }
   .mini-title, .mini-artist { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
+
+  /* === MINI PLAYER === */
+  .mini-player {
+    display: flex; position: fixed; bottom: 16px; left: 12px; right: 12px;
+    height: 68px; 
+    /* Glass Effect */
+    background: rgba(15, 15, 20, 0.45); 
+    backdrop-filter: blur(40px) saturate(180%); 
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08); 
+    border-radius: 14px;
+    align-items: center; padding: 0 12px; z-index: 100;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6); cursor: pointer;
+    /* Mini player fades in/out inversely to main player could be complex, 
+       but standard React unmount works fine with the slide-over effect */
+  }
+  
+  .mini-cover { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
+  .mini-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .mini-artist { font-size: 13px; color: #bbb; }
+  .mini-progress { position: absolute; bottom: -1px; left: 14px; right: 14px; height: 2px; background: rgba(255,255,255,0.1); overflow: hidden; }
+  .mini-progress-fill { height: 100%; background: var(--neon); box-shadow: 0 0 8px var(--neon); }
 }
 
 /* --- BUFFERING ANIMATION (Slider) --- */
