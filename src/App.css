@@ -1,4 +1,4 @@
-/* src/App.css — Final Version: Fixed Play Button Shape & Contrast */
+/* src/App.css — Final Version: Better Glow & Glass Effect */
 
 /* 1. UNIVERSAL RESET */
 * {
@@ -210,7 +210,21 @@ html, body, #root {
 .nowplaying-left, .lyrics-right { flex:1; min-width:0; }
 
 .glow-container { position: relative; width: 100%; max-width: 320px; aspect-ratio: 1/1; margin: 0 auto 32px auto; }
-.glow-bg { position: absolute; top: 12%; left: 0; width: 100%; height: 100%; filter: blur(50px) saturate(200%); opacity: 0.6; z-index: 0; transform: scale(0.96); border-radius: 40px; }
+
+/* === 1. UPDATED GLOW EFFECT === */
+.glow-bg { 
+  position: absolute; 
+  top: 0;           /* Centered vertically */
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  filter: blur(70px) saturate(200%); /* Softer, wider blur */
+  opacity: 0.6; 
+  z-index: 0; 
+  transform: scale(1.1); /* Spills out on all sides */
+  border-radius: 40px; 
+}
+
 .real-cover { position: relative; z-index: 1; width: 100%; height: 100%; border-radius: 20px; object-fit: cover; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
 
 .big-text { text-align: center; margin-top: 16px; margin-bottom: 24px; }
@@ -235,37 +249,20 @@ html, body, #root {
 
 /* --- PLAY BUTTON (FIXED) --- */
 .play-btn {
-  /* Dimensions locked to prevent oval shape */
-  width: 72px; 
-  height: 72px; 
-  min-width: 72px; 
-  min-height: 72px;
-  flex-shrink: 0; /* CRITICAL: Prevents squishing on mobile */
-  
-  border-radius: 50%; 
-  border: none;
-  background: var(--neon); 
-  
-  /* Text/Icon color fixed to WHITE */
-  color: #ffffff; 
-  
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  cursor: pointer; 
+  width: 72px; height: 72px; min-width: 72px; min-height: 72px;
+  flex-shrink: 0; 
+  border-radius: 50%; border: none;
+  background: var(--neon); color: #ffffff; 
+  display: flex; align-items: center; justify-content: center; cursor: pointer; 
   box-shadow: 0 8px 32px rgba(145, 70, 255, 0.3); 
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
 .play-btn:hover { 
-  transform: scale(1.05); 
-  background: var(--neon-hover);
-  /* Force color to stay white on hover */
+  transform: scale(1.05); background: var(--neon-hover);
   color: #ffffff; 
   box-shadow: 0 12px 48px rgba(145, 70, 255, 0.5); 
   filter: brightness(1.1);
 }
-
 .play-btn:active { transform: scale(0.95); }
 
 /* Queue Layout */
@@ -306,49 +303,42 @@ html, body, #root {
 *::-webkit-scrollbar { width:6px; }
 *::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius:4px; }
 
-/* ------------------ MOBILE LAYOUT ------------------ */
 /* ------------------ MOBILE LAYOUT FIXES ------------------ */
 @media (max-width: 768px) {
   .app-shell { flex-direction: column; height: 100vh; overflow: hidden; width: 100%; }
 
-  /* === UPDATED LIBRARY STYLES === */
   .library:not(.collapsed) {
     width: 100% !important; 
     max-width: 100% !important; 
     height: 100%;
     border-radius: 0; 
     margin: 0; 
-    /* Changed padding: Top 20px, Left/Right 12px, Bottom 90px (for player) */
     padding: 20px 12px 90px 12px; 
     z-index: 10;
   }
   
-  /* Tighten the header gaps on mobile to prevent cut-off */
-  .library > div:first-child {
-    gap: 8px !important; 
-  }
-  .library > div:first-child > div:last-child {
-    gap: 4px !important;
-  }
-  
-  /* Slightly smaller title on mobile to save space */
-  .library h3 {
-    font-size: 18px; 
-  }
+  .library > div:first-child { gap: 8px !important; }
+  .library > div:first-child > div:last-child { gap: 4px !important; }
+  .library h3 { font-size: 18px; }
 
   .player-area.mobile-hidden { display: none; }
 
+  /* === 2. UPDATED MINI PLAYER (MORE TRANSPARENT) === */
   .mini-player {
     display: flex; position: fixed; bottom: 16px; left: 12px; right: 12px;
     height: 68px; 
-    background: rgba(15, 15, 20, 0.60); 
-    backdrop-filter: blur(30px) saturate(180%); 
-    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    
+    /* More Transparent & Glassy */
+    background: rgba(15, 15, 20, 0.45); 
+    backdrop-filter: blur(40px) saturate(180%); 
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    
     border: 1px solid rgba(255, 255, 255, 0.08); 
     border-radius: 14px;
     align-items: center; padding: 0 12px; z-index: 100;
     box-shadow: 0 10px 40px rgba(0,0,0,0.6); cursor: pointer;
   }
+  
   .mini-cover { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
   .mini-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 2px; }
   .mini-artist { font-size: 13px; color: #bbb; }
@@ -371,26 +361,25 @@ html, body, #root {
   .queue-panel { margin-top: 20px; width: 100%; flex: 0 0 auto; padding-bottom: 60px; }
   .mini-title, .mini-artist { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
 }
+
 /* --- BUFFERING ANIMATION (Slider) --- */
 @keyframes buffer-slide {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* When the player is buffering */
 .range.buffering {
-  /* We use !important to override the inline JS gradient temporarily */
   background-image: linear-gradient(
     90deg, 
     rgba(255, 255, 255, 0.1) 25%, 
     #ffffff 50%, 
     rgba(255, 255, 255, 0.1) 75%
   ) !important;
-  
   background-size: 200% 100% !important;
   animation: buffer-slide 1.5s infinite linear;
   opacity: 0.8;
 }
+
 /* --- UPLOAD CARD STYLES --- */
 .upload-card {
   background: rgba(255, 255, 255, 0.03);
@@ -405,118 +394,57 @@ html, body, #root {
 }
 
 .upload-title {
-  display: block;
-  font-size: 18px;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 20px;
-  text-align: center;
-  letter-spacing: 0.5px;
+  display: block; font-size: 18px; font-weight: 700; color: #fff;
+  margin-bottom: 20px; text-align: center; letter-spacing: 0.5px;
 }
 
-.form-group {
-  margin-bottom: 14px;
-}
+.form-group { margin-bottom: 14px; }
 
-/* Styled Text Inputs */
 .upload-input {
-  width: 100%;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #fff;
-  font-size: 14px;
-  outline: none;
-  transition: all 0.2s;
+  width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;
+  color: #fff; font-size: 14px; outline: none; transition: all 0.2s;
 }
-
 .upload-input:focus {
   border-color: var(--neon);
-  box-shadow: 0 0 0 2px rgba(145, 70, 255, 0.2);
-  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 2px rgba(145, 70, 255, 0.2); background: rgba(0, 0, 0, 0.5);
 }
 
-/* Styled File Inputs */
 .file-label-text {
-  font-size: 12px;
-  font-weight: 600;
-  color: #aaa;
-  margin-bottom: 6px;
-  display: block;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 12px; font-weight: 600; color: #aaa;
+  margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px;
 }
 
-/* Customizing the "Choose File" button inside the input */
-.file-input {
-  width: 100%;
-  font-size: 12px;
-  color: #888;
-}
+.file-input { width: 100%; font-size: 12px; color: #888; }
 .file-input::file-selector-button {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  color: #fff;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-right: 10px;
-  transition: background 0.2s;
-  font-weight: 500;
+  background: rgba(255, 255, 255, 0.1); border: none; color: #fff;
+  padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-right: 10px;
+  transition: background 0.2s; font-weight: 500;
 }
-.file-input::file-selector-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
+.file-input::file-selector-button:hover { background: rgba(255, 255, 255, 0.2); }
 
-/* Upload Button */
 .upload-btn {
-  width: 100%;
-  padding: 12px;
-  background: var(--neon);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 10px;
-  transition: all 0.2s;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  width: 100%; padding: 12px; background: var(--neon); color: #fff;
+  border: none; border-radius: 8px; font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-top: 10px; transition: all 0.2s;
+  text-transform: uppercase; letter-spacing: 1px;
 }
-
 .upload-btn:hover:not(:disabled) {
-  background: var(--neon-hover);
-  transform: translateY(-1px);
+  background: var(--neon-hover); transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(145, 70, 255, 0.4);
 }
+.upload-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.upload-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Progress Bar */
-.upload-progress-container {
-  margin-top: 16px;
-}
+.upload-progress-container { margin-top: 16px; }
 .progress-track {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  overflow: hidden;
+  height: 6px; background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px; overflow: hidden;
 }
 .progress-fill {
-  height: 100%;
-  background: var(--neon);
-  transition: width 0.2s ease;
-  box-shadow: 0 0 8px var(--neon);
+  height: 100%; background: var(--neon);
+  transition: width 0.2s ease; box-shadow: 0 0 8px var(--neon);
 }
 .progress-text {
-  font-size: 11px;
-  color: var(--neon);
-  text-align: right;
-  margin-top: 4px;
-  font-weight: 600;
+  font-size: 11px; color: var(--neon);
+  text-align: right; margin-top: 4px; font-weight: 600;
 }
