@@ -10,7 +10,8 @@ import {
   Heart, Trash2, ArrowUp, ArrowDown, Play, Pause,
   MoreHorizontal, Plus, ListMusic, Shuffle, 
   QrCode, ChevronDown, ChevronLeft, ChevronRight, Timer, 
-  Search, Upload, ListPlus, SkipForward, PlayCircle
+  Search, Upload, ListPlus, SkipForward, PlayCircle,
+  RotateCcw // <--- 1. NEW IMPORT (for Restore icon)
 } from "lucide-react";
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -275,7 +276,7 @@ export default function MusicApp() {
               display: 'flex', 
               alignItems: 'center', 
               cursor: 'pointer',
-              flex: 1, /* Takes remaining space */
+              flex: 1, 
               minWidth: 0, 
               userSelect: 'none'
             }}
@@ -287,7 +288,7 @@ export default function MusicApp() {
               style={{ 
                 height: 28, 
                 width: 'auto', 
-                maxWidth: '120px', /* Prevents logo from pushing buttons off screen */
+                maxWidth: '120px', 
                 objectFit: 'contain'
               }}
             />
@@ -349,7 +350,6 @@ export default function MusicApp() {
           ) : (
             <div className="song-list" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', paddingRight: isLibraryCollapsed ? 0 : 4, position: 'relative' }}>
               
-              {/* === CLEAN SVG LOADER === */}
               {isLoading ? (
                 <div className="loading-container">
                   <svg 
@@ -380,7 +380,7 @@ export default function MusicApp() {
                         </div>
 
                         <div className="like-wrap">
-                          <button className={`icon-btn ${s.liked ? 'liked' : ''}`} onClick={() => toggleLike(s.id)}>
+                          <button className={`icon-btn ${s.liked ? 'liked' : ''}`} onClick={(e) => { e.stopPropagation(); toggleLike(s.id); }}>
                             <Heart size={18} fill={s.liked ? "currentColor" : "none"} />
                           </button>
                         </div>
@@ -403,10 +403,6 @@ export default function MusicApp() {
                             </div>
                           )}
                         </div>
-                        
-                        <button className="icon-btn play-mini" onClick={() => playSong(s)}>
-                          <Play size={16} fill="currentColor" />
-                        </button>
                       </>
                     )}
                   </div>
@@ -452,10 +448,8 @@ export default function MusicApp() {
                       onToggleShuffle={toggleShuffle}
                       hideCover={true}
                       hideMeta={true}
-                      // Progress callback
                       onProgress={(curr, total) => setSongProgress(total ? (curr / total) * 100 : 0)}
                       
-                      // --- Passing Sleep Props ---
                       sleepTime={sleepTime}
                       onSetSleepTimer={activateSleepTimer}
                     />
@@ -498,7 +492,14 @@ export default function MusicApp() {
                 <Trash2 size={16}/>
               </button>
               
-              <button className="small-btn icon-only" onClick={() => { if (songsRef.current) setQueue(songsRef.current.map(s => s.id)); }} title="Restore">Restore</button>
+              {/* === 2. CHANGED RESTORE TEXT TO ICON === */}
+              <button 
+                className="small-btn icon-only" 
+                onClick={() => { if (songsRef.current) setQueue(songsRef.current.map(s => s.id)); }} 
+                title="Restore"
+              >
+                <RotateCcw size={16}/>
+              </button>
             </div>
           </div>
 
