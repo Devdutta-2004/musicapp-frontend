@@ -9,7 +9,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import { 
   Heart, Trash2, ArrowUp, ArrowDown, Play, Pause,
   MoreHorizontal, Plus, ListMusic, Shuffle, 
-  QrCode, ChevronDown, ChevronLeft, ChevronRight, 
+  QrCode, ChevronDown, ChevronLeft, ChevronRight, Timer, 
   Search, Upload, ListPlus, SkipForward, PlayCircle
 } from "lucide-react";
 
@@ -268,51 +268,45 @@ export default function MusicApp() {
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: isLibraryCollapsed ? 0 : 12 }}>
           
-          {/* LEFT SIDE: Logo & ASTRONOTES Text */}
+          {/* LEFT SIDE: Brand Image Only (Click to Refresh) */}
           <div 
             onClick={() => window.location.reload()} 
             style={{ 
               display: 'flex', 
               alignItems: 'center', 
-              gap: 12, 
               cursor: 'pointer',
               flex: 1, 
               minWidth: 0,
-              userSelect: 'none'
+              userSelect: 'none',
+              paddingRight: 8 // Space between logo and buttons
             }}
             title="Refresh App"
           >
-            {/* UPDATED: Increased Logo Size to 38px */}
             <img 
               src="/logo192.png" 
               alt="Astronotes" 
-              style={{ width: 38, height: 38, objectFit: 'contain', flexShrink: 0 }}
+              style={{ 
+                height: 28,  /* Fixed height keeps it aligned */
+                width: 'auto', /* Allows it to be a wide rectangle */
+                maxWidth: '140px', /* Prevents it from hitting the buttons */
+                objectFit: 'contain',
+                display: isLibraryCollapsed ? 'none' : 'block'
+              }}
             />
-            {/* UPDATED: New Brand Name & Font Weight */}
-            {!isLibraryCollapsed && (
-              <h3 style={{ 
-                  margin: 0, 
-                  fontSize: '20px', 
-                  fontWeight: 900, /* Extra Bold */
-                  letterSpacing: '1.5px', 
-                  color: '#fff',
-                  whiteSpace: 'nowrap', 
-                  overflow: 'hidden', 
-                  textOverflow: 'ellipsis' 
-              }}>
-                ASTRONOTES
-              </h3>
+            {/* Fallback Icon when collapsed */}
+            {isLibraryCollapsed && (
+               <img src="/logo192.png" alt="" style={{ width: 28, height: 28 }} />
             )}
           </div>
 
           {/* RIGHT SIDE: Action Buttons */}
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
              
              {!isLibraryCollapsed && (
                <>
                  <div style={{ position: 'relative' }}>
                    <button className="small-btn icon-only" onClick={() => setShowQR(v => !v)} title="QR Code">
-                      <QrCode size={20}/>
+                      <QrCode size={18}/>
                    </button>
                    {showQR && (
                     <div style={{ position: "absolute", right: 0, top: "45px", background: "rgba(0,0,0,0.9)", padding: "12px", borderRadius: "10px", zIndex: 200 }}>
@@ -322,7 +316,7 @@ export default function MusicApp() {
                  </div>
 
                  <button className="small-btn" onClick={() => setShowUpload(v => !v)} title="Upload">
-                    {showUpload ? 'Back' : <Upload size={20}/>}
+                    {showUpload ? 'Back' : <Upload size={18}/>}
                  </button>
                </>
              )}
