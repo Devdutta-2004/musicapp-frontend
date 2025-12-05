@@ -353,33 +353,32 @@ html, body, #root {
 .progress-text { font-size: 11px; color: var(--neon); text-align: right; margin-top: 4px; font-weight: 600; }
 
 /* =========================================================================
-   MOBILE & TINY SCREEN FIXES (New Robust Version)
+   MOBILE & TINY SCREEN FIXES (Corrected Version)
    ========================================================================= */
 
 @media (max-width: 768px) {
   .app-shell { flex-direction: column; height: 100vh; overflow: hidden; width: 100%; }
   
-  /* Hide Desktop specific elements */
   .collapse-btn { display: none !important; }
 
-  /* LIBRARY CONTAINER - Reset to full width */
+  /* LIBRARY CONTAINER */
   .library, .library:not(.collapsed) {
     width: 100% !important; 
     max-width: 100% !important; 
     height: 100%;
     border-radius: 0; 
     margin: 0; 
-    padding: 16px 12px 100px 12px; /* Increased bottom padding for mini-player */
+    padding: 16px 10px 100px 10px; 
     z-index: 10;
     transition: none !important; 
   }
   
   .library::before { border-radius: 0; height: 160px; }
   
-  /* HEADER ROW ADAPTATION */
+  /* HEADER ROW - Better Wrapping */
   .library > div:first-child { 
     display: flex;
-    flex-wrap: wrap; /* Allows wrapping on tiny screens */
+    flex-wrap: wrap; 
     gap: 12px !important; 
     align-items: center;
     justify-content: space-between !important; 
@@ -388,65 +387,54 @@ html, body, #root {
   
   .library h3 { font-size: 18px; margin: 0; white-space: nowrap;}
 
-  /* SEARCH INPUT - Mobile optimized */
+  /* SEARCH INPUT */
   .search-input {
-    min-width: 150px; /* Prevent it from vanishing */
-    font-size: 16px; /* Prevents iOS zoom on focus */
+    min-width: 100%; /* Force search to take full row if needed */
+    order: 3; /* Push search bar below logo and buttons */
+    margin-top: 5px;
+    font-size: 16px; 
   }
 
-  /* --- SONG LIST ITEM (Compact for Mobile) --- */
+  /* --- SONG LIST ITEM --- */
   .song-item {
-    gap: 12px; 
-    padding: 8px; 
+    gap: 10px; 
+    padding: 8px 4px; 
     width: 100%;
-    max-width: 100vw;
   }
 
-  .song-item .cover {
-    width: 44px; height: 44px;
-    flex: 0 0 44px; /* Rigid width, never shrink */
-  }
+  .song-item .cover { width: 44px; height: 44px; flex: 0 0 44px; }
   
-  .song-info {
-    min-width: 0; /* CRITICAL: Allows text truncation inside flex */
-    flex: 1;
-  }
+  .song-info { min-width: 0; flex: 1; }
   
-  /* HIDE EXTRA PLAY BUTTON ON MOBILE LIST */
+  /* Restore the Menu Button visibility */
+  .more-wrap, .icon-btn { 
+    display: inline-flex !important; 
+    visibility: visible !important; 
+    opacity: 1 !important;
+  }
+
   .play-mini { display: none !important; }
 
-  /* Make action icons smaller */
-  .icon-btn {
-    width: 36px; height: 36px;
-    min-width: 36px; min-height: 36px;
-  }
-
-  /* --- FULL SCREEN PLAYER OVERLAY --- */
+  /* --- FULL SCREEN PLAYER --- */
   .player-area {
     display: flex; flex-direction: column; position: fixed; top: 0; left: 0; 
     width: 100%; height: 100%; background: var(--bg-primary); 
     z-index: 200;
     padding: 20px 16px 40px 16px; 
-    overflow-y: scroll; /* Better scroll handling */
+    overflow-y: scroll; 
     transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    transform: translateY(0); will-change: transform; 
+    transform: translateY(0); 
   }
 
-  .player-area.mobile-hidden {
-    transform: translateY(110%); pointer-events: none; 
-  }
+  .player-area.mobile-hidden { transform: translateY(110%); pointer-events: none; }
 
-  /* Player Area Internal Layout */
+  /* Player Internal Layout */
   .mobile-only-header { display: flex; justify-content: flex-start; padding-bottom: 10px; flex-shrink: 0; }
   .content-split { display: flex; flex-direction: column; height: auto; padding: 0; gap: 24px; flex-shrink: 0; width: 100%; }
   .nowplaying-left { width: 100%; flex: 0 0 auto; }
-  
-  /* Album Art Scaling */
   .glow-container { width: 100%; max-width: 300px; aspect-ratio: 1/1; margin: 0 auto 24px auto; height: auto;}
-  
   .controls { justify-content: space-between; width: 100%; margin-top: 24px; padding: 0 4px; }
   .play-btn { width: 64px; height: 64px; min-width: 64px; }
-  
   .lyrics-right { width: 100%; height: auto; min-height: 400px; flex: 0 0 auto; margin-bottom: 40px; }
   .queue-panel { margin-top: 20px; width: 100%; flex: 0 0 auto; margin-bottom: 80px; }
 
@@ -455,76 +443,65 @@ html, body, #root {
     display: flex; position: fixed; bottom: 12px; left: 12px; right: 12px; 
     height: 60px; 
     background: rgba(18, 18, 25, 0.85); 
-    backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
     align-items: center; padding: 0 10px; z-index: 100;
     box-shadow: 0 10px 40px rgba(0,0,0,0.7); cursor: pointer;
   }
-  
   .mini-cover { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; flex-shrink: 0; margin-right: 10px;}
   .mini-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
   .mini-title { font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
   .mini-artist { font-size: 12px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-  
-  .mini-progress { position: absolute; bottom: -1px; left: 12px; right: 12px; height: 2px; background: rgba(255,255,255,0.1); overflow: hidden; border-radius: 2px;}
+  .mini-progress { position: absolute; bottom: -1px; left: 12px; right: 12px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 2px;}
   .mini-progress-fill { height: 100%; background: var(--neon); box-shadow: 0 0 8px var(--neon); }
 }
 
 /* ------------------ TINY SCREEN EMERGENCY FIXES (< 385px) ------------------ */
 @media (max-width: 385px) {
   
-  /* 1. Header: Stack Search Bar to save width */
-  .library > div:first-child { 
-    gap: 8px !important; 
-    justify-content: center !important;
+  /* 1. Header Fixes: Squash the Upload Button */
+  .library h3 { display: none !important; } /* Hide "ASTRONOTES" Text */
+  
+  .library > div:first-child .small-btn {
+     padding: 8px !important;
+     width: 40px !important; /* Force square shape */
+     height: 40px !important;
+     overflow: hidden;
+     color: transparent; /* Hide the text "Upload" */
+     position: relative;
   }
   
-  /* Hide the Title text to make room for buttons */
-  .library h3 { display: none !important; }
-  
-  /* Force search bar to full width on its own line if needed, 
-     but here we let flex-wrap handle it naturally in the block above. 
-     We just ensure it fills available space. */
-  .search-input { 
-    width: 100% !important; 
-    flex: 1 1 100% !important; /* Forces it to break to new line if crowded */
-    font-size: 14px !important;
-    padding: 8px 10px;
+  /* Re-add a Plus sign centered in the button since we hid the text */
+  .library > div:first-child .small-btn::after {
+    content: "+";
+    color: var(--neon);
+    font-size: 24px;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+    visibility: visible;
   }
 
-  /* 2. Song List Row: Aggressive Space Saving */
-  .song-item {
-    gap: 8px !important;
-    padding: 8px 4px !important;
-  }
-  
-  .song-item .cover {
-    width: 40px; height: 40px;
-    flex: 0 0 40px;
-  }
-  
-  /* HIDE Like Heart button on tiny screens to ensure 3-dots fit */
-  /* Assuming you have a wrapper for the heart, if not, ignores this */
-  .song-item .icon-btn.liked, 
-  .song-item .icon-btn:not(.more-btn) { 
-    display: none; 
-  } 
-  
-  /* Ensure the 3-dots menu is ALWAYS visible */
-  .more-wrap, .more-menu-btn {
+  /* 2. Song List: Ensure 3-Dots are visible */
+  .more-wrap {
+    margin-left: auto !important; /* Push to right */
     display: block !important;
-    margin-left: auto; /* Pushes it to the right */
+    width: 30px;
   }
-
+  
+  /* Hide the Heart button ONLY on tiny screens to make room for dots */
+  .song-item .icon-btn.liked { display: none; }
+  
+  .song-item { padding: 6px 2px !important; gap: 8px !important; }
+  .song-item .cover { width: 40px; height: 40px; flex: 0 0 40px; }
+  
   /* 3. Text Truncation */
-  .song-info .title { font-size: 14px; }
-  .song-info .artist { font-size: 12px; }
+  .song-info .title { font-size: 13px; max-width: 140px; }
+  .song-info .artist { font-size: 11px; max-width: 140px; }
 
-  /* 4. Queue Panel Fixes */
+  /* 4. Queue Fix */
   .queue-controls { gap: 4px !important; }
-  .queue-controls .small-btn { padding: 4px 8px !important; font-size: 11px; }
-
-  /* 5. General Padding Reduction */
-  .library { padding-left: 8px !important; padding-right: 8px !important; }
-  .player-area { padding-left: 10px !important; padding-right: 10px !important; }
+  .queue-controls .small-btn { width: auto !important; color: #ddd !important; padding: 4px 8px !important; }
+  .queue-controls .small-btn::after { content: none; } /* Don't apply the plus sign here */
 }
