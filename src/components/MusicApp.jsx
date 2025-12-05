@@ -268,13 +268,13 @@ export default function MusicApp() {
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: isLibraryCollapsed ? 0 : 12 }}>
           
-          {/* LEFT SIDE: Logo & Text (Click to Refresh) */}
+          {/* LEFT SIDE: Logo & ASTRONOTES Text */}
           <div 
             onClick={() => window.location.reload()} 
             style={{ 
               display: 'flex', 
               alignItems: 'center', 
-              gap: 10, 
+              gap: 12, 
               cursor: 'pointer',
               flex: 1, 
               minWidth: 0,
@@ -282,36 +282,47 @@ export default function MusicApp() {
             }}
             title="Refresh App"
           >
+            {/* UPDATED: Increased Logo Size to 38px */}
             <img 
               src="/logo192.png" 
-              alt="JAM" 
-              style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }}
+              alt="Astronotes" 
+              style={{ width: 38, height: 38, objectFit: 'contain', flexShrink: 0 }}
             />
+            {/* UPDATED: New Brand Name & Font Weight */}
             {!isLibraryCollapsed && (
-              <h3 style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                Library
+              <h3 style={{ 
+                  margin: 0, 
+                  fontSize: '20px', 
+                  fontWeight: 900, /* Extra Bold */
+                  letterSpacing: '1.5px', 
+                  color: '#fff',
+                  whiteSpace: 'nowrap', 
+                  overflow: 'hidden', 
+                  textOverflow: 'ellipsis' 
+              }}>
+                ASTRONOTES
               </h3>
             )}
           </div>
 
           {/* RIGHT SIDE: Action Buttons */}
-          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
              
              {!isLibraryCollapsed && (
                <>
                  <div style={{ position: 'relative' }}>
                    <button className="small-btn icon-only" onClick={() => setShowQR(v => !v)} title="QR Code">
-                      <QrCode size={18}/>
+                      <QrCode size={20}/>
                    </button>
                    {showQR && (
-                    <div style={{ position: "absolute", right: 0, top: "40px", background: "rgba(0,0,0,0.9)", padding: "12px", borderRadius: "10px", zIndex: 200 }}>
+                    <div style={{ position: "absolute", right: 0, top: "45px", background: "rgba(0,0,0,0.9)", padding: "12px", borderRadius: "10px", zIndex: 200 }}>
                       <QRCodeCanvas value={qrUrl} size={160} bgColor="#000" fgColor="#fff" />
                     </div>
                   )}
                  </div>
 
                  <button className="small-btn" onClick={() => setShowUpload(v => !v)} title="Upload">
-                    {showUpload ? 'Back' : <Upload size={18}/>}
+                    {showUpload ? 'Back' : <Upload size={20}/>}
                  </button>
                </>
              )}
@@ -453,10 +464,9 @@ export default function MusicApp() {
                       onToggleShuffle={toggleShuffle}
                       hideCover={true}
                       hideMeta={true}
-                      // Progress callback
                       onProgress={(curr, total) => setSongProgress(total ? (curr / total) * 100 : 0)}
                       
-                      // --- 4. PASSING SLEEP PROPS TO PLAYER ---
+                      // --- Passing Sleep Props ---
                       sleepTime={sleepTime}
                       onSetSleepTimer={activateSleepTimer}
                     />
