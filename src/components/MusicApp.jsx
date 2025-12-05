@@ -369,7 +369,7 @@ export default function MusicApp() {
                  <div style={{ padding: 12, color: 'var(--text-secondary)' }}>No songs found.</div>
               ) : (
                 visibleSongs.map(s => (
-                  <div key={s.id} className="song-item" onDoubleClick={() => playSong(s)} title={s.title}>
+                  <div key={s.id} className="song-item" onClick={() => playSong(s)} title={s.title}>
                     <CoverImage srcs={[s.coverUrl, s.artistImageUrl, PERSON_PLACEHOLDER]} alt={s.title} className="cover" />
                     
                     {!isLibraryCollapsed && (
