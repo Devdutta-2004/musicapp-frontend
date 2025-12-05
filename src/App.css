@@ -1,4 +1,4 @@
-/* src/App.css — Final Version: Fully Responsive for Tiny Screens */
+/* src/App.css — Final Version: Fully Responsive with Tiny Screen Fixes */
 
 /* 1. UNIVERSAL RESET */
 * {
@@ -104,8 +104,14 @@ html, body, #root {
   top: 0;
   left: 0;
   width: 100%;
-  height: 160px;
-  background: linear-gradient(180deg, rgba(145, 70, 255, 0.45) 0%, rgba(6, 6, 11, 0) 100%);
+  height: 180px;
+  /* Stronger Electric Purple Fade */
+  background: linear-gradient(
+    180deg, 
+    rgba(145, 70, 255, 0.35) 0%,  
+    rgba(145, 70, 255, 0.1) 40%,  
+    rgba(6, 6, 11, 0) 100%        
+  );
   pointer-events: none; 
   z-index: 0;
   border-top-left-radius: 16px; 
@@ -327,7 +333,6 @@ html, body, #root {
     height: 100%;
     border-radius: 0; 
     margin: 0; 
-    /* Reduced Padding for small screens */
     padding: 20px 10px 90px 10px; 
     z-index: 10;
     transition: none !important; 
@@ -345,22 +350,22 @@ html, body, #root {
 
   /* --- SONG LIST ITEM (Compact for Mobile) --- */
   .song-item {
-    gap: 10px; /* Reduced gap */
-    padding: 8px 4px; /* Reduced padding */
+    gap: 10px; 
+    padding: 8px 4px; 
   }
 
   .song-item .cover {
-    width: 42px; /* Smaller Cover */
+    width: 42px; 
     height: 42px;
     flex: 0 0 42px;
   }
   
   .song-info {
-    min-width: 0; /* CRITICAL for text truncation */
+    min-width: 0; 
     flex: 1;
   }
   
-  /* HIDE EXTRA PLAY BUTTON ON MOBILE (Saves Space) */
+  /* HIDE EXTRA PLAY BUTTON ON MOBILE */
   .play-mini { display: none !important; }
 
   /* Make action icons smaller on mobile */
@@ -395,8 +400,8 @@ html, body, #root {
 
   /* --- MINI PLAYER --- */
   .mini-player {
-    display: flex; position: fixed; bottom: 16px; left: 10px; right: 10px; /* Tighter margins */
-    height: 64px; /* Slightly shorter */
+    display: flex; position: fixed; bottom: 16px; left: 10px; right: 10px; 
+    height: 64px; 
     background: rgba(15, 15, 20, 0.45); 
     backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px;
@@ -412,19 +417,11 @@ html, body, #root {
   .mini-progress-fill { height: 100%; background: var(--neon); box-shadow: 0 0 8px var(--neon); }
 }
 
-/* --- BUFFERING ANIMATION (Slider) --- */
-@keyframes buffer-slide {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
+/* --- BUFFERING ANIMATION --- */
+@keyframes buffer-slide { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 .range.buffering {
-  background-image: linear-gradient(
-    90deg, 
-    rgba(255, 255, 255, 0.1) 25%, 
-    #ffffff 50%, 
-    rgba(255, 255, 255, 0.1) 75%
-  ) !important;
+  background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 25%, #ffffff 50%, rgba(255, 255, 255, 0.1) 75%) !important;
   background-size: 200% 100% !important;
   animation: buffer-slide 1.5s infinite linear;
   opacity: 0.8;
@@ -432,72 +429,26 @@ html, body, #root {
 
 /* --- UPLOAD CARD STYLES --- */
 .upload-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 24px;
-  border-radius: 16px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  max-width: 400px;
-  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); padding: 24px; border-radius: 16px;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  max-width: 400px; margin: 0 auto;
 }
-
-.upload-title {
-  display: block; font-size: 18px; font-weight: 700; color: #fff;
-  margin-bottom: 20px; text-align: center; letter-spacing: 0.5px;
-}
-
+.upload-title { display: block; font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 20px; text-align: center; letter-spacing: 0.5px; }
 .form-group { margin-bottom: 14px; }
-
-.upload-input {
-  width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;
-  color: #fff; font-size: 14px; outline: none; transition: all 0.2s;
-}
-.upload-input:focus {
-  border-color: var(--neon);
-  box-shadow: 0 0 0 2px rgba(145, 70, 255, 0.2); background: rgba(0, 0, 0, 0.5);
-}
-
-.file-label-text {
-  font-size: 12px; font-weight: 600; color: #aaa;
-  margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px;
-}
-
+.upload-input { width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: all 0.2s; }
+.upload-input:focus { border-color: var(--neon); box-shadow: 0 0 0 2px rgba(145, 70, 255, 0.2); background: rgba(0, 0, 0, 0.5); }
+.file-label-text { font-size: 12px; font-weight: 600; color: #aaa; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
 .file-input { width: 100%; font-size: 12px; color: #888; }
-.file-input::file-selector-button {
-  background: rgba(255, 255, 255, 0.1); border: none; color: #fff;
-  padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-right: 10px;
-  transition: background 0.2s; font-weight: 500;
-}
+.file-input::file-selector-button { background: rgba(255, 255, 255, 0.1); border: none; color: #fff; padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-right: 10px; transition: background 0.2s; font-weight: 500; }
 .file-input::file-selector-button:hover { background: rgba(255, 255, 255, 0.2); }
-
-.upload-btn {
-  width: 100%; padding: 12px; background: var(--neon); color: #fff;
-  border: none; border-radius: 8px; font-size: 14px; font-weight: 700;
-  cursor: pointer; margin-top: 10px; transition: all 0.2s;
-  text-transform: uppercase; letter-spacing: 1px;
-}
-.upload-btn:hover:not(:disabled) {
-  background: var(--neon-hover); transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(145, 70, 255, 0.4);
-}
+.upload-btn { width: 100%; padding: 12px; background: var(--neon); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 10px; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px; }
+.upload-btn:hover:not(:disabled) { background: var(--neon-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(145, 70, 255, 0.4); }
 .upload-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
 .upload-progress-container { margin-top: 16px; }
-.progress-track {
-  height: 6px; background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px; overflow: hidden;
-}
-.progress-fill {
-  height: 100%; background: var(--neon);
-  transition: width 0.2s ease; box-shadow: 0 0 8px var(--neon);
-}
-.progress-text {
-  font-size: 11px; color: var(--neon);
-  text-align: right; margin-top: 4px; font-weight: 600;
-}
+.progress-track { height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--neon); transition: width 0.2s ease; box-shadow: 0 0 8px var(--neon); }
+.progress-text { font-size: 11px; color: var(--neon); text-align: right; margin-top: 4px; font-weight: 600; }
+
 /* ------------------ ULTRA THIN DEVICES (< 385px) ------------------ */
 @media (max-width: 385px) {
   
@@ -535,5 +486,36 @@ html, body, #root {
   .small-btn.icon-only svg {
     width: 14px !important;
     height: 14px !important;
+  }
+
+  /* === NEW ADDITIONS TO FIX OVERFLOW === */
+
+  /* 5. Force Search Bar to shrink */
+  .search-input {
+    width: 100% !important;
+    min-width: 0 !important; /* ALLOWS SHRINKING */
+    font-size: 12px !important;
+  }
+  
+  /* 6. Compact Song List Items */
+  .song-item {
+    padding: 6px 2px !important;
+  }
+
+  .song-item .cover {
+    width: 36px !important; 
+    height: 36px !important;
+    flex: 0 0 36px !important;
+  }
+
+  /* 7. HIDE LIKE BUTTON IN LIST (Save Space) */
+  .song-item .like-wrap {
+    display: none !important;
+  }
+
+  /* 8. Make Queue Buttons Tiny */
+  .queue-controls .small-btn {
+    padding: 4px 6px !important;
+    font-size: 10px !important;
   }
 }
