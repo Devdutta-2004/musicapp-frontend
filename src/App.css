@@ -353,7 +353,7 @@ html, body, #root {
 .progress-text { font-size: 11px; color: var(--neon); text-align: right; margin-top: 4px; font-weight: 600; }
 
 /* =========================================================================
-   MOBILE & TINY SCREEN FIXES (Verified Fix)
+   MOBILE & TINY SCREEN FIXES (Final Corrected Version)
    ========================================================================= */
 
 @media (max-width: 768px) {
@@ -428,12 +428,14 @@ html, body, #root {
   
   .song-info .title { 
     font-size: 15px; 
+    width: 100%;
     white-space: nowrap !important; 
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
   .song-info .artist { 
     font-size: 13px; 
+    width: 100%;
     white-space: nowrap !important; 
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -502,11 +504,11 @@ html, body, #root {
   .mini-progress-fill { height: 100%; background: var(--neon); box-shadow: 0 0 8px var(--neon); }
 }
 
-/* ------------------ CRITICAL FIXES FOR SMALL PHONES (< 380px) ------------------ */
-@media (max-width: 380px) {
+/* ------------------ CRITICAL FIXES FOR SMALL PHONES (< 385px) ------------------ */
+@media (max-width: 385px) {
   
-  /* 1. HIDE THE HEART WRAPPER */
-  /* This targets the wrapper <div> in your JSX, ensuring it hides even if not liked */
+  /* 1. HIDE THE HEART WRAPPER - THIS IS THE KEY FIX */
+  /* We target the DIV wrapper, so it actually disappears and frees up space */
   .song-item .like-wrap { 
     display: none !important; 
   }
