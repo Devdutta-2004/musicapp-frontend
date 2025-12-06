@@ -8,7 +8,7 @@ import '../App.css';
 import { QRCodeCanvas } from "qrcode.react";
 import { 
   Heart, Trash2, ArrowUp, ArrowDown, Play, Pause,
-  MoreHorizontal, Plus, ListMusic, Shuffle, 
+  MoreVertical, Plus, ListMusic, Shuffle, 
   QrCode, ChevronDown, ChevronLeft, ChevronRight, Timer, 
   Search, Upload, ListPlus, SkipForward, PlayCircle,
   RotateCcw // <--- 1. NEW IMPORT (for Restore icon)
@@ -387,7 +387,7 @@ export default function MusicApp() {
 
                         <div className="more-wrap" ref={menuRef}>
                           <button className="icon-btn" onClick={(ev) => { ev.stopPropagation(); setOpenMenuSongId(openMenuSongId === s.id ? null : s.id); }}>
-                            <MoreHorizontal size={18}/>
+                            <MoreVertical size={20}/>
                           </button>
                           {openMenuSongId === s.id && (
                             <div className="more-menu" onClick={(ev) => ev.stopPropagation()}>
