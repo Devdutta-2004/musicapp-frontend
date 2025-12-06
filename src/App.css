@@ -353,7 +353,7 @@ html, body, #root {
 .progress-text { font-size: 11px; color: var(--neon); text-align: right; margin-top: 4px; font-weight: 600; }
 
 /* =========================================================================
-   MOBILE & TINY SCREEN FIXES (Final Corrected Version)
+   MOBILE & TINY SCREEN FIXES (GRID VERSION - NO SQUASHING)
    ========================================================================= */
 
 @media (max-width: 768px) {
@@ -361,7 +361,7 @@ html, body, #root {
   .app-shell { flex-direction: column; height: 100vh; overflow: hidden; width: 100%; }
   .collapse-btn { display: none !important; }
 
-  /* 2. Library Container - Full Width */
+  /* 2. Library Container */
   .library, .library:not(.collapsed) {
     width: 100% !important; 
     max-width: 100% !important; 
@@ -372,7 +372,6 @@ html, body, #root {
     z-index: 10;
   }
   
-  /* Scrollable Area padding */
   .library .song-list {
     padding-bottom: 150px !important; 
     width: 100%;
@@ -382,50 +381,41 @@ html, body, #root {
   
   /* 3. Header Row */
   .library > div:first-child { 
-    display: flex;
-    flex-wrap: wrap; 
-    gap: 8px !important; 
-    align-items: center;
-    justify-content: space-between !important; 
+    display: flex; flex-wrap: wrap; gap: 8px !important; 
+    align-items: center; justify-content: space-between !important; 
     margin-bottom: 16px;
   }
-  
   .library h3 { font-size: 18px; margin: 0; white-space: nowrap;}
+  .search-input { min-width: 100%; order: 3; margin-top: 8px; font-size: 16px; }
 
-  /* Search Input */
-  .search-input {
-    min-width: 100%; 
-    order: 3; 
-    margin-top: 8px;
-    font-size: 16px; 
-  }
-
-  /* 4. Song Item - PREVENT SQUASHING */
+  /* 4. Song Item - GRID LAYOUT (The Fix) */
   .song-item {
+    display: grid !important;
+    /* Columns: Cover | Text (takes all space) | Heart | Dots */
+    grid-template-columns: 44px 1fr auto auto; 
+    align-items: center;
     gap: 12px; 
     padding: 8px 6px; 
     width: 100%;
-    max-width: 100%;
     overflow: hidden; 
-    display: flex;
-    align-items: center;
   }
 
+  /* Cover Image */
   .song-item .cover { 
     width: 44px; height: 44px; 
-    flex: 0 0 44px; /* Rigid width */
+    /* No flex rules needed for grid */
   }
   
-  /* Text Container - Force Ellipsis */
+  /* Text Container */
   .song-info { 
-    flex: 1;           
-    min-width: 0;      /* CRITICAL: Allows flex child to shrink past content */
-    margin-right: 4px; 
+    min-width: 0; /* Required for grid text truncation */
     display: flex;
     flex-direction: column;
     justify-content: center;
+    margin: 0;
   }
   
+  /* Ensure text truncates properly */
   .song-info .title { 
     font-size: 15px; 
     width: 100%;
@@ -441,17 +431,18 @@ html, body, #root {
     text-overflow: ellipsis !important;
   }
 
-  /* Button sizing */
+  /* Button Wrappers */
+  .like-wrap, .more-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Force Icon Sizes */
   .song-item .icon-btn {
     width: 34px; height: 34px;
-    flex-shrink: 0; 
   }
-
-  /* Ensure Three Dots are visible */
-  .more-wrap {
-    display: block !important;
-  }
-
+  
   .play-mini { display: none !important; }
 
   /* --- FULL SCREEN PLAYER AREA --- */
@@ -464,23 +455,17 @@ html, body, #root {
     transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
     transform: translateY(0); 
   }
-
   .player-area.mobile-hidden { transform: translateY(110%); pointer-events: none; }
-
   .mobile-only-header { display: flex; justify-content: flex-start; padding-bottom: 10px; flex-shrink: 0; }
   .content-split { display: flex; flex-direction: column; height: auto; padding: 0; gap: 24px; flex-shrink: 0; width: 100%; }
   .nowplaying-left { width: 100%; flex: 0 0 auto; }
   .glow-container { width: 100%; max-width: 300px; aspect-ratio: 1/1; margin: 0 auto 24px auto; height: auto;}
   .controls { justify-content: space-between; width: 100%; margin-top: 24px; padding: 0 4px; }
   
-  /* Force Round Play Button */
   .play-btn { 
-      width: 64px !important; 
-      height: 64px !important; 
-      min-width: 64px !important; 
-      min-height: 64px !important; 
-      border-radius: 50% !important;
-      flex-shrink: 0 !important;
+      width: 64px !important; height: 64px !important; 
+      min-width: 64px !important; min-height: 64px !important; 
+      border-radius: 50% !important; flex-shrink: 0 !important;
   }
   
   .lyrics-right { width: 100%; height: auto; min-height: 400px; flex: 0 0 auto; margin-bottom: 40px; }
@@ -504,28 +489,26 @@ html, body, #root {
   .mini-progress-fill { height: 100%; background: var(--neon); box-shadow: 0 0 8px var(--neon); }
 }
 
-/* ------------------ CRITICAL FIXES FOR SMALL PHONES (< 385px) ------------------ */
+/* ------------------ TINY PHONES (< 385px) ------------------ */
 @media (max-width: 385px) {
   
-  /* 1. HIDE THE HEART WRAPPER - THIS IS THE KEY FIX */
-  /* We target the DIV wrapper, so it actually disappears and frees up space */
-  .song-item .like-wrap { 
-    display: none !important; 
+  /* 1. MODIFY GRID TO HIDE HEART COLUMN */
+  .song-item {
+    /* Columns: Cover | Text | Dots (Heart hidden via display:none) */
+    grid-template-columns: 44px 1fr auto !important; 
+    padding: 6px 4px !important; 
+    gap: 8px !important; 
   }
+
+  /* 2. Hide the Heart Wrapper */
+  .song-item .like-wrap { display: none !important; }
   
-  /* 2. Hide Header Title */
+  /* 3. Hide Header Title */
   .library h3 { display: none !important; } 
   
-  /* 3. Reduce Header Button Size */
+  /* 4. Fix Header Button Size */
   .library > div:first-child .small-btn { 
-    padding: 0 !important; 
-    width: 36px !important; 
-    height: 36px !important; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
+    padding: 0 !important; width: 36px !important; height: 36px !important; 
+    display: flex; align-items: center; justify-content: center;
   }
-  
-  /* 4. Reduce gaps to save space */
-  .song-item { padding: 6px 4px !important; gap: 8px !important; }
 }
