@@ -353,7 +353,7 @@ html, body, #root {
 .progress-text { font-size: 11px; color: var(--neon); text-align: right; margin-top: 4px; font-weight: 600; }
 
 /* =========================================================================
-   MOBILE & TINY SCREEN FIXES (Corrected & Simplified)
+   MOBILE & TINY SCREEN FIXES (Final Corrected Version)
    ========================================================================= */
 
 @media (max-width: 768px) {
@@ -361,7 +361,7 @@ html, body, #root {
   .app-shell { flex-direction: column; height: 100vh; overflow: hidden; width: 100%; }
   .collapse-btn { display: none !important; }
 
-  /* 2. Library Container - Full Width */
+  /* 2. Library Container */
   .library, .library:not(.collapsed) {
     width: 100% !important; 
     max-width: 100% !important; 
@@ -372,7 +372,7 @@ html, body, #root {
     z-index: 10;
   }
   
-  /* Add padding to the LIST, not the container, so scrolling works */
+  /* Add padding to the LIST for scrolling */
   .library .song-list {
     padding-bottom: 150px !important; 
     width: 100%;
@@ -388,12 +388,11 @@ html, body, #root {
     align-items: center;
     justify-content: space-between !important; 
     margin-bottom: 16px;
-    padding-right: 4px;
   }
   
   .library h3 { font-size: 18px; margin: 0; white-space: nowrap;}
 
-  /* Search Input - pushes to next line if needed */
+  /* Search Input */
   .search-input {
     min-width: 100%; 
     order: 3; 
@@ -401,46 +400,59 @@ html, body, #root {
     font-size: 16px; 
   }
 
-  /* 4. Song Item - The Critical Fix */
+  /* 4. Song Item - FIXING THE SQUASHED TEXT */
   .song-item {
-    gap: 10px; 
+    gap: 12px; 
     padding: 8px 6px; 
     width: 100%;
     max-width: 100%;
-    overflow: hidden; /* Stops horizontal scrollbar */
+    overflow: hidden; 
     display: flex;
     align-items: center;
   }
 
   .song-item .cover { 
     width: 44px; height: 44px; 
-    flex: 0 0 44px; /* Never shrink */
+    flex: 0 0 44px; /* Rigid width */
   }
   
+  /* CRITICAL FIX: Allow text to shrink, but keep it readable */
   .song-info { 
-    min-width: 0; /* Allows text truncation */
-    flex: 1;      /* Take up remaining space */
+    flex: 1;           /* Take all available space */
+    min-width: 0;      /* Mandatory for flex truncation */
     margin-right: 4px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   
-  .song-info .title { font-size: 15px; }
-  .song-info .artist { font-size: 13px; }
-
-  /* Ensure buttons don't shrink */
-  .song-item .icon-btn {
-    width: 32px; height: 32px;
-    flex-shrink: 0; 
+  /* Force text to stay on one line with dots (...) */
+  .song-info .title { 
+    font-size: 15px; 
+    white-space: nowrap !important; 
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .song-info .artist { 
+    font-size: 13px; 
+    white-space: nowrap !important; 
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
-  /* Force the Three Dots to be visible */
+  /* Button sizing */
+  .song-item .icon-btn {
+    width: 34px; height: 34px;
+    flex-shrink: 0; /* Prevent buttons from squashing */
+  }
+
+  /* Ensure Three Dots are visible */
   .more-wrap {
     display: block !important;
-    margin-left: auto; /* Push to the right */
   }
 
-  /* Hide extra play button from list */
+  /* Hide extra play button */
   .play-mini { display: none !important; }
-
 
   /* --- FULL SCREEN PLAYER AREA --- */
   .player-area {
@@ -455,7 +467,6 @@ html, body, #root {
 
   .player-area.mobile-hidden { transform: translateY(110%); pointer-events: none; }
 
-  /* Player Internal Layout */
   .mobile-only-header { display: flex; justify-content: flex-start; padding-bottom: 10px; flex-shrink: 0; }
   .content-split { display: flex; flex-direction: column; height: auto; padding: 0; gap: 24px; flex-shrink: 0; width: 100%; }
   .nowplaying-left { width: 100%; flex: 0 0 auto; }
@@ -463,7 +474,7 @@ html, body, #root {
   
   .controls { justify-content: space-between; width: 100%; margin-top: 24px; padding: 0 4px; }
   
-  /* Fix Oval Play Button - Force Circle */
+  /* Fix Oval Play Button */
   .play-btn { 
       width: 64px !important; 
       height: 64px !important; 
@@ -497,34 +508,33 @@ html, body, #root {
 /* ------------------ CRITICAL FIXES FOR SMALL PHONES (< 380px) ------------------ */
 @media (max-width: 380px) {
   
-  /* 1. FORCE HIDE THE HEART */
-  /* This !important is crucial to override the other display rules */
-  .song-item .icon-btn.liked { 
+  /* 1. HIDE THE HEART BUTTON */
+  /* This is REQUIRED to make space for the text */
+  .song-item .like-wrap,
+  .song-item .icon-btn.liked,
+  .song-item button svg.lucide-heart { 
     display: none !important; 
   }
   
-  /* 2. Hide "ASTRONOTES" Title */
+  /* 2. Ensure Three Dots stay visible */
+  .more-wrap, .more-menu-btn {
+     display: block !important;
+     margin-left: auto;
+  }
+
+  /* 3. Hide Header Title */
   .library h3 { display: none !important; } 
   
-  /* 3. Make header buttons smaller */
+  /* 4. Fix Header Button sizes */
   .library > div:first-child .small-btn { 
     padding: 0 !important; 
-    width: 34px !important; 
-    height: 34px !important; 
+    width: 36px !important; 
+    height: 36px !important; 
     display: flex; 
     align-items: center; 
     justify-content: center;
   }
   
-  /* 4. Text Sizing to fit narrow screens */
-  .song-info .title { font-size: 14px; }
-  .song-info .artist { font-size: 12px; }
-  
-  /* 5. Reduce gaps */
+  /* 5. Reduce padding to save every pixel */
   .song-item { padding: 6px 4px !important; gap: 8px !important; }
-  
-  /* 6. Fix Header alignment */
-  .library > div:first-child { 
-    gap: 4px !important; 
-  }
 }
