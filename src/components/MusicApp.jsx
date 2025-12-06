@@ -11,7 +11,7 @@ import {
   MoreVertical, Plus, ListMusic, Shuffle, 
   QrCode, ChevronDown, ChevronLeft, ChevronRight, Timer, 
   Search, Upload,Rocket, ListPlus, SkipForward, PlayCircle,
-  RotateCcw ,ArrowLeft// <--- 1. NEW IMPORT (for Restore icon)
+  RotateCcw ,ArrowLeft,Sparkle// <--- 1. NEW IMPORT (for Restore icon)
 } from "lucide-react";
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -545,7 +545,7 @@ export default function MusicApp() {
            </div>
            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
              <button className="icon-btn" onClick={(e) => { e.stopPropagation(); toggleLike(current.id); }}>
-                 <Heart size={20} fill={current.liked ? "var(--neon-pink)" : "none"} color={current.liked ? "var(--neon-pink)" : "white"} />
+                 <Sparkle size={20} fill={current.liked ? "var(--neon-pink)" : "none"} color={current.liked ? "var(--neon-pink)" : "white"} />
              </button>
              <button className="icon-btn" onClick={(e) => { e.stopPropagation(); setPlaying(p => !p); }}>
                  {playing ? <Pause size={24} fill="white"/> : <Play size={24} fill="white"/>}
