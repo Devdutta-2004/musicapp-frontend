@@ -286,7 +286,7 @@ export default function MusicApp() {
               src="/my-brand.png" 
               alt="Astronotes" 
               style={{ 
-                height: 28, 
+                height: 33, 
                 width: 'auto', 
                 maxWidth: '120px', 
                 objectFit: 'contain'
