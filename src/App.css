@@ -493,14 +493,27 @@ html, body, #root {
   .queue-panel { margin-top: 20px; width: 100%; flex: 0 0 auto; margin-bottom: 80px; }
 
   /* --- MINI PLAYER --- */
+ /* --- MINI PLAYER (DEEP GLASS EFFECT) --- */
   .mini-player {
-    display: flex; position: fixed; bottom: 10px; left: 10px; right: 10px; 
-    height: 58px; 
-    background: rgba(18, 18, 25, 0.65); 
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
-    align-items: center; padding: 0 10px; z-index: 100;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.7); cursor: pointer;
+    display: flex; position: fixed; bottom: 12px; left: 12px; right: 12px; 
+    height: 64px; 
+    
+    /* 1. LOWER OPACITY (0.45 = 45% visible) */
+    background: rgba(20, 20, 30, 0.45); 
+    
+    /* 2. STRONG BLUR */
+    backdrop-filter: blur(25px) saturate(180%); 
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    
+    /* 3. SHARP BORDER */
+    border: 1px solid rgba(255, 255, 255, 0.15); 
+    border-radius: 16px; /* Slightly rounder for glass feel */
+    
+    align-items: center; padding: 0 12px; z-index: 100;
+    
+    /* 4. SOFT SHADOW */
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5); 
+    cursor: pointer;
   }
   .mini-cover { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0; margin-right: 10px;}
   .mini-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
