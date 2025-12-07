@@ -12,7 +12,7 @@ import {
   MoreVertical, ListMusic, Shuffle, 
   QrCode, ChevronDown, ChevronLeft, ChevronRight, 
   Search, Upload, Rocket, ListPlus, SkipForward, PlayCircle,
-  RotateCcw, ArrowLeft, Sparkle, LogOut, User 
+  RotateCcw, ArrowLeft, Sparkle, LogOut, User ,Globe 
 } from "lucide-react";
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -322,6 +322,17 @@ export default function MusicApp({ user, onLogout }) {
                   {showUpload ? <ArrowLeft size={18}/>: <Rocket size={18} />} 
                 </button>
 
+               
+
+                {/* 3. PLANET PROFILE BUTTON */}
+                <button className="small-btn icon-only" onClick={() => setShowPlanet(true)} title="My Planet">
+                   <Globe size={24} />
+                </button>
+
+                {/* 4. LOGOUT BUTTON */}
+                <button className="small-btn icon-only" onClick={onLogout} title="Sign Out">
+                  <LogOut size={18}/>
+                </button>
                 {/* 2. QR Code Button */}
                 <div style={{ position: 'relative' }}>
                   <button className="small-btn icon-only" onClick={() => setShowQR(v => !v)} title="QR Code">
@@ -333,16 +344,6 @@ export default function MusicApp({ user, onLogout }) {
                     </div>
                   )}
                 </div>
-
-                {/* 3. PLANET PROFILE BUTTON */}
-                <button className="small-btn icon-only" onClick={() => setShowPlanet(true)} title="My Planet">
-                   <User size={18}/>
-                </button>
-
-                {/* 4. LOGOUT BUTTON */}
-                <button className="small-btn icon-only" onClick={onLogout} title="Sign Out">
-                  <LogOut size={18}/>
-                </button>
               </>
             )}
 
