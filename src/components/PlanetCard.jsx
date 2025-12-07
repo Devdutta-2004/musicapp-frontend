@@ -66,6 +66,18 @@ export default function PlanetCard({ user, onClose }) {
         color: '#9d00ff', // Purple
         accent: 'linear-gradient(45deg, #ff00cc, #00ffff)'
       };
+      // ... inside switch(type) ...
+
+      case 'Forest World': return { // Pop + Chill
+        image: '/planets/forest.png',
+        tarotName: 'III. THE EMPRESS',
+        title: 'Verdant Garden',
+        desc: "A blooming sanctuary created by the mix of Pop energy and Lo-Fi calm. Life thrives here.",
+        color: '#2ecc71', // Emerald Green
+        accent: 'linear-gradient(45deg, #2ecc71, #a8e063)' // Green to Lime
+      };
+
+      // ... existing cases ...
 
       // === DEFAULT ===
       default: return { // Nebula
