@@ -4,6 +4,7 @@ import axios from 'axios';
 import Player from './Player';
 import UploadCard from './UploadCard';
 import LyricsPanel from './LyricsPanel';
+import PlanetCard from './PlanetCard'; // <--- 1. ADDED MISSING IMPORT
 import '../App.css';
 import { QRCodeCanvas } from "qrcode.react";
 import { 
@@ -11,7 +12,7 @@ import {
   MoreVertical, ListMusic, Shuffle, 
   QrCode, ChevronDown, ChevronLeft, ChevronRight, 
   Search, Upload, Rocket, ListPlus, SkipForward, PlayCircle,
-  RotateCcw, ArrowLeft, Sparkle, LogOut ,User// <--- 1. NEW IMPORT
+  RotateCcw, ArrowLeft, Sparkle, LogOut, User // <--- 2. ADDED MISSING 'User' ICON
 } from "lucide-react";
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -23,7 +24,6 @@ function CoverImage({ srcs = [], alt, className }) {
   return <img src={src} alt={alt} className={className} onError={onError} />;
 }
 
-// 2. UPDATED FUNCTION SIGNATURE to accept user and logout
 export default function MusicApp({ user, onLogout }) {
   const [songs, setSongs] = useState([]);                
   const [queue, setQueue] = useState([]);                
@@ -32,7 +32,10 @@ export default function MusicApp({ user, onLogout }) {
   const [showUpload, setShowUpload] = useState(false);
   const [repeatMode, setRepeatMode] = useState('off'); 
   const [shuffle, setShuffle] = useState(false);
-   
+  
+  // 3. ADDED MISSING STATE FOR PLANET CARD
+  const [showPlanet, setShowPlanet] = useState(false); 
+
   // Loading State
   const [isLoading, setIsLoading] = useState(true);
 
@@ -97,11 +100,6 @@ export default function MusicApp({ user, onLogout }) {
       const API = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/+$/,''); 
       const requestUrl = `${API}/api/songs`; 
       
-      // OPTIONAL: Pass User ID header if you want personalized likes immediately
-      // const headers = user ? { 'X-User-Id': user.id } : {};
-      // const res = await axios.get(requestUrl, { headers });
-      
-      // For now, keeping your existing simple fetch
       const res = await axios.get(requestUrl);
 
       const data = (res.data || []).map(s => ({
@@ -173,7 +171,6 @@ export default function MusicApp({ user, onLogout }) {
       const newCount = Math.max(0, (s.likeCount || 0) + (newLiked ? 1 : -1));
       return { ...s, liked: newLiked, likeCount: newCount };
     }));
-    // TODO: Call API to toggle like on backend using user.id
   }
 
   function toggleShuffle() {
@@ -290,44 +287,48 @@ export default function MusicApp({ user, onLogout }) {
           </div>
 
           {/* RIGHT SIDE: Action Buttons */}
-<div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-   
-   {!isLibraryCollapsed && (
-    <>
-      {/* 1. Upload Button */}
-      <button className="small-btn" onClick={() => setShowUpload(v => !v)} title="Upload Song">
-        {showUpload ? <ArrowLeft size={18}/>: <Rocket size={18} />} 
-      </button>
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+             
+             {!isLibraryCollapsed && (
+              <>
+                {/* 1. Upload Button */}
+                <button className="small-btn" onClick={() => setShowUpload(v => !v)} title="Upload Song">
+                  {showUpload ? <ArrowLeft size={18}/>: <Rocket size={18} />} 
+                </button>
 
-      {/* 2. QR Code Button */}
-      <div style={{ position: 'relative' }}>
-        <button className="small-btn icon-only" onClick={() => setShowQR(v => !v)} title="QR Code">
-          <QrCode size={18}/>
-        </button>
-        {/* ... QR popup code ... */}
-      </div>
+                {/* 2. QR Code Button */}
+                <div style={{ position: 'relative' }}>
+                  <button className="small-btn icon-only" onClick={() => setShowQR(v => !v)} title="QR Code">
+                    <QrCode size={18}/>
+                  </button>
+                  {showQR && (
+                    <div style={{ position: "absolute", right: 0, top: "45px", background: "rgba(0,0,0,0.9)", padding: "12px", borderRadius: "10px", zIndex: 200 }}>
+                      <QRCodeCanvas value={qrUrl} size={160} bgColor="#000" fgColor="#fff" />
+                    </div>
+                  )}
+                </div>
 
-      {/* 3. PLANET PROFILE BUTTON (PASTE IT HERE!) */}
-      <button className="small-btn icon-only" onClick={() => setShowPlanet(true)} title="My Planet">
-         <User size={18}/>
-      </button>
+                {/* 3. PLANET PROFILE BUTTON */}
+                <button className="small-btn icon-only" onClick={() => setShowPlanet(true)} title="My Planet">
+                   <User size={18}/>
+                </button>
 
-      {/* 4. LOGOUT BUTTON */}
-      <button className="small-btn icon-only" onClick={onLogout} title="Sign Out">
-        <LogOut size={18}/>
-      </button>
-    </>
-  )}
+                {/* 4. LOGOUT BUTTON */}
+                <button className="small-btn icon-only" onClick={onLogout} title="Sign Out">
+                  <LogOut size={18}/>
+                </button>
+              </>
+            )}
 
-   {/* COLLAPSE/EXPAND BUTTON */}
-   <button 
-      className="small-btn icon-only collapse-btn" 
-      onClick={() => setIsLibraryCollapsed(v => !v)} 
-      // ...
-   >
-      {isLibraryCollapsed ? <ChevronRight size={22}/> : <ChevronLeft size={22}/>}
-   </button>
-</div>
+             {/* COLLAPSE/EXPAND BUTTON */}
+             <button 
+                className="small-btn icon-only collapse-btn" 
+                onClick={() => setIsLibraryCollapsed(v => !v)} 
+             >
+                {isLibraryCollapsed ? <ChevronRight size={22}/> : <ChevronLeft size={22}/>}
+             </button>
+          </div>
+        </div>
 
         {!isLibraryCollapsed && (
           <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', }}>
@@ -546,6 +547,9 @@ export default function MusicApp({ user, onLogout }) {
            </div>
         </div>
       )}
+
+      {/* 4. ADDED MISSING RENDER LOGIC FOR PLANET CARD */}
+      {showPlanet && <PlanetCard user={user} onClose={() => setShowPlanet(false)} />}
 
     </div>
   );
