@@ -4,7 +4,7 @@ import axios from 'axios';
 import Player from './Player';
 import UploadCard from './UploadCard';
 import LyricsPanel from './LyricsPanel';
-import PlanetCard from './PlanetCard'; // <--- 1. ADDED MISSING IMPORT
+import PlanetCard from './PlanetCard'; 
 import '../App.css';
 import { QRCodeCanvas } from "qrcode.react";
 import { 
@@ -12,7 +12,7 @@ import {
   MoreVertical, ListMusic, Shuffle, 
   QrCode, ChevronDown, ChevronLeft, ChevronRight, 
   Search, Upload, Rocket, ListPlus, SkipForward, PlayCircle,
-  RotateCcw, ArrowLeft, Sparkle, LogOut, User // <--- 2. ADDED MISSING 'User' ICON
+  RotateCcw, ArrowLeft, Sparkle, LogOut, User 
 } from "lucide-react";
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -33,13 +33,10 @@ export default function MusicApp({ user, onLogout }) {
   const [repeatMode, setRepeatMode] = useState('off'); 
   const [shuffle, setShuffle] = useState(false);
   
-  // 3. ADDED MISSING STATE FOR PLANET CARD
   const [showPlanet, setShowPlanet] = useState(false); 
 
   // Loading State
   const [isLoading, setIsLoading] = useState(true);
-
-  // State to track song progress for mini-player
   const [songProgress, setSongProgress] = useState(0);
 
   // --- SLEEP TIMER STATE ---
@@ -126,6 +123,30 @@ export default function MusicApp({ user, onLogout }) {
   }
 
   useEffect(() => { fetchSongs(); }, []); 
+
+  // --- 1. NEW FUNCTION TO TRACK TIME (ADDED HERE) ---
+  async function recordListen(durationSeconds) {
+    if (!user || !durationSeconds) return;
+
+    // 🛑 HARDCODED BACKEND URL TO FIX "ZERO" ISSUE
+    const API_BASE = "https://musicapp-o3ow.onrender.com"; 
+    
+    // Convert seconds to minutes (minimum 1 minute)
+    const minutes = Math.ceil(durationSeconds / 60);
+    console.log(`Recording ${minutes} minutes for user ${user.username}...`);
+
+    try {
+      await axios.post(`${API_BASE}/api/users/${user.id}/add-minutes`, { minutes });
+      
+      // Update local user state immediately so the card changes
+      if (user) {
+         user.totalMinutesListened = (user.totalMinutesListened || 0) + minutes;
+      }
+      console.log("Stats updated!");
+    } catch (e) {
+      console.error("Could not record stats:", e);
+    }
+  }
 
   const visibleSongs = songs.filter(s => {
     if (!searchTerm) return true;
@@ -428,6 +449,8 @@ export default function MusicApp({ user, onLogout }) {
                   <div className="big-title">{current.title}</div>
                   <div className="big-artist">{current.artistName}</div>
                   <div style={{ marginTop: 12 }}>
+                    
+                    {/* 2. UPDATED PLAYER TO CALL RECORDLISTEN */}
                     <Player
                       song={current}
                       playing={playing}
@@ -435,7 +458,15 @@ export default function MusicApp({ user, onLogout }) {
                       onToggleLike={() => current && toggleLike(current.id)}
                       onNext={() => playNext({ manual: true })}
                       onPrev={() => playPrev()}
-                      onEnded={() => playNext({ manual: false })}
+                      
+                      // THIS IS THE KEY FIX:
+                      onEnded={() => { 
+                         // Track time when song ends
+                         recordListen(current.durationSeconds || 180); 
+                         // Then go to next song
+                         playNext({ manual: false });
+                      }}
+                      
                       repeatMode={repeatMode}
                       onToggleRepeat={toggleRepeat}
                       shuffle={shuffle}
@@ -447,6 +478,7 @@ export default function MusicApp({ user, onLogout }) {
                       sleepTime={sleepTime}
                       onSetSleepTimer={activateSleepTimer}
                     />
+
                   </div>
                 </div>
               </div>
@@ -548,7 +580,7 @@ export default function MusicApp({ user, onLogout }) {
         </div>
       )}
 
-      {/* 4. ADDED MISSING RENDER LOGIC FOR PLANET CARD */}
+      {/* PLANET CARD OVERLAY */}
       {showPlanet && <PlanetCard user={user} onClose={() => setShowPlanet(false)} />}
 
     </div>
