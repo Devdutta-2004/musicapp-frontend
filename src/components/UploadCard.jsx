@@ -1,7 +1,7 @@
 // src/components/UploadCard.jsx
 import React, { useState } from "react";
 import axios from "axios";
-import '../App.css'; // Ensure CSS is imported
+import '../App.css'; 
 
 export default function UploadCard({ onUploaded }) {
   const [file, setFile] = useState(null);
@@ -10,26 +10,30 @@ export default function UploadCard({ onUploaded }) {
   const [title, setTitle] = useState("");
   const [artistName, setArtistName] = useState("");
   const [album, setAlbum] = useState("");
+  
+  // 1. GENRE STATE
+  const [genre, setGenre] = useState("Pop");
+
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
 
   // -------------------------------------------------------------------------
-  // 🛑 TODO: PASTE YOUR RENDER BACKEND URL HERE
+  // ✅ CORRECTED URL: Points to YOUR specific Render backend
   // -------------------------------------------------------------------------
-  const API_BASE = "https://groove-j0kw.onrender.com"; 
+  const API_BASE = process.env.REACT_APP_API_BASE_URL || "https://musicapp-o3ow.onrender.com"; 
   // -------------------------------------------------------------------------
 
   const submit = async (e) => {
     e.preventDefault();
     if (!file) return alert("Please choose an audio file.");
 
-    if (API_BASE.includes("REPLACE_THIS")) {
-      return alert("Setup Error: You forgot to paste your Render Backend URL inside UploadCard.jsx!");
-    }
-
     const fd = new FormData();
     fd.append("file", file);
     fd.append("title", title || file.name.replace(/\.[^.]+$/, ""));
+    
+    // 2. SEND GENRE TO BACKEND
+    fd.append("genre", genre);
+
     if (artistName) fd.append("artistName", artistName);
     if (artistImage) fd.append("artistImage", artistImage);
     if (coverImage) fd.append("coverImage", coverImage);
@@ -39,7 +43,9 @@ export default function UploadCard({ onUploaded }) {
     setProgress(0);
 
     try {
-      const url = `${API_BASE}/api/songs/upload`;
+      // Ensure no double slashes if API_BASE ends with /
+      const cleanBase = API_BASE.replace(/\/+$/, "");
+      const url = `${cleanBase}/api/songs/upload`;
       console.log("Uploading to:", url);
 
       await axios.post(url, fd, {
@@ -51,12 +57,14 @@ export default function UploadCard({ onUploaded }) {
         },
       });
 
+      // Reset Form
       setFile(null);
       setCoverImage(null);
       setArtistImage(null);
       setTitle("");
       setArtistName("");
       setAlbum("");
+      setGenre("Pop"); // Reset genre
       setProgress(0);
       setLoading(false);
 
@@ -65,12 +73,7 @@ export default function UploadCard({ onUploaded }) {
     } catch (err) {
       console.error(err);
       setLoading(false);
-      
-      if (err.response && err.response.status === 405) {
-         alert("Error 405: Still hitting Vercel. Check the API_BASE URL in code.");
-      } else {
-         alert("Upload failed — check backend console.");
-      }
+      alert("Upload failed — check console for details.");
     }
   };
 
@@ -105,6 +108,24 @@ export default function UploadCard({ onUploaded }) {
             value={artistName}
             onChange={(e) => setArtistName(e.target.value)}
           />
+        </div>
+
+        {/* 3. NEW GENRE DROPDOWN */}
+        <div className="form-group">
+          <label className="file-label-text" style={{marginBottom: '5px', display:'block'}}>Genre</label>
+          <select
+            className="upload-input"
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            style={{ cursor: 'pointer', appearance: 'auto' }} 
+          >
+            <option value="Pop">Pop / Dance</option>
+            <option value="Rock">Rock / Metal</option>
+            <option value="Hip-Hop">Hip-Hop / Rap</option>
+            <option value="Lo-Fi">Lo-Fi / Chill</option>
+            <option value="Electronic">Electronic</option>
+            <option value="Classical">Classical</option>
+          </select>
         </div>
 
         <div className="form-group">
