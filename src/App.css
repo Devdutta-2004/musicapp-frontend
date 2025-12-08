@@ -110,7 +110,7 @@ html, body, #root {
   flex-direction: column;
   height: 100%; 
   
-  /* NO SCROLL at this level */
+  /* NO SCROLL at this level - delegated to library-content */
   overflow: hidden;
   
   position: relative;
@@ -774,8 +774,8 @@ html, body, #root {
   font-size: 12px; 
   color: #aaa; 
   white-space: nowrap; 
-  text-overflow: ellipsis; 
   overflow: hidden; 
+  text-overflow: ellipsis; 
 }
 
 .q-actions { 
@@ -1381,12 +1381,4 @@ html, body, #root {
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
-}
-/* --- AD BAR TRANSITION FIX --- */
-
-/* Targets the div wrapper containing Search bar and AdBoxGrid */
-.library-content > div:first-child:not(.upload-area) {
-    /* CRITICAL: Apply smooth transition properties */
-    transition: transform 0.3s ease-out, opacity 0.3s ease-out, margin-bottom 0.3s ease-out, height 0.3s ease-out;
-    will-change: transform, opacity, margin-bottom; /* Optimization hint */
 }
