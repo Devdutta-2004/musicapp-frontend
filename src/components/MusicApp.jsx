@@ -37,6 +37,7 @@ export default function MusicApp({ user, onLogout }) {
 
   // Loading State
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [songProgress, setSongProgress] = useState(0);
 
   // --- SLEEP TIMER STATE ---
@@ -238,21 +239,53 @@ export default function MusicApp({ user, onLogout }) {
         likeCount: typeof s.likeCount === 'number' ? s.likeCount : 0
       }));
 
-      const randomized = shuffleArray(data);
-      setSongs(randomized);
+      // PROGRESSIVE LOADING: Show first 20 songs immediately
+      const INITIAL_BATCH = 20;
+      const initialSongs = data.slice(0, INITIAL_BATCH);
+      const remainingSongs = data.slice(INITIAL_BATCH);
+
+      // Set initial batch immediately - removes loading screen fast!
+      const randomizedInitial = shuffleArray(initialSongs);
+      setSongs(randomizedInitial);
+      setIsLoading(false); // ✅ User sees songs NOW
 
       // Only set queue if we didn't restore from localStorage
-      if (randomized.length && queue.length === 0) {
-        setQueue(randomized.map(d => d.id));
+      if (randomizedInitial.length && queue.length === 0) {
+        setQueue(randomizedInitial.map(d => d.id));
         setCurrentIndex(0);
-      } else {
-        setQueue(q => q.filter(id => randomized.some(d => d.id === id)));
       }
+
+      // Load remaining songs in background
+      if (remainingSongs.length > 0) {
+        setIsLoadingMore(true);
+        
+        // Use setTimeout to let UI render first
+        setTimeout(() => {
+          const allSongs = shuffleArray([...initialSongs, ...remainingSongs]);
+          setSongs(allSongs);
+          
+          // Update queue to include all songs (but keep current position)
+          if (queue.length > 0) {
+            setQueue(q => {
+              const existingIds = new Set(q);
+              const newSongIds = allSongs
+                .filter(s => !existingIds.has(s.id))
+                .map(s => s.id);
+              return [...q, ...newSongIds];
+            });
+          } else {
+            setQueue(allSongs.map(d => d.id));
+          }
+          
+          setIsLoadingMore(false);
+          console.log(`✅ Loaded ${allSongs.length} songs total`);
+        }, 100); // Small delay to let UI render smoothly
+      }
+
     } catch (e) {
       console.error('fetchSongs', e);
       setSongs([]);
-    } finally {
-      setTimeout(() => setIsLoading(false), 2000);
+      setIsLoading(false);
     }
   }
 
@@ -511,45 +544,72 @@ export default function MusicApp({ user, onLogout }) {
               ) : visibleSongs.length === 0 ? (
                   <div style={{ padding: 12, color: 'var(--text-secondary)' }}>No songs found.</div>
               ) : (
-                visibleSongs.map(s => (
-                  <div key={s.id} className="song-item" onClick={() => playSong(s)} title={s.title}>
-                    <CoverImage srcs={[s.coverUrl, s.artistImageUrl, PERSON_PLACEHOLDER]} alt={s.title} className="cover" />
-                    
-                    {!isLibraryCollapsed && (
-                      <>
-                        <div className="song-info">
-                          <div className="title" title={s.title}>{s.title}</div>
-                          <div className="artist" title={s.artistName}>{s.artistName}</div>
-                        </div>
+                <>
+                  {visibleSongs.map(s => (
+                    <div key={s.id} className="song-item" onClick={() => playSong(s)} title={s.title}>
+                      <CoverImage srcs={[s.coverUrl, s.artistImageUrl, PERSON_PLACEHOLDER]} alt={s.title} className="cover" />
+                      
+                      {!isLibraryCollapsed && (
+                        <>
+                          <div className="song-info">
+                            <div className="title" title={s.title}>{s.title}</div>
+                            <div className="artist" title={s.artistName}>{s.artistName}</div>
+                          </div>
 
-                        <div className="like-wrap">
-                          <button className={`icon-btn ${s.liked ? 'liked' : ''}`} onClick={(e) => { e.stopPropagation(); toggleLike(s.id); }}>
-                            <Heart size={18} fill={s.liked ? "currentColor" : "none"} />
-                          </button>
-                        </div>
+                          <div className="like-wrap">
+                            <button className={`icon-btn ${s.liked ? 'liked' : ''}`} onClick={(e) => { e.stopPropagation(); toggleLike(s.id); }}>
+                              <Heart size={18} fill={s.liked ? "currentColor" : "none"} />
+                            </button>
+                          </div>
 
-                        <div className="more-wrap" ref={menuRef}>
-                          <button className="icon-btn" onClick={(ev) => { ev.stopPropagation(); setOpenMenuSongId(openMenuSongId === s.id ? null : s.id); }}>
-                            <MoreVertical size={20}/>
-                          </button>
-                          {openMenuSongId === s.id && (
-                            <div className="more-menu" onClick={(ev) => ev.stopPropagation()}>
-                              <button className="menu-item" onClick={() => addToQueue(s.id)}>
-                                  <ListPlus size={16} style={{marginRight: 8}}/> Add to queue
-                              </button>
-                              <button className="menu-item" onClick={() => playNextNow(s.id)}>
-                                  <SkipForward size={16} style={{marginRight: 8}}/> Play next
-                              </button>
-                              <button className="menu-item" onClick={() => { playSong(s); setOpenMenuSongId(null); }}>
-                                  <PlayCircle size={16} style={{marginRight: 8}}/> Play now
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))
+                          <div className="more-wrap" ref={menuRef}>
+                            <button className="icon-btn" onClick={(ev) => { ev.stopPropagation(); setOpenMenuSongId(openMenuSongId === s.id ? null : s.id); }}>
+                              <MoreVertical size={20}/>
+                            </button>
+                            {openMenuSongId === s.id && (
+                              <div className="more-menu" onClick={(ev) => ev.stopPropagation()}>
+                                <button className="menu-item" onClick={() => addToQueue(s.id)}>
+                                    <ListPlus size={16} style={{marginRight: 8}}/> Add to queue
+                                </button>
+                                <button className="menu-item" onClick={() => playNextNow(s.id)}>
+                                    <SkipForward size={16} style={{marginRight: 8}}/> Play next
+                                </button>
+                                <button className="menu-item" onClick={() => { playSong(s); setOpenMenuSongId(null); }}>
+                                    <PlayCircle size={16} style={{marginRight: 8}}/> Play now
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {/* Loading More Indicator */}
+                  {isLoadingMore && (
+                    <div style={{ 
+                      padding: '16px', 
+                      textAlign: 'center', 
+                      color: 'var(--text-secondary)',
+                      fontSize: '13px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px'
+                    }}>
+                      <svg 
+                        style={{ animation: 'spin 1s linear infinite', width: '16px', height: '16px' }} 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2"
+                      >
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                      </svg>
+                      Loading more songs...
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
