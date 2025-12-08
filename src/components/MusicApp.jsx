@@ -35,11 +35,21 @@ export default function MusicApp({ user, onLogout }) {
   
   const [showPlanet, setShowPlanet] = useState(false); 
   const [showExitPrompt, setShowExitPrompt] = useState(false);
+  const [exitMascot, setExitMascot] = useState('');
 
   // Loading State
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [songProgress, setSongProgress] = useState(0);
+
+  // Mascot expressions with messages
+  const mascotExpressions = [
+    { img: '/mascot-sad.png', msg: "Don't leave me alone in space! 🌌", sub: "I'll be floating here with your music waiting for you to come back! 🎵" },
+    { img: '/mascot-crying.png', msg: "Please don't go! 😢", sub: "The stars won't be the same without you listening! ✨" },
+    { img: '/mascot-lonely.png', msg: "It's so quiet without you! 🤫", sub: "Your playlists keep me company in the void! 🎶" },
+    { img: '/mascot-puppy-eyes.png', msg: "Just one more song? 🥺", sub: "I promise this next track will blow your mind! 🚀" },
+    { img: '/mascot-waving.png', msg: "Come back soon, okay? 👋", sub: "I'll keep your queue warm for you! 🔥" }
+  ];
 
   // --- SLEEP TIMER STATE ---
   const [sleepTime, setSleepTime] = useState(null); 
@@ -180,7 +190,9 @@ export default function MusicApp({ user, onLogout }) {
             return;
         }
         
-        // Priority 4: Main screen - Show exit prompt instead of closing
+        // Priority 4: Main screen - Show exit prompt with random mascot
+        const randomExpression = mascotExpressions[Math.floor(Math.random() * mascotExpressions.length)];
+        setExitMascot(randomExpression);
         setShowExitPrompt(true);
         window.history.pushState(null, '', window.location.href);
     };
@@ -782,7 +794,7 @@ export default function MusicApp({ user, onLogout }) {
       {showPlanet && <PlanetCard user={user} onClose={() => setShowPlanet(false)} />}
 
       {/* EXIT PROMPT OVERLAY */}
-      {showExitPrompt && (
+      {showExitPrompt && exitMascot && (
         <div 
           style={{
             position: 'fixed',
@@ -815,11 +827,11 @@ export default function MusicApp({ user, onLogout }) {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Custom Mascot Image */}
+            {/* Custom Mascot Image - Random Expression */}
             <div style={{ marginBottom: '20px' }}>
               <img 
-                src="/mascot-sad.png" 
-                alt="Sad Mascot" 
+                src={exitMascot.img}
+                alt="Mascot" 
                 style={{ 
                   width: '120px', 
                   height: '120px', 
@@ -844,7 +856,7 @@ export default function MusicApp({ user, onLogout }) {
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
             }}>
-              Don't leave me alone in space! 🌌
+              {exitMascot.msg}
             </h2>
             
             <p style={{ 
@@ -853,7 +865,7 @@ export default function MusicApp({ user, onLogout }) {
               lineHeight: '1.5',
               marginBottom: '24px' 
             }}>
-              I'll be floating here with your music waiting for you to come back! 🎵
+              {exitMascot.sub}
             </p>
 
             <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
