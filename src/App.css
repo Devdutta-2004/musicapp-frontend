@@ -1373,3 +1373,20 @@ html, body, #root {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
 }
+/* DESKTOP ONLY - Force scrolling to work */
+@media (min-width: 769px) {
+  html, body, #root {
+    overflow: visible !important;
+    position: static !important;
+  }
+  
+  .library-content {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+  
+  .player-area {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+}
