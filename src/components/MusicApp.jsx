@@ -58,7 +58,7 @@ export default function MusicApp({ user, onLogout }) {
 
   const current = songs.find(s => s.id === queue[currentIndex]) || null;
 
-/* --- PWA FINAL BACK BUTTON OVERRIDE FIX --- */
+/* --- PWA FINAL SMART BACK BUTTON LOGIC --- */
 useEffect(() => {
     // 1. Only apply the fix if the app is installed as a PWA
     if (!window.matchMedia('(display-mode: standalone)').matches) {
@@ -66,50 +66,51 @@ useEffect(() => {
     }
 
     const handleBackButton = (e) => {
-        // --- 1. Handle Modals/Views (Highest Priority) ---
+        // --- 1. Handle open modals/views (Highest Priority) ---
         if (showPlanet || showUpload) {
             e.preventDefault(); // Stop the browser/OS default back action
             setShowPlanet(false);
             setShowUpload(false);
-            return;
+            return; // Action handled
         }
 
-        // --- 2. Handle Player Collapse ---
+        // --- 2. Collapse the expanded player view ---
         if (isLibraryCollapsed) {
-            e.preventDefault(); // Stop the browser/OS default back action
-            setIsLibraryCollapsed(false);
-            return;
+            e.preventDefault(); // Block the default back (which would be 'close PWA')
+            setIsLibraryCollapsed(false); // Collapse the view to the library
+            
+            // OPTIONAL: Pushing state back here restores the history. This is safer.
+            window.history.pushState(null, null, window.location.href);
+            return; // Action handled
         } 
         
-        // --- 3. Block Final Exit (The Glitch Stopper) ---
-        // If we reach the main screen (library is NOT collapsed), block the action.
+        // --- 3. Main Library Screen (The Goal) ---
+        // If we reach this point, the user is on the main screen (library is NOT collapsed).
+        // We do *nothing* and *do not call e.preventDefault()*. 
+        // We let the OS handle the back action, which should correctly minimize the PWA.
         
-        // This is the most aggressive block, ensuring the JS runs first.
-        if (!isLibraryCollapsed) {
-            e.preventDefault(); // Stop the browser/OS default back action
-            
-            // OPTIONAL: You can display a message here if you want:
-            // console.log("Blocked PWA exit on main screen.");
-            
-            // We do NOT call pushState here; we simply preventDefault() and do nothing.
-            // This leaves the browser history intact, blocking the app closure command.
-            return;
-        }
+        // Ensure no history entries are left over from previous debugging attempts.
+        // We rely on the initial pushState below to stabilize history.
     };
 
-    // Use event capture to ensure the listener runs BEFORE the browser's default history handler.
-    window.addEventListener('beforeunload', handleBackButton); // For general history/unload behavior
-    window.addEventListener('popstate', handleBackButton); // For explicit back button/gesture
-
+    // --- Initial Setup and Cleanup ---
+    
+    // Push an initial state ONLY ONCE to ensure history.length is always at least 2 
+    // when the app loads, stabilizing the base history layer.
+    if (window.history.length === 1 || window.history.length === 0) {
+        window.history.pushState(null, null, window.location.href);
+    }
+    
+    // We listen to popstate for history navigation, and beforeunload as a general check.
+    window.addEventListener('popstate', handleBackButton);
+    // window.addEventListener('beforeunload', handleBackButton); // Removing this as it can interfere with OS minimization
+    
     return () => {
-        window.removeEventListener('beforeunload', handleBackButton);
         window.removeEventListener('popstate', handleBackButton);
+        // window.removeEventListener('beforeunload', handleBackButton);
     };
-
-// We DO NOT need to use window.history.pushState() manually for this aggressive fix.
-// The key is preventDefault().
 }, [isLibraryCollapsed, showPlanet, showUpload]); 
-/* --- END PWA FINAL BACK BUTTON OVERRIDE FIX --- */
+/* --- END PWA FINAL SMART BACK BUTTON LOGIC --- */
   /* --- SLEEP TIMER LOGIC --- */
   useEffect(() => {
     if (sleepTime !== null && sleepTime > 0) {
