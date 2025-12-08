@@ -665,7 +665,7 @@ export default function MusicApp({ user, onLogout }) {
         <div className="library-content">
 
           {!isLibraryCollapsed && (
-            // --- SEARCH BAR AND AD BOX CONTAINER ---
+            // --- SEARCH BAR AND AD BOX CONTAINER (flexShrink: 0) ---
             <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
               
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -688,14 +688,17 @@ export default function MusicApp({ user, onLogout }) {
             </div>
           )}
 
-          <div style={{ marginTop: 12, flex: 1, overflowY: 'auto' }}>
+          {/* This container now holds the Upload/Song List. It needs flex: 1 for scrolling. */}
+          <div style={{ marginTop: 12, flex: 1, overflowY: 'auto' }}> 
             {showUpload && !isLibraryCollapsed ? (
               <div className="upload-area"><UploadCard onUploaded={() => { fetchSongs(); setShowUpload(false); }} /></div>
             ) : (
               <div 
                 className="song-list" 
-                // CRITICAL: Removed old height calculation, using flex: 1 and overflowY: 'auto' 
-                style={{ paddingRight: isLibraryCollapsed ? 0 : 4, position: 'relative', flex: 1, overflowY: 'auto' }} 
+                // We removed the inline overflowY: 'auto' from here based on the CSS strategy, 
+                // but this line currently causes issues because the previous structure was wrong.
+                // We will rely purely on the parent .library-content scroll.
+                style={{ paddingRight: isLibraryCollapsed ? 0 : 4, position: 'relative' }} 
               >
                 {isLoading ? (
                   <div className="loading-container">
