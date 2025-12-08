@@ -814,7 +814,7 @@ export default function MusicApp({ user, onLogout }) {
           )}
 
           {/* This container now holds the Upload/Song List. flex: 1 ensures it fills the rest of the height. */}
-          <div style={{ marginTop: 12, flex: 1, position: 'relative' }}> 
+          <div style={{ marginTop: 12, position: 'relative' }}> 
             {showUpload && !isLibraryCollapsed ? (
               <div className="upload-area"><UploadCard onUploaded={() => { fetchSongs(); setShowUpload(false); }} /></div>
             ) : (
