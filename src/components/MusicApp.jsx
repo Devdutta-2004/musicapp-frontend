@@ -134,6 +134,7 @@ function CoverImage({ srcs = [], alt, className }) {
   const onError = (e) => { if (e.currentTarget.src !== PERSON_PLACEHOLDER) e.currentTarget.src = PERSON_PLACEHOLDER; };
   return <img src={src} alt={alt} className={className} onError={onError} />;
 }
+
 // --- MAIN COMPONENT ---
 
 export default function MusicApp({ user, onLogout }) {
@@ -227,6 +228,7 @@ export default function MusicApp({ user, onLogout }) {
   }, [isLibraryCollapsed, showAdBar]); 
 
   // --- HANDLERS: PLAYBACK (Stabilized with useCallback) ---
+  // Fixes random song skipping by preventing function re-creation on scroll
   
   const playNext = useCallback(({ manual = false } = {}) => {
     setQueue(currentQueue => {
@@ -379,6 +381,7 @@ export default function MusicApp({ user, onLogout }) {
           const allSongs = shuffleArray([...initialSongs, ...remainingSongs]);
           setSongs(allSongs);
           setQueue(prevQueue => {
+             // Only add new IDs if not present to avoid resetting queue state
              const existing = new Set(prevQueue);
              const newIds = allSongs.filter(s => !existing.has(s.id)).map(s => s.id);
              return [...prevQueue, ...newIds];
@@ -416,22 +419,33 @@ export default function MusicApp({ user, onLogout }) {
     setIsInstallable(false);
   };
 
-  // Back Button Logic (Optimized)
+  // Back Button Logic (Optimized for Memory)
   useEffect(() => {
     if (!window.matchMedia('(display-mode: standalone)').matches) return;
+    
+    // Check if we are in a "sub-view"
     const isModalOpen = showPlanet || showUpload || isLibraryCollapsed || showExitPrompt || showAccountMenu;
+
     const handleBackButton = (event) => {
+        // Only intervene if we have something to close
         if (showExitPrompt) { setShowExitPrompt(false); return; }
         if (showAccountMenu) { setShowAccountMenu(false); return; }
         if (showPlanet) { setShowPlanet(false); return; }
         if (showUpload) { setShowUpload(false); return; }
         if (isLibraryCollapsed) { setIsLibraryCollapsed(false); return; }
+        
+        // If nothing is open, show exit prompt
         const randomExpression = mascotExpressions[Math.floor(Math.random() * mascotExpressions.length)];
         setExitMascot(randomExpression);
         setShowExitPrompt(true);
     };
+
     window.addEventListener('popstate', handleBackButton);
-    if (isModalOpen) { window.history.pushState(null, '', window.location.href); }
+    // Push ONE state only when entering a modal context, not constantly
+    if (isModalOpen) {
+       window.history.pushState(null, '', window.location.href);
+    }
+
     return () => { window.removeEventListener('popstate', handleBackButton); };
   }, [showPlanet, showUpload, isLibraryCollapsed, showExitPrompt, showAccountMenu]);
 
@@ -443,6 +457,7 @@ export default function MusicApp({ user, onLogout }) {
       localStorage.setItem('musicAppState', JSON.stringify(stateToSave));
     };
     const handleVisibility = () => { if (document.hidden) saveState(); };
+    
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('beforeunload', saveState);
     return () => {
@@ -487,13 +502,8 @@ export default function MusicApp({ user, onLogout }) {
       }
     }
     window.addEventListener('click', onDocClick);
-    const handleEsc = (e) => { if (e.key === 'Escape') setShowAccountMenu(false); };
-    window.addEventListener('keydown', handleEsc);
-    return () => {
-        window.removeEventListener('click', onDocClick);
-        window.removeEventListener('keydown', handleEsc);
-    };
-  }, []); 
+    return () => window.removeEventListener('click', onDocClick);
+  }, []);
 
   // Media Session
   useEffect(() => {
@@ -510,7 +520,7 @@ export default function MusicApp({ user, onLogout }) {
     navigator.mediaSession.setActionHandler('nexttrack', () => playNext({ manual: true }));
   }, [current, playing, playNext, playPrev]);
 
-  // Derived State & Handlers
+  // Derived State
   const visibleSongs = songs.filter(s => {
     if (!searchTerm) return true;
     const q = searchTerm.toLowerCase();
@@ -524,7 +534,8 @@ export default function MusicApp({ user, onLogout }) {
 
   function addToQueue(songId) { if (!songId) return; setQueue(prev => [...prev, songId]); setOpenMenuSongId(null); }
   function playNextNow(songId) { if (!songId) return; setQueue(prev => { const q = [...prev]; q.splice(Math.max(0, currentIndex + 1), 0, songId); return q; }); setOpenMenuSongId(null); }
-    /* ---------- RENDER ---------- */
+
+  /* ---------- RENDER ---------- */
   return (
     <div className="app-shell" style={{ alignItems: 'stretch' }}>
       
@@ -582,7 +593,6 @@ export default function MusicApp({ user, onLogout }) {
                 transform: showAdBar ? 'translateY(0)' : 'translateY(-100%)',
                 opacity: showAdBar ? 1 : 0,
                 marginBottom: showAdBar ? 10 : 0, 
-                pointerEvents: showAdBar ? 'auto' : 'none', 
                 height: showAdBar ? 'auto' : '0px', 
                 overflow: 'hidden' 
             }}>
@@ -764,5 +774,4 @@ export default function MusicApp({ user, onLogout }) {
       )}
     </div>
   );
-                }
-                       
+}
