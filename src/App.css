@@ -1126,50 +1126,81 @@ html, body, #root {
     box-sizing: border-box; 
   }
 
-  /* 4. SONG ITEM LAYOUT */
+ /* 4. SONG ITEM LAYOUT - UPDATED FOR SMALLER SCREENS */
   .song-item {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     width: 100%;
-    min-height: 64px; 
-    gap: 10px; /* Reduced gap slightly for narrow screens */
-    padding: 8px 4px; 
+    min-height: 60px; /* Slightly reduced height */
+    gap: 8px; /* Reduced gap to save horizontal space */
+    padding: 6px 4px; 
     background: transparent;
     box-sizing: border-box;
+    overflow: hidden; /* Prevents horizontal scroll triggers */
   }
 
   .song-item .like-wrap { display: none !important; }
 
   .song-item .cover { 
-    width: 48px; height: 48px; min-width: 48px; 
-    border-radius: 8px; object-fit: cover; flex-shrink: 0;
+    width: 44px; /* Slightly smaller cover */
+    height: 44px; 
+    min-width: 44px; 
+    border-radius: 6px; 
+    object-fit: cover; 
+    flex-shrink: 0;
   }
   
   .song-info { 
-    flex: 1; min-width: 0; 
-    display: flex; flex-direction: column; justify-content: center; gap: 2px;
-    padding-right: 4px; 
+    flex: 1; 
+    min-width: 0; /* CRITICAL: Allows text truncation to work */
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    gap: 2px;
+    padding-right: 2px; 
   }
   
   .song-info .title { 
-    font-size: 15px; width: 100%; white-space: normal !important; 
-    line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; 
-    -webkit-box-orient: vertical; overflow: hidden;
+    /* Reduced from 15px to 13.5px */
+    font-size: 13.5px; 
+    font-weight: 600;
+    width: 100%; 
+    white-space: normal !important; 
+    line-height: 1.2; 
+    display: -webkit-box; 
+    -webkit-line-clamp: 2; 
+    -webkit-box-orient: vertical; 
+    overflow: hidden;
   }
   
   .song-info .artist { 
-    font-size: 13px; width: 100%; white-space: normal !important; 
-    line-height: 1.2; color: #aaa; display: -webkit-box; 
-    -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    /* Reduced from 13px to 11.5px */
+    font-size: 11.5px; 
+    width: 100%; 
+    white-space: normal !important; 
+    line-height: 1.2; 
+    color: #aaa; 
+    display: -webkit-box; 
+    -webkit-line-clamp: 1; /* Limit artist to 1 line on mobile to save space */
+    -webkit-box-orient: vertical; 
+    overflow: hidden;
   }
 
   .more-wrap {
-    display: flex !important; align-items: center; justify-content: center;
-    width: 36px; flex-shrink: 0; margin-left: auto;
+    display: flex !important; 
+    align-items: center; 
+    justify-content: center;
+    width: 32px; /* Fixed width for the menu button area */
+    flex-shrink: 0; 
+    margin-left: auto;
   }
 
-  .song-item .icon-btn { width: 36px; height: 36px; flex-shrink: 0; }
+  .song-item .icon-btn { 
+    width: 32px; 
+    height: 32px; 
+    flex-shrink: 0; 
+  }
   .play-mini { display: none !important; }
 
   /* 5. PLAYER OVERLAY */
@@ -1232,19 +1263,29 @@ html, body, #root {
   .mini-progress-fill { height: 100%; background: var(--neon); box-shadow: 0 0 8px var(--neon); }
 }
 /* Tiny phones */
+/* Tiny phones (iPhone SE, Galaxy Fold outer screen, etc) */
 @media (max-width: 385px) {
   .library h3 { 
     display: none !important; 
   } 
   
   .library > div:first-child .small-btn { 
-    width: 36px !important; 
-    height: 36px !important; 
+    width: 32px !important; 
+    height: 32px !important; 
   }
   
   .song-item { 
-    padding: 6px 4px !important; 
-    gap: 8px !important; 
+    padding: 4px 2px !important; 
+    gap: 6px !important; 
+  }
+
+  /* Force even smaller fonts on tiny screens */
+  .song-info .title {
+    font-size: 12.5px !important;
+  }
+  
+  .song-info .artist {
+    font-size: 11px !important;
   }
 }
 
