@@ -40,7 +40,7 @@ const useInterval = (callback, delay) => {
 // --- AD BOX CONTENT DEFINITION ---
 const ALL_PROMOS = [
     // --- PAGE 1 (Default View) ---
-    { title: "Planet Evolution", subtitle: "See your taste define your world.", icon: <Orbit size={24} /> color="#00ffff" />, accent: "#0f3460" },
+    { title: "Planet Evolution", subtitle: "See your taste define your world.", icon: <Orbit size={20} color="#00ffff" />, accent: "#0f3460" },
     { title: "Go Premium Today", subtitle: "Unlimited uploads & lossless audio.", icon: <TrendingUp size={20} color="#ff00cc" />, accent: "#6e1c4e" },
     { title: "Collaborative Playlists", subtitle: "Share your queue with friends.", icon: <ListMusic size={20} color="#ffff00" />, accent: "#4c4e1c" },
     { title: "Sleep Timer Pro", subtitle: "Auto-pause after a set time.", icon: <Clock size={20} color="#ffae00" />, accent: "#60420f" },
