@@ -732,23 +732,20 @@ export default function MusicApp({ user, onLogout }) {
               
               {!isLibraryCollapsed && (
               <>
-                {/* --- NEW: INSTALL APP BUTTON (Only visible if installable) --- */}
-                {/* Placed FIRST in the row, with text and green styling */}
+                {/* --- NEW: INSTALL APP BUTTON (Icon Only to fit header) --- */}
                 {isInstallable && (
                   <button 
-                    className="small-btn" 
+                    className="small-btn icon-only" 
                     onClick={handleInstallClick} 
                     title="Install App"
                     style={{ 
                       background: 'rgba(0, 255, 128, 0.15)', 
                       color: '#00ff80', 
                       borderColor: '#00ff80',
-                      fontWeight: 'bold',
-                      fontSize: '12px'
+                      boxShadow: '0 0 10px rgba(0, 255, 128, 0.1)'
                     }}
                   >
-                    <Download size={16} style={{marginRight: 6}}/>
-                    Install App
+                    <Download size={20} />
                   </button>
                 )}
 
