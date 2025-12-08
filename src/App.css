@@ -1397,3 +1397,39 @@ html, body, #root {
     gap: 8px !important;
   }
 }
+/* DESKTOP SCROLL FIX - Complete Solution */
+@media (min-width: 769px) {
+  /* 1. Unlock the root elements */
+  html, body, #root {
+    overflow: visible !important;
+    position: static !important;
+  }
+  
+  /* 2. Fix library sidebar scrolling */
+  .library {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+  
+  .library-content {
+    flex: 1 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .song-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  
+  /* 3. Ensure player area scrolls */
+  .player-area {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+}
