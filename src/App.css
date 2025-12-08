@@ -1382,3 +1382,11 @@ html, body, #root {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
 }
+/* --- AD BAR TRANSITION FIX --- */
+
+/* Targets the div wrapper containing Search bar and AdBoxGrid */
+.library-content > div:first-child:not(.upload-area) {
+    /* CRITICAL: Apply smooth transition properties */
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out, margin-bottom 0.3s ease-out, height 0.3s ease-out;
+    will-change: transform, opacity, margin-bottom; /* Optimization hint */
+}
