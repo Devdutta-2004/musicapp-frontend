@@ -13,7 +13,7 @@ import {
   QrCode, ChevronDown, ChevronLeft, ChevronRight, 
   Search, Upload, Rocket, ListPlus, SkipForward, PlayCircle,
   RotateCcw, ArrowLeft, Sparkle, LogOut, User ,Globe,
-  TrendingUp, HardHat, Zap,Orbit, Clock 
+  TrendingUp, HardHat, Zap, Orbit, Clock, Download // Added Download import
 } from "lucide-react"; 
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -156,6 +156,30 @@ export default function MusicApp({ user, onLogout }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [songProgress, setSongProgress] = useState(0);
+
+  // --- PWA INSTALL LOGIC ---
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    setDeferredPrompt(null);
+    setIsInstallable(false);
+    setShowAccountMenu(false);
+  };
 
   // Mascot expressions with messages (Keep this structure)
   const mascotExpressions = [
@@ -749,6 +773,13 @@ export default function MusicApp({ user, onLogout }) {
                             {user.username}
                         </div>
 
+                        {/* --- NEW: INSTALL APP BUTTON (Only visible if installable) --- */}
+                        {isInstallable && (
+                            <button className="menu-item" onClick={handleInstallClick}>
+                                <Download size={16} style={{marginRight: 8}}/> Install App
+                            </button>
+                        )}
+
                         {/* Logout Button */}
                         <button className="menu-item" onClick={onLogout}>
                             <LogOut size={16} style={{marginRight: 8}}/> Sign Out
@@ -813,7 +844,8 @@ export default function MusicApp({ user, onLogout }) {
             </div>
           )}
 
-          {/* This container now holds the Upload/Song List. flex: 1 ensures it fills the rest of the height. */}
+          {/* This container now holds the Upload/Song List. */}
+          {/* FIXED: Removed flex: 1 so the content grows naturally for scrolling */}
           <div style={{ marginTop: 12, position: 'relative' }}> 
             {showUpload && !isLibraryCollapsed ? (
               <div className="upload-area"><UploadCard onUploaded={() => { fetchSongs(); setShowUpload(false); }} /></div>
@@ -1001,6 +1033,7 @@ export default function MusicApp({ user, onLogout }) {
             </div>
           </div>
 
+          {/* changing maxHeight to height ensures the container is always tall enough to show the scrollbar */}
           <div className="queue" style={{ height: '36vh', overflowY: 'auto' }}>
             {queue.length === 0 && <div style={{ padding: 12, color: 'var(--text-secondary)', fontSize: 13 }}>Queue is empty</div>}
             {queue.map((id, idx) => {
