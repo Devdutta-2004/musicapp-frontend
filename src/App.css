@@ -89,14 +89,19 @@ html, body, #root {
   border-radius: 16px;
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));
   box-shadow: 0 14px 40px rgba(0,0,0,0.55);
-  overflow-y: auto;
+  
+  /* CRITICAL CHANGE: MAKE IT A FLEX COLUMN CONTAINER */
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden; /* Scrolling is handled by the inner container */
+  
   position: relative;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-right: 1px solid rgba(255,255,255,0.02);
 }
 
 /* Purple Header Gradient */
-.library > div:first-child { position: relative; z-index: 2; }
+.library > div:first-child { position: relative; z-index: 2; flex-shrink: 0; } /* Header content should not shrink */
 
 .library::before {
   content: "";
@@ -123,7 +128,28 @@ html, body, #root {
 .library.collapsed .song-list::-webkit-scrollbar { display: none; }
 
 .library h3 { margin: 6px 0 16px; font-weight: 800; font-size: 20px; color: #fff; }
-.library .song-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-bottom: 12px; z-index: 2; position: relative;}
+
+/* NEW CLASS: Wrapper that takes up the remaining space and handles scrolling */
+.library-content {
+    flex: 1; /* Stretches to fill available space */
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Important for flex layout when contents overflow */
+    overflow-y: auto; /* CRITICAL: This enables scrolling for the Ad Grid and Song List */
+    padding-bottom: 20px; /* Add padding to the bottom of the scrollable area */
+}
+
+/* Song List is inside library-content and shouldn't have its own scroll */
+.library .song-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px; 
+    /* REMOVE overflow-y: auto HERE */
+    padding-bottom: 12px; 
+    z-index: 2; 
+    position: relative;
+    flex-shrink: 0; /* Ensure this list doesn't cause overflow issues itself */
+}
 
 /* === UPLOAD AREA ANIMATION === */
 .upload-area {
@@ -498,6 +524,7 @@ html, body, #root {
   }
   
   /* Scrollable List Padding */
+  /* This rule is now managed by the library-content flex container */
   .library .song-list {
     padding-bottom: 160px !important; 
     width: 100%;
@@ -691,11 +718,9 @@ html, body, #root {
 @keyframes slideUp {
   from {
     transform: translateY(30px);
-    opacity: 0;
   }
   to {
     transform: translateY(0);
-    opacity: 1;
   }
 }
 
