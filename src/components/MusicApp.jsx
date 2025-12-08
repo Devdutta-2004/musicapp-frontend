@@ -239,47 +239,49 @@ export default function MusicApp({ user, onLogout }) {
         likeCount: typeof s.likeCount === 'number' ? s.likeCount : 0
       }));
 
-      // PROGRESSIVE LOADING: Show first 20 songs immediately
-      const INITIAL_BATCH = 20;
+      // PROGRESSIVE LOADING: Show first 30 songs immediately
+      const INITIAL_BATCH = 30;
       const initialSongs = data.slice(0, INITIAL_BATCH);
       const remainingSongs = data.slice(INITIAL_BATCH);
 
       // Set initial batch immediately - removes loading screen fast!
       const randomizedInitial = shuffleArray(initialSongs);
       setSongs(randomizedInitial);
-      setIsLoading(false); // ✅ User sees songs NOW
-
+      
       // Only set queue if we didn't restore from localStorage
       if (randomizedInitial.length && queue.length === 0) {
         setQueue(randomizedInitial.map(d => d.id));
         setCurrentIndex(0);
       }
 
-      // Load remaining songs in background
+      // ✅ CRITICAL: Turn off loading screen NOW so user sees first batch
+      setIsLoading(false);
+
+      // Load remaining songs in background (if any)
       if (remainingSongs.length > 0) {
         setIsLoadingMore(true);
         
-        // Use setTimeout to let UI render first
+        // Use setTimeout to let UI render first batch
         setTimeout(() => {
           const allSongs = shuffleArray([...initialSongs, ...remainingSongs]);
           setSongs(allSongs);
           
           // Update queue to include all songs (but keep current position)
-          if (queue.length > 0) {
-            setQueue(q => {
-              const existingIds = new Set(q);
+          setQueue(prevQueue => {
+            if (prevQueue.length > 0) {
+              const existingIds = new Set(prevQueue);
               const newSongIds = allSongs
                 .filter(s => !existingIds.has(s.id))
                 .map(s => s.id);
-              return [...q, ...newSongIds];
-            });
-          } else {
-            setQueue(allSongs.map(d => d.id));
-          }
+              return [...prevQueue, ...newSongIds];
+            } else {
+              return allSongs.map(d => d.id);
+            }
+          });
           
           setIsLoadingMore(false);
           console.log(`✅ Loaded ${allSongs.length} songs total`);
-        }, 100); // Small delay to let UI render smoothly
+        }, 500); // Half second delay to let UI render smoothly
       }
 
     } catch (e) {
