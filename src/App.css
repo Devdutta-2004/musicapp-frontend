@@ -1332,3 +1332,47 @@ html, body, #root {
     padding-right: 4px;
   }
 }
+/* ============================================================================
+   EMERGENCY FIX: Force "Options" Menu to Stay Visible
+   ============================================================================ */
+@media (max-width: 768px) {
+  
+  /* 1. Prepare the container for pinning */
+  .song-item {
+    position: relative !important;
+    /* Add extra padding on right so text doesn't go under the button */
+    padding-right: 42px !important; 
+  }
+
+  /* 2. Pin the "Three Dots" button to the right side */
+  .more-wrap {
+    display: flex !important;
+    position: absolute !important;
+    right: 4px !important; /* Pin it 4px from the right edge */
+    top: 50% !important;
+    transform: translateY(-50%) !important; /* Center vertically */
+    z-index: 20 !important; /* Ensure it sits on top of everything */
+    background: transparent !important; /* Prevent blocking background */
+    width: 36px !important;
+    height: 36px !important;
+    margin: 0 !important;
+  }
+
+  /* 3. Ensure the button icon inside is visible */
+  .more-wrap .icon-btn {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    color: #aaa !important; /* Ensure distinct color */
+  }
+
+  /* 4. Ensure title text doesn't overlap the pinned button */
+  .song-info {
+    width: 100% !important;
+    padding-right: 0 !important; /* Padding is handled by parent .song-item */
+  }
+}
