@@ -25,9 +25,9 @@ function CoverImage({ srcs = [], alt, className }) {
 }
 
 export default function MusicApp({ user, onLogout }) {
-  const [songs, setSongs] = useState([]);                
-  const [queue, setQueue] = useState([]);                
-  const [currentIndex, setCurrentIndex] = useState(-1); 
+  const [songs, setSongs] = useState([]);          
+  const [queue, setQueue] = useState([]);          
+  const [currentIndex, setCurrentIndex] = useState(-1);
   const [playing, setPlaying] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [repeatMode, setRepeatMode] = useState('off'); 
@@ -57,6 +57,47 @@ export default function MusicApp({ user, onLogout }) {
   useEffect(() => { songsRef.current = songs }, [songs]);
 
   const current = songs.find(s => s.id === queue[currentIndex]) || null;
+
+  /* --- PWA SMART BACK BUTTON LOGIC --- */
+  useEffect(() => {
+    // This function runs on every back/history change event
+    const handlePopState = (e) => {
+      // 1. Check if the player is currently expanded (library is collapsed)
+      if (isLibraryCollapsed) {
+        // Yes, the player is expanded. Collapse it instead of letting the PWA close.
+        setIsLibraryCollapsed(false);
+        
+        // Push the state back immediately. This is VITAL. 
+        // It ensures the browser's history length is restored, stopping the 
+        // PWA from interpreting this action as "close the app."
+        window.history.pushState(null, null, window.location.href);
+        return; // Action handled
+      } 
+      
+      // 2. If we are on the main screen (library visible):
+      // Check if the history length is 1 (the final entry before closing the PWA).
+      if (window.history.length === 1) {
+        // Block the back action by pushing the state back immediately.
+        // This prevents the PWA from closing entirely and forcing a restart.
+        window.history.pushState(null, null, window.location.href);
+        return; // Action handled
+      }
+    };
+
+    // Add listener to intercept back actions
+    window.addEventListener('popstate', handlePopState);
+    
+    // Push an initial dummy state to guarantee history.length is always > 1 at the start.
+    if (window.history.length === 0) {
+        window.history.pushState(null, null, window.location.href);
+    }
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isLibraryCollapsed]); // Dependency ensures the handler updates with the current view state
+  /* --- END PWA SMART BACK BUTTON LOGIC --- */
+
 
   /* --- SLEEP TIMER LOGIC --- */
   useEffect(() => {
@@ -145,7 +186,7 @@ export default function MusicApp({ user, onLogout }) {
       
       // Update local user state immediately
       if (user) {
-         user.totalMinutesListened = (user.totalMinutesListened || 0) + minutes;
+          user.totalMinutesListened = (user.totalMinutesListened || 0) + minutes;
       }
       console.log("Stats & Evolution Updated!");
     } catch (e) {
@@ -243,7 +284,7 @@ export default function MusicApp({ user, onLogout }) {
   }
 
   function playAtIndex(idx) { if (idx < 0 || idx >= queue.length) return; setCurrentIndex(idx); setPlaying(true); }
-   
+    
   function removeAtIndex(idx) {
     setQueue(prev => {
       const newQ = prev.slice(0, idx).concat(prev.slice(idx + 1));
@@ -314,15 +355,15 @@ export default function MusicApp({ user, onLogout }) {
 
           {/* RIGHT SIDE: Action Buttons */}
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-             
-             {!isLibraryCollapsed && (
+              
+              {!isLibraryCollapsed && (
               <>
                 {/* 1. Upload Button */}
                 <button className="small-btn" onClick={() => setShowUpload(v => !v)} title="Upload Song">
                   {showUpload ? <ArrowLeft size={18}/>: <Rocket size={18} />} 
                 </button>
 
-               
+                
 
                 {/* 3. PLANET PROFILE BUTTON */}
                 <button className="small-btn icon-only" onClick={() => setShowPlanet(true)} title="My Planet">
@@ -347,19 +388,19 @@ export default function MusicApp({ user, onLogout }) {
               </>
             )}
 
-             {/* COLLAPSE/EXPAND BUTTON */}
-             <button 
+              {/* COLLAPSE/EXPAND BUTTON */}
+              <button 
                 className="small-btn icon-only collapse-btn" 
                 onClick={() => setIsLibraryCollapsed(v => !v)} 
-             >
+              >
                 {isLibraryCollapsed ? <ChevronRight size={22}/> : <ChevronLeft size={22}/>}
-             </button>
+              </button>
           </div>
         </div>
 
         {!isLibraryCollapsed && (
           <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', }}>
-             <div style={{ position: 'relative', flex: 1 }}>
+              <div style={{ position: 'relative', flex: 1 }}>
                 <Search size={16} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                 <input
                 value={searchTerm}
@@ -387,7 +428,7 @@ export default function MusicApp({ user, onLogout }) {
                   <div className="loading-text">Loading Library</div>
                 </div>
               ) : visibleSongs.length === 0 ? (
-                 <div style={{ padding: 12, color: 'var(--text-secondary)' }}>No songs found.</div>
+                  <div style={{ padding: 12, color: 'var(--text-secondary)' }}>No songs found.</div>
               ) : (
                 visibleSongs.map(s => (
                   <div key={s.id} className="song-item" onClick={() => playSong(s)} title={s.title}>
@@ -438,7 +479,7 @@ export default function MusicApp({ user, onLogout }) {
         
         <div className="mobile-only-header">
            <button className="icon-btn" onClick={() => setIsLibraryCollapsed(false)}>
-              <ChevronDown size={28} />
+             <ChevronDown size={28} />
            </button>
         </div>
 
@@ -467,10 +508,10 @@ export default function MusicApp({ user, onLogout }) {
                       
                       // --- THIS IS THE KEY UPDATE ---
                       onEnded={() => { 
-                         // Pass Genre to 'recordListen'
-                         recordListen(current.durationSeconds || 180, current.genre); 
-                         // Logic Preserved: Auto play next song
-                         playNext({ manual: false });
+                          // Pass Genre to 'recordListen'
+                          recordListen(current.durationSeconds || 180, current.genre); 
+                          // Logic Preserved: Auto play next song
+                          playNext({ manual: false });
                       }}
                       
                       repeatMode={repeatMode}
@@ -567,16 +608,16 @@ export default function MusicApp({ user, onLogout }) {
            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
              <img src={current.coverUrl || current.artistImageUrl || PERSON_PLACEHOLDER} className="mini-cover" onError={(e)=>e.currentTarget.src=PERSON_PLACEHOLDER}/>
              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                 <div className="mini-title">{current.title}</div>
-                 <div className="mini-artist">{current.artistName}</div>
+               <div className="mini-title">{current.title}</div>
+               <div className="mini-artist">{current.artistName}</div>
              </div>
            </div>
            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
              <button className="icon-btn" onClick={(e) => { e.stopPropagation(); toggleLike(current.id); }}>
-                 <Sparkle size={20} fill={current.liked ? "var(--neon-pink)" : "none"} color={current.liked ? "var(--neon-pink)" : "white"} />
+               <Sparkle size={20} fill={current.liked ? "var(--neon-pink)" : "none"} color={current.liked ? "var(--neon-pink)" : "white"} />
              </button>
              <button className="icon-btn" onClick={(e) => { e.stopPropagation(); setPlaying(p => !p); }}>
-                 {playing ? <Pause size={24} fill="white"/> : <Play size={24} fill="white"/>}
+               {playing ? <Pause size={24} fill="white"/> : <Play size={24} fill="white"/>}
              </button>
            </div>
            
