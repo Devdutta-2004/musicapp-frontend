@@ -12,17 +12,87 @@ import {
   MoreVertical, ListMusic, Shuffle, 
   QrCode, ChevronDown, ChevronLeft, ChevronRight, 
   Search, Upload, Rocket, ListPlus, SkipForward, PlayCircle,
-  RotateCcw, ArrowLeft, Sparkle, LogOut, User ,Globe 
-} from "lucide-react";
+  RotateCcw, ArrowLeft, Sparkle, LogOut, User ,Globe,
+  TrendingUp, HardHat, Zap 
+} from "lucide-react"; // Added new Lucide icons
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
 
-function CoverImage({ srcs = [], alt, className }) {
-  const [src, setSrc] = useState(srcs.find(Boolean) || PERSON_PLACEHOLDER);
-  useEffect(() => setSrc(srcs.find(Boolean) || PERSON_PLACEHOLDER), [JSON.stringify(srcs)]);
-  const onError = (e) => { if (e.currentTarget.src !== PERSON_PLACEHOLDER) e.currentTarget.src = PERSON_PLACEHOLDER; };
-  return <img src={src} alt={alt} className={className} onError={onError} />;
+// Custom hook for the slideshow interval
+const useInterval = (callback, delay) => {
+    const savedCallback = useRef();
+
+    useEffect(() => {
+        savedCallback.current = callback;
+    }, [callback]);
+
+    useEffect(() => {
+        function tick() {
+            savedCallback.current();
+        }
+        if (delay !== null) {
+            let id = setInterval(tick, delay);
+            return () => clearInterval(id);
+        }
+    }, [delay]);
+};
+
+// --- AD BOX CONTENT DEFINITION ---
+const AD_CARDS = [
+    { 
+        title: "Planet Evolution Live!", 
+        subtitle: "See your taste define your world.", 
+        icon: <Globe size={20} color="#00ffff" />,
+        accent: "linear-gradient(90deg, #16213e, #0f3460)"
+    },
+    { 
+        title: "Go Premium Today", 
+        subtitle: "Get unlimited uploads and lossless quality.", 
+        icon: <TrendingUp size={20} color="#ff00cc" />,
+        accent: "linear-gradient(90deg, #3e162d, #6e1c4e)"
+    },
+    { 
+        title: "Future Features", 
+        subtitle: "Collaborative playlists are coming soon!", 
+        icon: <HardHat size={20} color="#ffff00" />,
+        accent: "linear-gradient(90deg, #3e3a16, #6e631c)"
+    },
+];
+
+// --- AD BOX COMPONENT ---
+function AdBox({ onFeatureClick }) {
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    useInterval(() => {
+        setActiveIndex(prev => (prev + 1) % AD_CARDS.length);
+    }, 5000); // Change slide every 5 seconds
+
+    const currentCard = AD_CARDS[activeIndex];
+
+    return (
+        <div 
+            className="ad-box card-surface" 
+            style={{ background: currentCard.accent }}
+            onClick={onFeatureClick} // Clicks the box to trigger action (e.g., open premium page)
+        >
+            {currentCard.icon}
+            <div className="ad-content">
+                <div className="ad-title">{currentCard.title}</div>
+                <div className="ad-subtitle">{currentCard.subtitle}</div>
+            </div>
+            <Zap size={16} color="white" style={{ opacity: 0.7 }} />
+        </div>
+    );
 }
+
+// ... (CoverImage function remains the same) ...
+function CoverImage({ srcs = [], alt, className }) {
+  const [src, setSrc] = useState(srcs.find(Boolean) || PERSON_PLACEHOLDER);
+  useEffect(() => setSrc(srcs.find(Boolean) || PERSON_PLACEHOLDER), [JSON.stringify(srcs)]);
+  const onError = (e) => { if (e.currentTarget.src !== PERSON_PLACEHOLDER) e.currentTarget.src = PERSON_PLACEHOLDER; };
+  return <img src={src} alt={alt} className={className} onError={onError} />;
+}
+
 
 export default function MusicApp({ user, onLogout }) {
   const [songs, setSongs] = useState([]);          
@@ -34,15 +104,15 @@ export default function MusicApp({ user, onLogout }) {
   const [shuffle, setShuffle] = useState(false);
   
   const [showPlanet, setShowPlanet] = useState(false); 
-  const [showExitPrompt, setShowExitPrompt] = useState(false);
-  const [exitMascot, setExitMascot] = useState('');
+  const [showExitPrompt, setShowExitPrompt] = useState(false); // Used for animated exit prompt
+  const [exitMascot, setExitMascot] = useState({}); // Stores the mascot image/text
 
   // Loading State
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [songProgress, setSongProgress] = useState(0);
 
-  // Mascot expressions with messages
+  // Mascot expressions with messages (Keep this structure)
   const mascotExpressions = [
     { img: '/mascots/mascot-sad.png', msg: "Don't leave me alone in space! 🌌", sub: "I'll be floating here with your music waiting for you to come back! 🎵" },
     { img: '/mascots/mascot-crying.png', msg: "Please don't go! 😢", sub: "The stars won't be the same without you listening! ✨" },
@@ -70,7 +140,7 @@ export default function MusicApp({ user, onLogout }) {
 
   const current = songs.find(s => s.id === queue[currentIndex]) || null;
 
-  /* --- STATE PERSISTENCE: RESTORE ON MOUNT --- */
+  /* --- STATE PERSISTENCE: RESTORE ON MOUNT (Restored logic block) --- */
   useEffect(() => {
     try {
       const saved = localStorage.getItem('musicAppState');
@@ -102,9 +172,9 @@ export default function MusicApp({ user, onLogout }) {
     } catch (e) {
       console.error('Failed to restore state:', e);
     }
-  }, []); // Run once on mount
+  }, []); 
 
-  /* --- STATE PERSISTENCE: SAVE ON CHANGES --- */
+  /* --- STATE PERSISTENCE: SAVE ON CHANGES (Restored logic block) --- */
   useEffect(() => {
     // Only save if we have meaningful state
     if (queue.length === 0) return;
@@ -125,7 +195,7 @@ export default function MusicApp({ user, onLogout }) {
     }
   }, [queue, currentIndex, shuffle, repeatMode, isLibraryCollapsed]);
 
-  /* --- STATE PERSISTENCE: SAVE BEFORE CLOSE --- */
+  /* --- STATE PERSISTENCE: SAVE BEFORE CLOSE (Restored logic block) --- */
   useEffect(() => {
     const saveOnClose = () => {
       if (queue.length === 0) return;
@@ -161,7 +231,7 @@ export default function MusicApp({ user, onLogout }) {
     };
   }, [queue, currentIndex, shuffle, repeatMode, isLibraryCollapsed]);
 
-  /* --- PWA SMART BACK BUTTON LOGIC --- */
+  /* --- PWA SMART BACK BUTTON LOGIC (Restored logic block) --- */
   useEffect(() => {
     if (!window.matchMedia('(display-mode: standalone)').matches) {
         return;
@@ -207,7 +277,7 @@ export default function MusicApp({ user, onLogout }) {
     };
   }, [showPlanet, showUpload, isLibraryCollapsed, showExitPrompt]);
 
-  /* --- PWA: PUSH STATE WHEN VIEWS OPEN --- */
+  /* --- PWA: PUSH STATE WHEN VIEWS OPEN (Restored logic block) --- */
   useEffect(() => {
     if (!window.matchMedia('(display-mode: standalone)').matches) return;
     
@@ -215,7 +285,7 @@ export default function MusicApp({ user, onLogout }) {
       window.history.pushState(null, '', window.location.href);
     }
   }, [showPlanet, showUpload, isLibraryCollapsed, showExitPrompt]);
-
+  
   /* --- SLEEP TIMER LOGIC --- */
   useEffect(() => {
     if (sleepTime !== null && sleepTime > 0) {
@@ -539,18 +609,26 @@ export default function MusicApp({ user, onLogout }) {
         </div>
 
         {!isLibraryCollapsed && (
-          <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', }}>
-              <div style={{ position: 'relative', flex: 1 }}>
-                <Search size={16} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                <input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search..."
-                className="search-input"
-                style={{ paddingLeft: 32, width: '100%' }}
-                />
-            </div>
-            {searchTerm && <button className="small-btn" onClick={() => setSearchTerm('')}>Clear</button>}
+          // --- SEARCH BAR AND AD BOX CONTAINER ---
+          <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10, }}>
+            
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <Search size={16} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                  <input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search..."
+                  className="search-input"
+                  style={{ paddingLeft: 32, width: '100%' }}
+                  />
+                </div>
+                {searchTerm && <button className="small-btn" onClick={() => setSearchTerm('')}>Clear</button>}
+              </div>
+
+            {/* --- NEW: MOVING SLIDESHOW AD BOX PLACEMENT --- */}
+            <AdBox onFeatureClick={() => { /* Implement navigation to premium page here */ }} />
+
           </div>
         )}
 
@@ -558,7 +636,7 @@ export default function MusicApp({ user, onLogout }) {
           {showUpload && !isLibraryCollapsed ? (
             <div className="upload-area"><UploadCard onUploaded={() => { fetchSongs(); setShowUpload(false); }} /></div>
           ) : (
-            <div className="song-list" style={{ height: 'calc(100vh - 140px)', overflowY: 'auto', paddingRight: isLibraryCollapsed ? 0 : 4, position: 'relative' }}>
+            <div className="song-list" style={{ height: 'calc(100vh - 200px)', overflowY: 'auto', paddingRight: isLibraryCollapsed ? 0 : 4, position: 'relative' }}>
               
               {isLoading ? (
                 <div className="loading-container">
