@@ -44,11 +44,11 @@ export default function MusicApp({ user, onLogout }) {
 
   // Mascot expressions with messages
   const mascotExpressions = [
-    { img: '/mascot-sad.png', msg: "Don't leave me alone in space! 🌌", sub: "I'll be floating here with your music waiting for you to come back! 🎵" },
-    { img: '/mascot-crying.png', msg: "Please don't go! 😢", sub: "The stars won't be the same without you listening! ✨" },
-    { img: '/mascot-lonely.png', msg: "It's so quiet without you! 🤫", sub: "Your playlists keep me company in the void! 🎶" },
-    { img: '/mascot-puppy-eyes.png', msg: "Just one more song? 🥺", sub: "I promise this next track will blow your mind! 🚀" },
-    { img: '/mascot-waving.png', msg: "Come back soon, okay? 👋", sub: "I'll keep your queue warm for you! 🔥" }
+    { img: '/mascots/mascot-sad.png', msg: "Don't leave me alone in space! 🌌", sub: "I'll be floating here with your music waiting for you to come back! 🎵" },
+    { img: '/mascots/mascot-crying.png', msg: "Please don't go! 😢", sub: "The stars won't be the same without you listening! ✨" },
+    { img: '/mascots/mascot-lonely.png', msg: "It's so quiet without you! 🤫", sub: "Your playlists keep me company in the void! 🎶" },
+    { img: '/mascots/mascot-puppy-eyes.png', msg: "Just one more song? 🥺", sub: "I promise this next track will blow your mind! 🚀" },
+    { img: '/mascots/mascot-waving.png', msg: "Come back soon, okay? 👋", sub: "I'll keep your queue warm for you! 🔥" }
   ];
 
   // --- SLEEP TIMER STATE ---
