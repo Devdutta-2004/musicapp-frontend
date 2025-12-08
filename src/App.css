@@ -1419,12 +1419,21 @@ html, body, #root {
     overflow-y: auto !important;
     overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* CRITICAL: Let song-list grow to enable scroll */
+  .library-content > div {
+    flex-shrink: 0 !important;
   }
   
   .song-list {
     display: flex !important;
     flex-direction: column !important;
     gap: 8px !important;
+    flex-shrink: 0 !important;
+    min-height: min-content !important;
   }
   
   /* 3. Ensure player area scrolls */
