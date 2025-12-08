@@ -18,6 +18,30 @@
   --scroll-thumb-hover: rgba(255,255,255,0.06);
   --bg-primary: #06060b;   
 }
+/* --- UNIVERSAL SCROLLBAR THEME (Applies to Library, Player, Queue) --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px; /* For horizontal scrollbars */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb, rgba(255, 255, 255, 0.1)); 
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover, rgba(255, 255, 255, 0.2)); 
+}
+
+/* Firefox support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
 
 /* ============================================================================
   PWA SETUP: Fixed viewport, no page scroll, only internal scrolling
@@ -1373,49 +1397,43 @@ html, body, #root {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
 }
-/* DESKTOP SCROLL FIX - Complete Solution (CORRECTED) */
+/* DESKTOP SCROLL FIX - UPDATED */
 @media (min-width: 769px) {
-  /* 1. LOCK the root elements. 
-     We want the APP to be fixed, and internal divs to scroll. 
-     Do NOT use 'visible' here, or the sidebar grows infinitely. */
+  /* 1. LOCK the app shell */
   html, body, #root {
     overflow: hidden !important; 
     height: 100% !important;
     width: 100% !important;
-    position: fixed !important; /* Locks viewport to prevent page bounce */
+    position: fixed !important; 
   }
   
-  /* 2. Fix library sidebar layout 
-     It must be exactly 100% height of the screen */
+  /* 2. Fix library sidebar */
   .library {
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
     max-height: 100vh !important;
-    overflow: hidden !important; /* Wrapper does not scroll */
+    overflow: hidden !important; 
   }
   
-  /* 3. The Scrollable Area
-     'min-height: 0' is the magic fix for Flexbox scrolling bugs */
+  /* 3. Library Scroll Content */
   .library-content {
-    flex: 1 1 0 !important; /* Grow, Shrink, Basis 0 */
-    min-height: 0 !important; /* CRITICAL: Allows flex child to scroll */
+    flex: 1 1 0 !important; 
+    min-height: 0 !important; 
     height: auto !important;
-    overflow-y: auto !important; /* Scroll happens HERE */
+    overflow-y: auto !important; 
     overflow-x: hidden !important;
     display: flex !important;
     flex-direction: column !important;
     padding-bottom: 20px;
   }
   
-  /* 4. Ensure the wrapper around the song list doesn't restrict height */
+  /* 4. Reset wrapper divs */
   .library-content > div {
     flex-shrink: 0 !important;
     height: auto !important;
   }
   
-  /* 5. The actual list of songs 
-     Should grow naturally to fit content */
   .song-list {
     display: flex !important;
     flex-direction: column !important;
@@ -1425,10 +1443,21 @@ html, body, #root {
     min-height: min-content !important;
   }
   
-  /* 6. Ensure player area scrolls independently on the right side */
+  /* 5. FIX PLAYER AREA SCROLL */
   .player-area {
+    /* Limit height to viewport so it scrolls */
+    max-height: 100vh !important;
     height: 100% !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+    /* Add padding so bottom of queue isn't cut off */
+    padding-bottom: 40px !important; 
+  }
+
+  /* 6. FIX QUEUE INTERNAL SCROLL */
+  .queue {
+    /* Ensure the queue's internal scrollbar matches the theme */
+    scrollbar-gutter: stable;
+    padding-right: 4px;
   }
 }
