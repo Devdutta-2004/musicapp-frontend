@@ -13,7 +13,7 @@ import {
   QrCode, ChevronDown, ChevronLeft, ChevronRight, 
   Search, Upload, Rocket, ListPlus, SkipForward, PlayCircle,
   RotateCcw, ArrowLeft, Sparkle, LogOut, User ,Globe,
-  TrendingUp, HardHat, Zap, Clock 
+  TrendingUp, HardHat, Zap,Orbit, Clock 
 } from "lucide-react"; 
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -40,7 +40,7 @@ const useInterval = (callback, delay) => {
 // --- AD BOX CONTENT DEFINITION ---
 const ALL_PROMOS = [
     // --- PAGE 1 (Default View) ---
-    { title: "Planet Evolution", subtitle: "See your taste define your world.", icon: <Globe size={20} color="#00ffff" />, accent: "#0f3460" },
+    { title: "Planet Evolution", subtitle: "See your taste define your world.", icon: <Orbit size={24} /> color="#00ffff" />, accent: "#0f3460" },
     { title: "Go Premium Today", subtitle: "Unlimited uploads & lossless audio.", icon: <TrendingUp size={20} color="#ff00cc" />, accent: "#6e1c4e" },
     { title: "Collaborative Playlists", subtitle: "Share your queue with friends.", icon: <ListMusic size={20} color="#ffff00" />, accent: "#4c4e1c" },
     { title: "Sleep Timer Pro", subtitle: "Auto-pause after a set time.", icon: <Clock size={20} color="#ffae00" />, accent: "#60420f" },
@@ -146,6 +146,9 @@ export default function MusicApp({ user, onLogout }) {
   const [showExitPrompt, setShowExitPrompt] = useState(false); 
   const [exitMascot, setExitMascot] = useState({}); 
 
+  // --- NEW: Account Menu State ---
+  const [showAccountMenu, setShowAccountMenu] = useState(false); 
+
   // Loading State
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -154,10 +157,10 @@ export default function MusicApp({ user, onLogout }) {
   // Mascot expressions with messages (Keep this structure)
   const mascotExpressions = [
     { img: '/mascots/mascot-sad.png', msg: "Don't leave me alone in space! 🌌", sub: "I'll be floating here with your music waiting for you to come back! 🎵" },
-    { img: '/mascots/mascot-crying.png', msg: "Please don't go! 😢", sub: "The stars won't be the same without you listening! ✨" },
-    { img: '/mascots/mascot-lonely.png', msg: "It's so quiet without you! 🤫", sub: "Your playlists keep me company in the void! 🎶" },
-    { img: '/mascots/mascot-puppy-eyes.png', msg: "Just one more song? 🥺", sub: "I promise this next track will blow your mind! 🚀" },
-    { img: '/mascots/mascot-waving.png', msg: "Come back soon, okay? 👋", sub: "I'll keep your queue warm for you! 🔥" }
+    { img: '/mascots/mascot-crying.png', msg: "Please don't go! ", sub: "The stars won't be the same without you listening! ✨" },
+    { img: '/mascots/mascot-lonely.png', msg: "It's so quiet without you! ", sub: "Your playlists keep me company in the void! 🎶" },
+    { img: '/mascots/mascot-puppy-eyes.png', msg: "Just one more song? ", sub: "I promise this next track will blow your mind! 🚀" },
+    { img: '/mascots/mascot-waving.png', msg: "Come back soon, okay? ", sub: "I'll keep your queue warm for you! 🔥" }
   ];
 
   // --- SLEEP TIMER STATE ---
@@ -168,8 +171,7 @@ export default function MusicApp({ user, onLogout }) {
   const [isLibraryCollapsed, setIsLibraryCollapsed] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(400);
 
-  const [showQR, setShowQR] = useState(false);
-  const qrUrl = window.location.href.replace("localhost", window.location.hostname);
+  const [showQR, setShowQR] = useState(false); // REMAINED for QR code component definition (even though not used in header)
 
   const [openMenuSongId, setOpenMenuSongId] = useState(null);
   const menuRef = useRef(null);
@@ -283,6 +285,32 @@ export default function MusicApp({ user, onLogout }) {
       window.removeEventListener('pagehide', saveOnClose);
     };
   }, [queue, currentIndex, shuffle, repeatMode, isLibraryCollapsed]);
+  
+  /* --- Account Menu Close Handler --- */
+  useEffect(() => {
+    function onDocClick(e) {
+      // Close the menu if click is outside the menu container
+      const accountMenuBtn = document.getElementById('account-menu-btn');
+      const accountMenu = document.getElementById('account-menu');
+      
+      if (accountMenuBtn && !accountMenuBtn.contains(e.target) && accountMenu && !accountMenu.contains(e.target)) {
+        setShowAccountMenu(false);
+      }
+    }
+    // Listen for clicks everywhere to close the menu
+    window.addEventListener('click', onDocClick);
+
+    // Also close if ESC is pressed
+    const handleEsc = (e) => {
+        if (e.key === 'Escape') setShowAccountMenu(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+
+    return () => {
+        window.removeEventListener('click', onDocClick);
+        window.removeEventListener('keydown', handleEsc);
+    };
+  }, []); // Run once on mount
 
   /* --- PWA SMART BACK BUTTON LOGIC (Restored logic block) --- */
   useEffect(() => {
@@ -291,14 +319,17 @@ export default function MusicApp({ user, onLogout }) {
     }
 
     const handleBackButton = () => {
-        // Priority 1: Close exit prompt if open
+        // Priority 1: Close exit prompt/Account Menu/modals first
         if (showExitPrompt) {
             setShowExitPrompt(false);
             window.history.pushState(null, '', window.location.href);
             return;
         }
-
-        // Priority 2: Handle open modals/views
+        if (showAccountMenu) {
+            setShowAccountMenu(false);
+            window.history.pushState(null, '', window.location.href);
+            return;
+        }
         if (showPlanet || showUpload) {
             setShowPlanet(false);
             setShowUpload(false);
@@ -328,16 +359,16 @@ export default function MusicApp({ user, onLogout }) {
     return () => {
         window.removeEventListener('popstate', handleBackButton);
     };
-  }, [showPlanet, showUpload, isLibraryCollapsed, showExitPrompt]);
+  }, [showPlanet, showUpload, isLibraryCollapsed, showExitPrompt, showAccountMenu]);
 
   /* --- PWA: PUSH STATE WHEN VIEWS OPEN (Restored logic block) --- */
   useEffect(() => {
     if (!window.matchMedia('(display-mode: standalone)').matches) return;
     
-    if (showPlanet || showUpload || isLibraryCollapsed || showExitPrompt) {
+    if (showPlanet || showUpload || isLibraryCollapsed || showExitPrompt || showAccountMenu) {
       window.history.pushState(null, '', window.location.href);
     }
-  }, [showPlanet, showUpload, isLibraryCollapsed, showExitPrompt]);
+  }, [showPlanet, showUpload, isLibraryCollapsed, showExitPrompt, showAccountMenu]);
   
   /* --- SLEEP TIMER LOGIC --- */
   useEffect(() => {
@@ -623,32 +654,57 @@ export default function MusicApp({ user, onLogout }) {
             />
           </div>
 
-          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          {/* --- RIGHT SIDE: Action Buttons --- */}
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0, position: 'relative' }}>
               
               {!isLibraryCollapsed && (
               <>
+                {/* 1. Upload Button */}
                 <button className="small-btn" onClick={() => setShowUpload(v => !v)} title="Upload Song">
                   {showUpload ? <ArrowLeft size={18}/>: <Rocket size={18} />} 
                 </button>
-
+                
+                {/* 2. Planet Profile Button */}
                 <button className="small-btn icon-only" onClick={() => setShowPlanet(true)} title="My Planet">
-                   <Globe size={24} />
-                </button>
-
-                <button className="small-btn icon-only" onClick={onLogout} title="Sign Out">
-                  <LogOut size={18}/>
+                  <Orbit size={24} />
                 </button>
                 
-                <div style={{ position: 'relative' }}>
-                  <button className="small-btn icon-only" onClick={() => setShowQR(v => !v)} title="QR Code">
-                    <QrCode size={18}/>
-                  </button>
-                  {showQR && (
-                    <div style={{ position: "absolute", right: 0, top: "45px", background: "rgba(0,0,0,0.9)", padding: "12px", borderRadius: "10px", zIndex: 200 }}>
-                      <QRCodeCanvas value={qrUrl} size={160} bgColor="#000" fgColor="#fff" />
+                {/* --- 3. ACCOUNT BUTTON (Replaces Logout/QR) --- */}
+                <button 
+                    id="account-menu-btn"
+                    className={`small-btn icon-only ${showAccountMenu ? 'active' : ''}`} 
+                    onClick={(e) => { e.stopPropagation(); setShowAccountMenu(v => !v); }} 
+                    title={user.username || "Account"}
+                >
+                    <User size={24} />
+                </button>
+
+                {/* --- ACCOUNT DROPDOWN MENU --- */}
+                {showAccountMenu && (
+                    <div 
+                        id="account-menu" 
+                        className="more-menu" 
+                        style={{ top: '45px', right: 0, width: '180px', padding: '8px 6px', gap: '4px' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Username Display (Read-Only) */}
+                        <div style={{ 
+                            padding: '6px 12px', 
+                            fontSize: '14px', 
+                            color: '#9146ff', 
+                            fontWeight: 'bold',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                            marginBottom: '4px'
+                        }}>
+                            {user.username}
+                        </div>
+
+                        {/* Logout Button */}
+                        <button className="menu-item" onClick={onLogout}>
+                            <LogOut size={16} style={{marginRight: 8}}/> Sign Out
+                        </button>
                     </div>
-                  )}
-                </div>
+                )}
               </>
             )}
 
@@ -695,9 +751,6 @@ export default function MusicApp({ user, onLogout }) {
             ) : (
               <div 
                 className="song-list" 
-                // We removed the inline overflowY: 'auto' from here based on the CSS strategy, 
-                // but this line currently causes issues because the previous structure was wrong.
-                // We will rely purely on the parent .library-content scroll.
                 style={{ paddingRight: isLibraryCollapsed ? 0 : 4, position: 'relative' }} 
               >
                 {isLoading ? (
