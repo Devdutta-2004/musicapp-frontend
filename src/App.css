@@ -1003,6 +1003,9 @@ html, body, #root {
 /* ============================================================================
   MOBILE: Full-screen PWA experience
   ============================================================================ */
+/* ============================================================================
+   MOBILE: Full-screen PWA experience (FIXED & OPTIMIZED)
+   ============================================================================ */
 @media (max-width: 768px) {
   /* Lock body on mobile to prevent page bounce */
   html, body, #root {
@@ -1063,25 +1066,28 @@ html, body, #root {
     height: 160px; 
   }
   
-  /* Header stays at top */
+  /* --- HEADER FIX: Allow wrapping so search bar doesn't push width out --- */
   .library > div:first-child { 
     display: flex; 
-    flex-wrap: nowrap;
+    flex-wrap: wrap !important; /* CHANGED: Allows search to drop to next line */
     gap: 8px !important; 
     align-items: center; 
     justify-content: space-between !important; 
     margin-bottom: 12px;
-    padding-right: 2px;
+    padding-right: 0; /* CHANGED: Removed padding to ensure exact fit */
     flex-shrink: 0;
     position: relative;
     z-index: 100;
+    width: 100%; /* Ensure container stays within screen */
+    box-sizing: border-box;
   }
   
   /* Logo sizing */
   .library > div:first-child > div:first-child {
-    flex: 0 1 auto !important;
+    flex: 1 1 auto !important; /* CHANGED: Allows logo area to fill space */
     width: auto !important;
     min-width: 0 !important;
+    margin-right: auto; /* Pushes buttons to the right */
   }
   
   .library > div:first-child > div:first-child img {
@@ -1113,12 +1119,16 @@ html, body, #root {
     display: block; 
   }
 
+  /* --- SEARCH FIX: Force full width on new line --- */
   .search-input { 
-    min-width: 100%; 
+    width: 100% !important;     /* CHANGED */
+    min-width: 100% !important; 
+    flex-basis: 100%;           /* CHANGED: Forces line break in flexbox */
     order: 3; 
-    margin-top: 4px; 
+    margin-top: 8px;            /* Increased margin for better spacing */
     font-size: 16px; 
     padding: 10px; 
+    box-sizing: border-box;     /* CHANGED: Ensures padding doesn't increase width */
   }
 
   /* Song items with wrapped text */
@@ -1306,6 +1316,8 @@ html, body, #root {
     z-index: 100;
     box-shadow: 0 8px 32px rgba(0,0,0,0.5); 
     cursor: pointer;
+    box-sizing: border-box; /* CHANGED: Includes padding in width calculation */
+    max-width: calc(100% - 24px); /* CHANGED: Prevents overflow on tiny screens */
   }
   
   .mini-cover { 
@@ -1324,6 +1336,7 @@ html, body, #root {
     flex-direction: column; 
     justify-content: center; 
     overflow: hidden; 
+    padding-right: 8px; /* CHANGED: Safety spacing */
   }
   
   .mini-title { 
@@ -1359,7 +1372,6 @@ html, body, #root {
     box-shadow: 0 0 8px var(--neon); 
   }
 }
-
 /* Tiny phones */
 @media (max-width: 385px) {
   .library h3 { 
