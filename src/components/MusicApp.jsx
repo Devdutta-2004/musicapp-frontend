@@ -37,50 +37,95 @@ const useInterval = (callback, delay) => {
     }, [delay]);
 };
 
-// --- AD BOX CONTENT DEFINITION ---
-const AD_CARDS = [
-    { 
-        title: "Planet Evolution Live!", 
-        subtitle: "See your taste define your world.", 
-        icon: <Globe size={20} color="#00ffff" />,
-        accent: "linear-gradient(90deg, #16213e, #0f3460)"
-    },
-    { 
-        title: "Go Premium Today", 
-        subtitle: "Get unlimited uploads and lossless quality.", 
-        icon: <TrendingUp size={20} color="#ff00cc" />,
-        accent: "linear-gradient(90deg, #3e162d, #6e1c4e)"
-    },
-    { 
-        title: "Future Features", 
-        subtitle: "Collaborative playlists are coming soon!", 
-        icon: <HardHat size={20} color="#ffff00" />,
-        accent: "linear-gradient(90deg, #3e3a16, #6e631c)"
-    },
+// Add this new content array near the top of MusicApp.jsx (replace the old AD_CARDS definition)
+
+const ALL_PROMOS = [
+    // --- PAGE 1 (Default View) ---
+    { title: "Planet Evolution", subtitle: "See your taste define your world.", icon: <Globe size={20} color="#00ffff" />, accent: "#0f3460" },
+    { title: "Go Premium Today", subtitle: "Unlimited uploads & lossless audio.", icon: <TrendingUp size={20} color="#ff00cc" />, accent: "#6e1c4e" },
+    { title: "Collaborative Playlists", subtitle: "Share your queue with friends.", icon: <ListMusic size={20} color="#ffff00" />, accent: "#4c4e1c" },
+    { title: "Sleep Timer Pro", subtitle: "Auto-pause after a set time.", icon: <Clock size={20} color="#ffae00" />, accent: "#60420f" },
+    
+    // --- PAGE 2 (Sliding View) ---
+    { title: "Lossless Audio", subtitle: "Hear every note, crystal clear.", icon: <Zap size={20} color="#ff00ff" />, accent: "#3e163e" },
+    { title: "Custom Themes", subtitle: "Unlock exclusive color palettes.", icon: <Sparkle size={20} color="#ffffff" />, accent: "#1c6e6e" },
+    { title: "Fast Loading", subtitle: "Progressive library download.", icon: <Rocket size={20} color="#00ff00" />, accent: "#35600f" },
+    { title: "Ad-Free Experience", subtitle: "Enjoy music with zero interruption.", icon: <SkipForward size={20} color="#cccccc" />, accent: "#4e4c4c" },
 ];
 
-// --- AD BOX COMPONENT ---
-function AdBox({ onFeatureClick }) {
-    const [activeIndex, setActiveIndex] = useState(0);
+// Replace the old AdBox component definition with this Grid version
+
+// --- AD BOX GRID COMPONENT ---
+function AdBoxGrid({ onFeatureClick }) {
+    const [pageIndex, setPageIndex] = useState(0);
+    const containerRef = useRef(null);
+
+    const CARDS_PER_PAGE = 4;
+    const TOTAL_PAGES = Math.ceil(ALL_PROMOS.length / CARDS_PER_PAGE);
+
+    const handleScroll = (direction) => {
+        setPageIndex(prev => {
+            const newIndex = (prev + direction + TOTAL_PAGES) % TOTAL_PAGES;
+            // Scroll the container to the correct position (handled by CSS)
+            if (containerRef.current) {
+                const scrollPos = containerRef.current.clientWidth * newIndex;
+                containerRef.current.scrollLeft = scrollPos;
+            }
+            return newIndex;
+        });
+    };
 
     useInterval(() => {
-        setActiveIndex(prev => (prev + 1) % AD_CARDS.length);
-    }, 5000); // Change slide every 5 seconds
+        handleScroll(1);
+    }, 8000); // Auto-scroll every 8 seconds
 
-    const currentCard = AD_CARDS[activeIndex];
-
+    // Calculate which cards to display for the current page
+    const startIdx = pageIndex * CARDS_PER_PAGE;
+    const visibleCards = ALL_PROMOS.slice(startIdx, startIdx + CARDS_PER_PAGE);
+    
     return (
-        <div 
-            className="ad-box card-surface" 
-            style={{ background: currentCard.accent }}
-            onClick={onFeatureClick} // Clicks the box to trigger action (e.g., open premium page)
-        >
-            {currentCard.icon}
-            <div className="ad-content">
-                <div className="ad-title">{currentCard.title}</div>
-                <div className="ad-subtitle">{currentCard.subtitle}</div>
+        <div className="ad-grid-wrapper">
+            <div className="ad-grid-scroll-container" ref={containerRef}>
+                
+                {/* Map over ALL_PROMOS array in pages (ensure each group is wrapped) */}
+                {[...Array(TOTAL_PAGES)].map((_, page) => (
+                    <div key={page} className="ad-grid-page">
+                        {ALL_PROMOS.slice(page * CARDS_PER_PAGE, (page + 1) * CARDS_PER_PAGE).map((card, index) => (
+                            <div 
+                                key={page * CARDS_PER_PAGE + index}
+                                className="ad-box-item" 
+                                style={{ background: card.accent }}
+                                onClick={() => onFeatureClick(page * CARDS_PER_PAGE + index)}
+                            >
+                                {card.icon}
+                                <div className="ad-content">
+                                    <div className="ad-title">{card.title}</div>
+                                    <div className="ad-subtitle">{card.subtitle}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ))}
             </div>
-            <Zap size={16} color="white" style={{ opacity: 0.7 }} />
+            
+            {/* Optional: Page Indicators */}
+            <div className="ad-grid-dots">
+                {[...Array(TOTAL_PAGES)].map((_, index) => (
+                    <span 
+                        key={index} 
+                        className={`ad-dot ${index === pageIndex ? 'active' : ''}`}
+                        onClick={() => { setPageIndex(index); handleScroll(index - pageIndex); }}
+                    />
+                ))}
+            </div>
+
+            {/* Optional: Manual Navigation Arrows */}
+            {TOTAL_PAGES > 1 && (
+                <>
+                    <button className="ad-arrow left" onClick={() => handleScroll(-1)}>&lt;</button>
+                    <button className="ad-arrow right" onClick={() => handleScroll(1)}>&gt;</button>
+                </>
+            )}
         </div>
     );
 }
