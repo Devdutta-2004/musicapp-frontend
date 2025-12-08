@@ -58,57 +58,58 @@ export default function MusicApp({ user, onLogout }) {
 
   const current = songs.find(s => s.id === queue[currentIndex]) || null;
 
-/* --- PWA SMART BACK BUTTON LOGIC (FINAL FIX) --- */
-  useEffect(() => {
-    // Only apply the fix if the app is installed as a PWA
+/* --- PWA SMART BACK BUTTON LOGIC (FINAL ROBUST FIX) --- */
+useEffect(() => {
+    // 1. Only apply the fix if the app is installed as a PWA
     if (!window.matchMedia('(display-mode: standalone)').matches) {
-      // If not PWA, let browser handle history normally
-      return;
+        return;
     }
 
-    // Push an initial state only ONCE to ensure history.length starts correctly
-    if (window.history.length < 2) {
+    // --- Core Logic: The Action Handler ---
+    const handlePopState = (e) => {
+        // A. Handle open modals/views first (highest priority)
+        if (showPlanet || showUpload) {
+            setShowPlanet(false);
+            setShowUpload(false);
+            // Block the back action by pushing state back (stops app closure)
+            window.history.pushState(null, null, window.location.href);
+            return;
+        }
+
+        // B. Handle collapsing the player view (second priority)
+        if (isLibraryCollapsed) {
+            setIsLibraryCollapsed(false);
+            // Block the back action by pushing state back
+            window.history.pushState(null, null, window.location.href);
+            return;
+        }
+        
+        // C. Block the final exit from the main library screen (THE GLITCH FIX)
+        // If we reach this point, the user is on the main screen.
+        // We push state back to ensure the PWA window doesn't close entirely.
+        
+        // Use a slight delay to ensure the browser registers the action BEFORE closing.
+        setTimeout(() => {
+            if (window.history.length <= 2) {
+                window.history.pushState(null, null, window.location.href);
+            }
+        }, 50); 
+    };
+
+    // --- Initial Setup and Cleanup ---
+    
+    // Always push an initial state to guarantee history.length starts correctly
+    if (window.history.length === 1 || window.history.length === 0) {
         window.history.pushState(null, null, window.location.href);
     }
     
-    const handlePopState = (e) => {
-      // 1. Check if an overlay is open (PlanetCard, UploadCard, etc.)
-      // Note: We don't have separate state for the big player vs. small player,
-      // but we use isLibraryCollapsed to represent the big player being open.
-      if (showPlanet || showUpload) {
-        // If any modal/overlay is open, close it first.
-        setShowPlanet(false);
-        setShowUpload(false);
-        // Crucial: Push state back to prevent the app from interpreting this as "close app"
-        window.history.pushState(null, null, window.location.href);
-        return; // Action handled
-      }
-      
-      // 2. Check if the player is expanded (library is collapsed)
-      if (isLibraryCollapsed) {
-        // Yes, the player is expanded. Collapse it to the main library screen.
-        setIsLibraryCollapsed(false);
-        // Crucial: Push state back to stop the app from closing the PWA window.
-        window.history.pushState(null, null, window.location.href);
-        return; // Action handled
-      } 
-      
-      // 3. If we reach the main library screen (and history length is minimal), block the final back action.
-      // This prevents the PWA window from closing and forcing a restart.
-      if (window.history.length <= 2) {
-        window.history.pushState(null, null, window.location.href);
-        return; // Action blocked
-      }
-    };
-
     window.addEventListener('popstate', handlePopState);
     
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+        window.removeEventListener('popstate', handlePopState);
     };
-  }, [isLibraryCollapsed, showPlanet, showUpload]); // Dependencies added
-
-  /* --- END PWA SMART BACK BUTTON LOGIC --- */
+}, [isLibraryCollapsed, showPlanet, showUpload]); 
+/* --- END PWA SMART BACK BUTTON LOGIC --- */
   /* --- SLEEP TIMER LOGIC --- */
   useEffect(() => {
     if (sleepTime !== null && sleepTime > 0) {
