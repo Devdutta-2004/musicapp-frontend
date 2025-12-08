@@ -1001,7 +1001,7 @@ export default function MusicApp({ user, onLogout }) {
             </div>
           </div>
 
-          <div className="queue" style={{ maxHeight: '36vh', overflowY: 'auto' }}>
+          <div className="queue" style={{ height: '36vh', overflowY: 'auto' }}>
             {queue.length === 0 && <div style={{ padding: 12, color: 'var(--text-secondary)', fontSize: 13 }}>Queue is empty</div>}
             {queue.map((id, idx) => {
               const s = songs.find(x => x.id === id) || { id, title: 'Unknown', artistName: '' };
