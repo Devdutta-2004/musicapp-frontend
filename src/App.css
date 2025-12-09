@@ -1483,48 +1483,51 @@ html, body, #root {
   }
 }
 /* --- FIX FOR SUPER NARROW SCREENS (<360px) --- */
+/* --- FIX FOR SUPER NARROW SCREENS (<380px) --- */
 @media (max-width: 380px) {
-  /* 1. Minimize main container padding to gain width */
+  /* 1. Minimize main container padding */
   .library {
-    padding-left: 2px !important;
-    padding-right: 2px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
   }
 
-  /* 2. FORCE single row layout (No wrapping) */
+  /* 2. Header Layout: standard spacing */
   .library > div:first-child {
-    flex-wrap: nowrap !important; /* Critical: stops items from dropping/pushing out */
-    gap: 2px !important;
+    flex-wrap: nowrap !important;
+    gap: 0px !important;
     padding: 0 !important;
     justify-content: space-between !important;
     width: 100% !important;
   }
 
-  /* 3. Logo Container: Allow it to shrink as much as needed */
+  /* 3. Logo Container: STOP GROWING (flex: 0) */
+  /* This fixes the "unnecessarily wide" issue */
   .library > div:first-child > div:first-child {
-    flex: 1 1 auto !important; /* Grow and Shrink */
-    min-width: 0 !important;   /* Allow shrinking below content size */
-    overflow: hidden;          /* Clip logo if it gets too small */
-    margin-right: 4px !important;
+    flex: 0 1 auto !important; /* Only take needed space, don't grow */
+    min-width: 0 !important;
+    overflow: hidden;
+    margin-right: auto !important; /* Pushes everything else to the right */
   }
 
-  /* 4. Logo Image: responsive height */
+  /* 4. Logo Image: Keep it small */
   .library > div:first-child > div:first-child img {
-    height: 22px !important; 
+    height: 22px !important;
     width: auto !important;
-    max-width: 100% !important;
+    max-width: 100px !important;
   }
 
-  /* 5. Button Container: Do not shrink */
+  /* 5. Button Container: Add breathing room */
   .library > div:first-child > div:last-child {
     flex-shrink: 0 !important;
     display: flex !important;
-    gap: 2px !important;
+    gap: 5px !important; /* Increased gap for "space to breathe" */
+    align-items: center !important;
   }
 
-  /* 6. Buttons: Ultra compact size */
+  /* 6. Buttons: Comfortable touch target size */
   .library > div:first-child .small-btn {
-    width: 32px !important;
-    height: 32px !important;
+    width: 34px !important; /* Slightly wider than before */
+    height: 34px !important;
     padding: 0 !important;
     margin: 0 !important;
     display: flex !important;
@@ -1532,7 +1535,7 @@ html, body, #root {
     justify-content: center !important;
   }
   
-  /* 7. Smaller Icons inside buttons */
+  /* 7. Icons inside buttons */
   .library > div:first-child .small-btn svg {
     width: 18px !important;
     height: 18px !important;
