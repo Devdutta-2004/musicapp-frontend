@@ -898,13 +898,13 @@ export default function MusicApp({ user, onLogout }) {
                                 className="icon-btn" 
                                 onClick={(ev) => { ev.stopPropagation(); setOpenMenuSongId(openMenuSongId === s.id ? null : s.id); }}
                                 style={{ 
-                                  width: '60px',              /* 1. Makes the button longer horizontally */
+                                  width: '80px',              /* 1. Makes the button longer horizontally */
                                   display: 'flex',            /* 2. Enables flexbox alignment */
-                                  justifyContent: 'flex-end', /* 3. Pushes the icon to the far right end */
+                                  justifyContent: 'flex-start', /* 3. Pushes the icon to the far right end */
                                   paddingRight: '0px'         /* 4. Ensures it hits the edge */
                                 }}
                               >
-                                <MoreHorizontal size={40}/>
+                                <MoreHorizontal size={20}/>
                              </button>
                             {/* The rest of your menu code... */}
                             {openMenuSongId === s.id && (
