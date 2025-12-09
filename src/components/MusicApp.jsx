@@ -863,14 +863,16 @@ export default function MusicApp({ user, onLogout }) {
                 className="song-list" 
                 style={{ paddingRight: isLibraryCollapsed ? 0 : 4, position: 'relative' }} 
               >
-                {isLoading ? (
+                {/*Loading comment out*/}
+                {/*isLoading ? (
                   <div className="loading-container">
                     <svg className="loading-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                     </svg>
                     <div className="loading-text">Loading Library</div>
                   </div>
-                ) : visibleSongs.length === 0 ? (
+                ) : */
+                  visibleSongs.length === 0 ? (
                     <div style={{ padding: 12, color: 'var(--text-secondary)' }}>No songs found.</div>
                 ) : (
                   <>
