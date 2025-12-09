@@ -1,5 +1,5 @@
 // src/components/MusicApp.jsx
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import Player from './Player';
 import UploadCard from './UploadCard';
@@ -9,7 +9,7 @@ import '../App.css';
 import { QRCodeCanvas } from "qrcode.react";
 import { 
   Heart, Trash2, ArrowUp, ArrowDown, Play, Pause,
-  MoreVertical, ListMusic, Shuffle, 
+  MoreHorizontal, ListMusic, Shuffle, 
   QrCode, ChevronDown, ChevronLeft, ChevronRight, 
   Search, Upload, Rocket, ListPlus, SkipForward, PlayCircle,
   RotateCcw, ArrowLeft, Sparkle, LogOut, User ,Globe,
@@ -18,9 +18,7 @@ import {
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
 
-// --- CUSTOM HOOKS ---
-
-// 1. Optimized Interval Hook (Pauses in Background)
+// Custom hook for the slideshow interval
 const useInterval = (callback, delay) => {
     const savedCallback = useRef();
 
@@ -30,10 +28,7 @@ const useInterval = (callback, delay) => {
 
     useEffect(() => {
         function tick() {
-            // CRITICAL FIX: Do not run interval if document is hidden to prevent background kills
-            if (!document.hidden) {
-                savedCallback.current();
-            }
+            savedCallback.current();
         }
         if (delay !== null) {
             let id = setInterval(tick, delay);
@@ -42,8 +37,7 @@ const useInterval = (callback, delay) => {
     }, [delay]);
 };
 
-// --- DATA DEFINITIONS ---
-
+// --- AD BOX CONTENT DEFINITION (GLOBAL) ---
 const ALL_PROMOS = [
     // --- PAGE 1 (Default View) ---
     { title: "Planet Evolution", subtitle: "See your taste define your world.", icon: <Orbit size={20} color="#00ffff" />, accent: "#0f3460" },
@@ -58,8 +52,7 @@ const ALL_PROMOS = [
     { title: "Ad-Free Experience", subtitle: "Enjoy music with zero interruption.", icon: <SkipForward size={20} color="#cccccc" />, accent: "#4e4c4c" },
 ];
 
-// --- SUB-COMPONENTS ---
-
+// --- AD BOX GRID COMPONENT (GLOBAL) ---
 function AdBoxGrid({ onFeatureClick }) {
     const [pageIndex, setPageIndex] = useState(0);
     const containerRef = useRef(null);
@@ -78,14 +71,14 @@ function AdBoxGrid({ onFeatureClick }) {
         });
     };
 
-    // Auto-scroll every 8 seconds (Hook handles background pause)
     useInterval(() => {
         handleScroll(1);
-    }, 8000); 
+    }, 8000); // Auto-scroll every 8 seconds
 
     return (
         <div className="ad-grid-wrapper">
             <div className="ad-grid-scroll-container" ref={containerRef}>
+                
                 {[...Array(TOTAL_PAGES)].map((_, page) => (
                     <div key={page} className="ad-grid-page">
                         {ALL_PROMOS.slice(page * CARDS_PER_PAGE, (page + 1) * CARDS_PER_PAGE).map((card, index) => (
@@ -106,7 +99,7 @@ function AdBoxGrid({ onFeatureClick }) {
                 ))}
             </div>
             
-            {/* Page Indicators */}
+            {/* Optional: Page Indicators */}
             <div className="ad-grid-dots">
                 {[...Array(TOTAL_PAGES)].map((_, index) => (
                     <span 
@@ -117,7 +110,7 @@ function AdBoxGrid({ onFeatureClick }) {
                 ))}
             </div>
 
-            {/* Navigation Arrows */}
+            {/* Optional: Manual Navigation Arrows */}
             {TOTAL_PAGES > 1 && (
                 <>
                     <button className="ad-arrow left" onClick={() => handleScroll(-1)}>&lt;</button>
@@ -128,6 +121,7 @@ function AdBoxGrid({ onFeatureClick }) {
     );
 }
 
+// ... (CoverImage function remains the same) ...
 function CoverImage({ srcs = [], alt, className }) {
   const [src, setSrc] = useState(srcs.find(Boolean) || PERSON_PLACEHOLDER);
   useEffect(() => setSrc(srcs.find(Boolean) || PERSON_PLACEHOLDER), [JSON.stringify(srcs)]);
@@ -135,272 +129,38 @@ function CoverImage({ srcs = [], alt, className }) {
   return <img src={src} alt={alt} className={className} onError={onError} />;
 }
 
-// --- MAIN COMPONENT ---
 
 export default function MusicApp({ user, onLogout }) {
-  // 1. Data State
+    // --- START STATE DEFINITIONS ---
   const [songs, setSongs] = useState([]);          
   const [queue, setQueue] = useState([]);          
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [playing, setPlaying] = useState(false);
-  
-  // 2. UI State
   const [showUpload, setShowUpload] = useState(false);
   const [repeatMode, setRepeatMode] = useState('off'); 
   const [shuffle, setShuffle] = useState(false);
+  
   const [showPlanet, setShowPlanet] = useState(false); 
   const [showExitPrompt, setShowExitPrompt] = useState(false); 
   const [exitMascot, setExitMascot] = useState({}); 
-  const [showAccountMenu, setShowAccountMenu] = useState(false); // New Account Menu
 
-  // 3. Scroll & Layout State
-  const [showAdBar, setShowAdBar] = useState(true); 
-  const scrollRef = useRef(null); 
-  const lastScrollY = useRef(0); 
-  const [isLibraryCollapsed, setIsLibraryCollapsed] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(400);
-  const [searchTerm, setSearchTerm] = useState('');
+  // New Account Menu State
+  const [showAccountMenu, setShowAccountMenu] = useState(false); 
 
-  // 4. Loading & Utils
+  // --- SCROLL LOGIC STATE & REFS ---
+  const [showAdBar, setShowAdBar] = useState(true); // Control visibility of search/ad
+  const scrollRef = useRef(null); // Ref for the scrollable container (.library-content)
+  const lastScrollY = useRef(0); // To track scroll position for direction detection
+
+  // Loading State
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [songProgress, setSongProgress] = useState(0);
-  const [openMenuSongId, setOpenMenuSongId] = useState(null);
-  const menuRef = useRef(null);
-  const songsRef = useRef(songs);
-  
-  // 5. Timer & PWA
-  const [sleepTime, setSleepTime] = useState(null); 
-  const sleepIntervalRef = useRef(null);
+
+  // --- PWA INSTALL LOGIC ---
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isInstallable, setIsInstallable] = useState(false);
 
-  // Constants
-  const [showQR, setShowQR] = useState(false); 
-  const qrUrl = window.location.href.replace("localhost", window.location.hostname);
-  const current = songs.find(s => s.id === queue[currentIndex]) || null;
-  const mascotExpressions = [
-    { img: '/mascots/mascot-sad.png', msg: "Don't leave me alone in space!", sub: "I'll be floating here with your music waiting for you to come back!" },
-    { img: '/mascots/mascot-crying.png', msg: "Please don't go!", sub: "The stars won't be the same without you listening!" },
-    { img: '/mascots/mascot-lonely.png', msg: "It's so quiet without you!", sub: "Your playlists keep me company in the void!" },
-    { img: '/mascots/mascot-puppy-eyes.png', msg: "Just one more song?", sub: "I promise this next track will blow your mind!" },
-    { img: '/mascots/mascot-waving.png', msg: "Come back soon, okay?", sub: "I'll keep your queue warm for you!" }
-  ];
-
-  // Sync ref
-  useEffect(() => { songsRef.current = songs }, [songs]);
-
-
-  // --- HANDLERS: SCROLL LOGIC (Desktop Optimized) ---
-  useEffect(() => {
-    const handleScroll = () => {
-        if (!scrollRef.current) return;
-        
-        const currentScrollY = scrollRef.current.scrollTop;
-        const scrollDifference = currentScrollY - lastScrollY.current;
-        const scrollThreshold = 10; 
-        
-        // CRITICAL: Only hide header on desktop (width > 768px)
-        if (!isLibraryCollapsed && window.innerWidth > 768) { 
-            if (currentScrollY > 60) { 
-                if (scrollDifference > scrollThreshold) {
-                    if (showAdBar) setShowAdBar(false);
-                } else if (scrollDifference < -scrollThreshold) {
-                    if (!showAdBar) setShowAdBar(true);
-                }
-            }
-        }
-        
-        // Always show if near top
-        if (currentScrollY <= 20) {
-            if (!showAdBar) setShowAdBar(true);
-        }
-        lastScrollY.current = currentScrollY;
-    };
-
-    const element = scrollRef.current;
-    if (element) {
-        element.addEventListener('scroll', handleScroll, { passive: true });
-    }
-    return () => {
-        if (element) element.removeEventListener('scroll', handleScroll, { passive: true });
-    };
-  }, [isLibraryCollapsed, showAdBar]); 
-
-  // --- HANDLERS: PLAYBACK (Stabilized with useCallback) ---
-  // Fixes random song skipping by preventing function re-creation on scroll
-  
-  const playNext = useCallback(({ manual = false } = {}) => {
-    setQueue(currentQueue => {
-        if (!currentQueue.length) return currentQueue;
-        return currentQueue;
-    });
-    
-    setCurrentIndex(prevIndex => {
-        if (queue.length === 0) return prevIndex;
-        if (repeatMode === 'one' && !manual) { 
-            setPlaying(true); 
-            return prevIndex; 
-        }
-        const nextIdx = prevIndex + 1;
-        if (nextIdx < queue.length) {
-            setPlaying(true);
-            return nextIdx;
-        } else {
-             if (repeatMode === 'all') { 
-                 setPlaying(true);
-                 return 0; 
-             } else { 
-                 setPlaying(false);
-                 return prevIndex; 
-             }
-        }
-    });
-  }, [queue.length, repeatMode]);
-
-  const playPrev = useCallback(() => {
-    if (!queue.length) return;
-    setCurrentIndex(prevIndex => {
-        if (prevIndex > 0) { 
-            setPlaying(true);
-            return prevIndex - 1; 
-        } else { 
-            if (repeatMode === 'all') { 
-                setPlaying(true);
-                return queue.length - 1; 
-            } else { 
-                setPlaying(true);
-                return prevIndex;
-            } 
-        }
-    });
-  }, [queue.length, repeatMode]);
-
-  const toggleLike = useCallback((songId) => {
-    setSongs(prev => prev.map(s => {
-      if (s.id !== songId) return s;
-      const newLiked = !s.liked;
-      const newCount = Math.max(0, (s.likeCount || 0) + (newLiked ? 1 : -1));
-      return { ...s, liked: newLiked, likeCount: newCount };
-    }));
-  }, []);
-
-  const toggleShuffle = useCallback(() => {
-    setShuffle(s => {
-      const newS = !s;
-      if (newS) {
-        setQueue(q => shuffleArray(q));
-        setCurrentIndex(0);
-      } else {
-        setQueue(() => songsRef.current.map(s => s.id));
-        setCurrentIndex(() => {
-          const id = current?.id;
-          return id ? (songsRef.current.map(s => s.id).indexOf(id)) : 0;
-        });
-      }
-      return newS;
-    });
-  }, [current]);
-
-  const toggleRepeat = useCallback(() => {
-    setRepeatMode(r => {
-      if (r === 'off') return 'all';
-      if (r === 'all') return 'one';
-      return 'off';
-    });
-  }, []);
-
-  const playSong = useCallback((song) => {
-    if (!song) return;
-    setQueue(prevQ => {
-        const q = [...prevQ];
-        const idx = q.indexOf(song.id);
-        if (idx !== -1) {
-             setCurrentIndex(idx);
-             return q;
-        } else {
-             const insertAt = Math.max(0, currentIndex + 1);
-             q.splice(insertAt, 0, song.id);
-             setCurrentIndex(insertAt);
-             return q;
-        }
-    });
-    setPlaying(true);
-    if (window.innerWidth <= 768) { setIsLibraryCollapsed(true); }
-  }, [currentIndex]);
-
-
-  // --- UTILS & FETCH ---
-  function shuffleArray(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
-  const recordListen = useCallback(async (durationSeconds, songGenre) => {
-    if (!user || !durationSeconds) return;
-    const API_BASE = "https://musicapp-o3ow.onrender.com"; 
-    const minutes = Math.ceil(durationSeconds / 60);
-    const genrePayload = songGenre || "Unknown";
-    try {
-      await axios.post(`${API_BASE}/api/users/${user.id}/add-minutes`, { minutes: minutes, genre: genrePayload });
-      if (user) { user.totalMinutesListened = (user.totalMinutesListened || 0) + minutes; }
-    } catch (e) { console.error("Stats Error:", e); }
-  }, [user]);
-
-  async function fetchSongs() {
-    setIsLoading(true);
-    try {
-      const API = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/+$/,''); 
-      const requestUrl = `${API}/api/songs`; 
-      const res = await axios.get(requestUrl);
-      const data = (res.data || []).map(s => ({
-        ...s,
-        liked: !!s.liked,
-        likeCount: typeof s.likeCount === 'number' ? s.likeCount : 0
-      }));
-      
-      const INITIAL_BATCH = 30;
-      const initialSongs = data.slice(0, INITIAL_BATCH);
-      const remainingSongs = data.slice(INITIAL_BATCH);
-      const randomizedInitial = shuffleArray(initialSongs);
-      
-      setSongs(randomizedInitial);
-      if (randomizedInitial.length && queue.length === 0) {
-        setQueue(randomizedInitial.map(d => d.id));
-        setCurrentIndex(0);
-      }
-      setIsLoading(false);
-
-      if (remainingSongs.length > 0) {
-        setIsLoadingMore(true);
-        setTimeout(() => {
-          const allSongs = shuffleArray([...initialSongs, ...remainingSongs]);
-          setSongs(allSongs);
-          setQueue(prevQueue => {
-             // Only add new IDs if not present to avoid resetting queue state
-             const existing = new Set(prevQueue);
-             const newIds = allSongs.filter(s => !existing.has(s.id)).map(s => s.id);
-             return [...prevQueue, ...newIds];
-          });
-          setIsLoadingMore(false);
-        }, 500); 
-      }
-    } catch (e) {
-      console.error(e);
-      setSongs([]);
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => { fetchSongs(); }, []); 
-
-  // --- EFFECTS: PWA & SYSTEM ---
-  
-  // PWA Install Prompt
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
@@ -415,97 +175,407 @@ export default function MusicApp({ user, onLogout }) {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
     setDeferredPrompt(null);
     setIsInstallable(false);
   };
 
-  // Back Button Logic (Optimized for Memory)
-  useEffect(() => {
-    if (!window.matchMedia('(display-mode: standalone)').matches) return;
-    
-    // Check if we are in a "sub-view"
-    const isModalOpen = showPlanet || showUpload || isLibraryCollapsed || showExitPrompt || showAccountMenu;
+  // Mascot expressions with messages (Keep this structure)
+  const mascotExpressions = [
+    { img: '/mascots/mascot-sad.png', msg: "Don't leave me alone in space! 🌌", sub: "I'll be floating here with your music waiting for you to come back! 🎵" },
+    { img: '/mascots/mascot-crying.png', msg: "Please don't go! ", sub: "The stars won't be the same without you listening! ✨" },
+    { img: '/mascots/mascot-lonely.png', msg: "It's so quiet without you! ", sub: "Your playlists keep me company in the void! 🎶" },
+    { img: '/mascots/mascot-puppy-eyes.png', msg: "Just one more song? ", sub: "I promise this next track will blow your mind! 🚀" },
+    { img: '/mascots/mascot-waving.png', msg: "Come back soon, okay? ", sub: "I'll keep your queue warm for you! 🔥" }
+  ];
 
-    const handleBackButton = (event) => {
-        // Only intervene if we have something to close
-        if (showExitPrompt) { setShowExitPrompt(false); return; }
-        if (showAccountMenu) { setShowAccountMenu(false); return; }
-        if (showPlanet) { setShowPlanet(false); return; }
-        if (showUpload) { setShowUpload(false); return; }
-        if (isLibraryCollapsed) { setIsLibraryCollapsed(false); return; }
+  // --- SLEEP TIMER STATE ---
+  const [sleepTime, setSleepTime] = useState(null); 
+  const sleepIntervalRef = useRef(null);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isLibraryCollapsed, setIsLibraryCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(400);
+
+  const [showQR, setShowQR] = useState(false); // REMAINED for QR code component definition (even though not used in header)
+  const qrUrl = window.location.href.replace("localhost", window.location.hostname);
+
+  const [openMenuSongId, setOpenMenuSongId] = useState(null);
+  const menuRef = useRef(null);
+
+  const songsRef = useRef(songs);
+  useEffect(() => { songsRef.current = songs }, [songs]);
+
+  const current = songs.find(s => s.id === queue[currentIndex]) || null;
+    // --- END STATE DEFINITIONS ---
+
+  // --- AD BAR COLLAPSE LOGIC (UPDATED FOR DESKTOP ONLY) ---
+  useEffect(() => {
+    const handleScroll = () => {
+        if (!scrollRef.current) return;
         
-        // If nothing is open, show exit prompt
-        const randomExpression = mascotExpressions[Math.floor(Math.random() * mascotExpressions.length)];
-        setExitMascot(randomExpression);
-        setShowExitPrompt(true);
+        const currentScrollY = scrollRef.current.scrollTop;
+        const scrollDifference = currentScrollY - lastScrollY.current;
+
+        const scrollThreshold = 10; 
+        
+        // --- CRITICAL CHECK: ONLY APPLY ON DESKTOP/LARGE SCREENS ---
+        if (!isLibraryCollapsed && window.innerWidth > 768) { 
+            
+            if (currentScrollY > 60) { // Start hiding after scrolling past header/top margin
+                if (scrollDifference > scrollThreshold) {
+                    // Scrolling Down (Hide the bar)
+                    if (showAdBar) setShowAdBar(false);
+                } else if (scrollDifference < -scrollThreshold) {
+                    // Scrolling Up (Show the bar)
+                    if (!showAdBar) setShowAdBar(true);
+                }
+            }
+        }
+        
+        // Always show if scroll is near the top
+        if (currentScrollY <= 20) {
+            if (!showAdBar) setShowAdBar(true);
+        }
+
+        lastScrollY.current = currentScrollY;
     };
 
-    window.addEventListener('popstate', handleBackButton);
-    // Push ONE state only when entering a modal context, not constantly
-    if (isModalOpen) {
-       window.history.pushState(null, '', window.location.href);
+    const element = scrollRef.current;
+    if (element) {
+        // Add passive: true for better scroll performance
+        element.addEventListener('scroll', handleScroll, { passive: true });
     }
-
-    return () => { window.removeEventListener('popstate', handleBackButton); };
-  }, [showPlanet, showUpload, isLibraryCollapsed, showExitPrompt, showAccountMenu]);
-
-  // Save State on Close
-  useEffect(() => {
-    const saveState = () => {
-      if (queue.length === 0) return;
-      const stateToSave = { queue, currentIndex, shuffle, repeatMode, isLibraryCollapsed, timestamp: Date.now() };
-      localStorage.setItem('musicAppState', JSON.stringify(stateToSave));
-    };
-    const handleVisibility = () => { if (document.hidden) saveState(); };
     
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('beforeunload', saveState);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('beforeunload', saveState);
+        if (element) {
+            element.removeEventListener('scroll', handleScroll, { passive: true });
+        }
     };
-  }, [queue, currentIndex, shuffle, repeatMode, isLibraryCollapsed]);
+  }, [isLibraryCollapsed, showAdBar]); 
 
-  // Restore State
+  // --- AD BOX CLICK HANDLER ---
+  const handleAdClickLogic = (index) => {
+      // Logic for what happens when a specific grid item is clicked (0 to 7)
+      if (index === 0) { // Planet Evolution
+          setShowPlanet(true);
+      } else if (index === 1) { // Go Premium Today (Placeholder for image/upgrade)
+          console.log("Navigating to Premium Page/Modal...");
+          // You can add: setShowPremiumModal(true); here later
+      } else {
+          console.log(`Ad clicked, index: ${index} - Title: ${ALL_PROMOS[index].title}`);
+      }
+  };
+
+
+  /* --- STATE PERSISTENCE: RESTORE ON MOUNT (Restored logic block) --- */
   useEffect(() => {
     try {
       const saved = localStorage.getItem('musicAppState');
       if (saved) {
         const state = JSON.parse(saved);
-        if (Date.now() - (state.timestamp || 0) < 24 * 60 * 60 * 1000) {
-          if (state.queue?.length) { setQueue(state.queue); setCurrentIndex(state.currentIndex ?? -1); }
+        
+        // Only restore if saved within last 24 hours
+        const timeDiff = Date.now() - (state.timestamp || 0);
+        if (timeDiff < 24 * 60 * 60 * 1000) {
+          
+          if (state.queue?.length > 0) {
+            setQueue(state.queue);
+            setCurrentIndex(state.currentIndex ?? -1);
+          }
+          
+          // Don't auto-resume playing - let user decide
           if (state.shuffle !== undefined) setShuffle(state.shuffle);
           if (state.repeatMode) setRepeatMode(state.repeatMode);
-          if (state.isLibraryCollapsed !== undefined) setIsLibraryCollapsed(state.isLibraryCollapsed);
-        } else { localStorage.removeItem('musicAppState'); }
+          if (state.isLibraryCollapsed !== undefined) {
+            setIsLibraryCollapsed(state.isLibraryCollapsed);
+          }
+          
+          console.log('✅ Session restored from', Math.floor(timeDiff / 60000), 'minutes ago');
+        } else {
+          // Clear old state
+          localStorage.removeItem('musicAppState');
+        }
       }
-    } catch (e) { console.error(e); }
-  }, []);
+    } catch (e) {
+      console.error('Failed to restore state:', e);
+    }
+  }, []); 
 
-  // Sleep Timer
+  /* --- STATE PERSISTENCE: SAVE ON CHANGES (Restored logic block) --- */
+  useEffect(() => {
+    // Only save if we have meaningful state
+    if (queue.length === 0) return;
+
+    const stateToSave = {
+      queue,
+      currentIndex,
+      shuffle,
+      repeatMode,
+      isLibraryCollapsed,
+      timestamp: Date.now()
+    };
+    
+    try {
+      localStorage.setItem('musicAppState', JSON.stringify(stateToSave));
+    } catch (e) {
+      console.error('Failed to save state:', e);
+    }
+  }, [queue, currentIndex, shuffle, repeatMode, isLibraryCollapsed]);
+
+  /* --- STATE PERSISTENCE: SAVE BEFORE CLOSE (Restored logic block) --- */
+  useEffect(() => {
+    const saveOnClose = () => {
+      if (queue.length === 0) return;
+
+      const stateToSave = {
+        queue,
+        currentIndex,
+        shuffle,
+        repeatMode,
+        isLibraryCollapsed,
+        timestamp: Date.now()
+      };
+      
+      try {
+        localStorage.setItem('musicAppState', JSON.stringify(stateToSave));
+      } catch (e) {
+        console.error('Failed to save on close:', e);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) saveOnClose();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', saveOnClose);
+    window.addEventListener('pagehide', saveOnClose);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', saveOnClose);
+      window.removeEventListener('pagehide', saveOnClose);
+    };
+  }, [queue, currentIndex, shuffle, repeatMode, isLibraryCollapsed]);
+  
+  /* --- Account Menu Close Handler --- */
+  useEffect(() => {
+    function onDocClick(e) {
+      // Close the menu if click is outside the menu container
+      const accountMenuBtn = document.getElementById('account-menu-btn');
+      const accountMenu = document.getElementById('account-menu');
+      
+      if (accountMenuBtn && !accountMenuBtn.contains(e.target) && accountMenu && !accountMenu.contains(e.target)) {
+        setShowAccountMenu(false);
+      }
+    }
+    // Listen for clicks everywhere to close the menu
+    window.addEventListener('click', onDocClick);
+
+    // Also close if ESC is pressed
+    const handleEsc = (e) => {
+        if (e.key === 'Escape') setShowAccountMenu(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+
+    return () => {
+        window.removeEventListener('click', onDocClick);
+        window.removeEventListener('keydown', handleEsc);
+    };
+  }, []); // Run once on mount
+
+  /* --- PWA SMART BACK BUTTON LOGIC (Restored logic block) --- */
+  useEffect(() => {
+    if (!window.matchMedia('(display-mode: standalone)').matches) {
+        return;
+    }
+
+    const handleBackButton = () => {
+        // Priority 1: Close exit prompt/Account Menu/modals first
+        if (showExitPrompt) {
+            setShowExitPrompt(false);
+            window.history.pushState(null, '', window.location.href);
+            return;
+        }
+        if (showAccountMenu) {
+            setShowAccountMenu(false);
+            window.history.pushState(null, '', window.location.href);
+            return;
+        }
+        if (showPlanet || showUpload) {
+            setShowPlanet(false);
+            setShowUpload(false);
+            window.history.pushState(null, '', window.location.href);
+            return;
+        }
+
+        // Priority 3: Collapse the expanded player view
+        if (isLibraryCollapsed) {
+            setIsLibraryCollapsed(false);
+            window.history.pushState(null, '', window.location.href);
+            return;
+        }
+        
+        // Priority 4: Main screen - Show exit prompt with random mascot
+        const randomExpression = mascotExpressions[Math.floor(Math.random() * mascotExpressions.length)];
+        setExitMascot(randomExpression);
+        setShowExitPrompt(true);
+        window.history.pushState(null, '', window.location.href);
+    };
+
+    // Push initial state once
+    window.history.pushState(null, '', window.location.href);
+    
+    window.addEventListener('popstate', handleBackButton);
+    
+    return () => {
+        window.removeEventListener('popstate', handleBackButton);
+    };
+  }, [showPlanet, showUpload, isLibraryCollapsed, showExitPrompt, showAccountMenu]);
+
+  /* --- PWA: PUSH STATE WHEN VIEWS OPEN (Restored logic block) --- */
+  useEffect(() => {
+    if (!window.matchMedia('(display-mode: standalone)').matches) return;
+    
+    if (showPlanet || showUpload || isLibraryCollapsed || showExitPrompt || showAccountMenu) {
+      window.history.pushState(null, '', window.location.href);
+    }
+  }, [showPlanet, showUpload, isLibraryCollapsed, showExitPrompt, showAccountMenu]);
+  
+  /* --- SLEEP TIMER LOGIC --- */
   useEffect(() => {
     if (sleepTime !== null && sleepTime > 0) {
       sleepIntervalRef.current = setTimeout(() => {
-        setSleepTime(prev => { if (prev <= 1) { setPlaying(false); return null; } return prev - 1; });
+        setSleepTime(prev => {
+          if (prev <= 1) {
+            setPlaying(false);
+            return null;
+          }
+          return prev - 1;
+        });
       }, 60000);
     }
     return () => clearTimeout(sleepIntervalRef.current);
   }, [sleepTime]);
 
-  // Click Outside Account Menu
-  useEffect(() => {
-    function onDocClick(e) {
-      const btn = document.getElementById('account-menu-btn');
-      const menu = document.getElementById('account-menu');
-      if (btn && !btn.contains(e.target) && menu && !menu.contains(e.target)) {
-        setShowAccountMenu(false);
-      }
-    }
-    window.addEventListener('click', onDocClick);
-    return () => window.removeEventListener('click', onDocClick);
-  }, []);
+  const activateSleepTimer = (minutes) => {
+    setSleepTime(minutes);
+    if(minutes) alert(`Sleep timer set for ${minutes} minutes`);
+    else alert("Sleep timer turned off");
+  };
 
-  // Media Session
+  /* ---------- util ---------- */
+  function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  /* ---------- fetch ---------- */
+  async function fetchSongs() {
+    setIsLoading(true);
+    try {
+      const API = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/+$/,''); 
+      const requestUrl = `${API}/api/songs`; 
+      
+      const res = await axios.get(requestUrl);
+
+      const data = (res.data || []).map(s => ({
+        ...s,
+        liked: !!s.liked,
+        likeCount: typeof s.likeCount === 'number' ? s.likeCount : 0
+      }));
+
+      // PROGRESSIVE LOADING: Show first 30 songs immediately
+      const INITIAL_BATCH = 30;
+      const initialSongs = data.slice(0, INITIAL_BATCH);
+      const remainingSongs = data.slice(INITIAL_BATCH);
+
+      // Set initial batch immediately - removes loading screen fast!
+      const randomizedInitial = shuffleArray(initialSongs);
+      setSongs(randomizedInitial);
+      
+      // Only set queue if we didn't restore from localStorage
+      if (randomizedInitial.length && queue.length === 0) {
+        setQueue(randomizedInitial.map(d => d.id));
+        setCurrentIndex(0);
+      }
+
+      // ✅ CRITICAL: Turn off loading screen NOW so user sees first batch
+      setIsLoading(false);
+
+      // Load remaining songs in background (if any)
+      if (remainingSongs.length > 0) {
+        setIsLoadingMore(true);
+        
+        // Use setTimeout to let UI render first batch
+        setTimeout(() => {
+          const allSongs = shuffleArray([...initialSongs, ...remainingSongs]);
+          setSongs(allSongs);
+          
+          // Update queue to include all songs (but keep current position)
+          setQueue(prevQueue => {
+            if (prevQueue.length > 0) {
+              const existingIds = new Set(prevQueue);
+              const newSongIds = allSongs
+                .filter(s => !existingIds.has(s.id))
+                .map(s => s.id);
+              return [...prevQueue, ...newSongIds];
+            } else {
+              return allSongs.map(d => d.id);
+            }
+          });
+          
+          setIsLoadingMore(false);
+          console.log(`✅ Loaded ${allSongs.length} songs total`);
+        }, 500); // Half second delay to let UI render smoothly
+      }
+
+    } catch (e) {
+      console.error('fetchSongs', e);
+      setSongs([]);
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => { fetchSongs(); }, []); 
+
+  async function recordListen(durationSeconds, songGenre) {
+    if (!user || !durationSeconds) return;
+
+    const API_BASE = "https://musicapp-o3ow.onrender.com"; 
+    
+    const minutes = Math.ceil(durationSeconds / 60);
+    const genrePayload = songGenre || "Unknown";
+
+    console.log(`Sending Data: ${minutes} mins of ${genrePayload} to user ${user.username}`);
+
+    try {
+      await axios.post(`${API_BASE}/api/users/${user.id}/add-minutes`, { 
+        minutes: minutes,
+        genre: genrePayload 
+      });
+      
+      if (user) {
+          user.totalMinutesListened = (user.totalMinutesListened || 0) + minutes;
+      }
+      console.log("Stats & Evolution Updated!");
+    } catch (e) {
+      console.error("Could not record stats:", e);
+    }
+  }
+
+  const visibleSongs = songs.filter(s => {
+    if (!searchTerm) return true;
+    const q = searchTerm.toLowerCase();
+    return (s.title || '').toLowerCase().includes(q) || (s.artistName || '').toLowerCase().includes(q);
+  });
+
+  // --- MEDIA SESSION ---
   useEffect(() => {
     if (!current || !('mediaSession' in navigator)) return;
     navigator.mediaSession.metadata = new MediaMetadata({
@@ -518,28 +588,123 @@ export default function MusicApp({ user, onLogout }) {
     navigator.mediaSession.setActionHandler('pause', () => setPlaying(false));
     navigator.mediaSession.setActionHandler('previoustrack', () => playPrev());
     navigator.mediaSession.setActionHandler('nexttrack', () => playNext({ manual: true }));
-  }, [current, playing, playNext, playPrev]);
+  }, [current, playing]); 
 
-  // Derived State
-  const visibleSongs = songs.filter(s => {
-    if (!searchTerm) return true;
-    const q = searchTerm.toLowerCase();
-    return (s.title || '').toLowerCase().includes(q) || (s.artistName || '').toLowerCase().includes(q);
-  });
+  function playSong(song) {
+    if (!song) return;
+    const q = [...queue];
+    const idx = q.indexOf(song.id);
+    if (idx !== -1) {
+      setCurrentIndex(idx);
+    } else {
+      const insertAt = Math.max(0, currentIndex + 1);
+      q.splice(insertAt, 0, song.id);
+      setQueue(q);
+      setCurrentIndex(insertAt);
+    }
+    setPlaying(true);
+    if (window.innerWidth <= 768) { setIsLibraryCollapsed(true); }
+  }
 
-  const handleAdClick = (index) => {
-      if (index === 0) setShowPlanet(true);
-      else console.log(`Clicked Ad ${index}`);
-  };
+  function toggleLike(songId) {
+    setSongs(prev => prev.map(s => {
+      if (s.id !== songId) return s;
+      const newLiked = !s.liked;
+      const newCount = Math.max(0, (s.likeCount || 0) + (newLiked ? 1 : -1));
+      return { ...s, liked: newLiked, likeCount: newCount };
+    }));
+  }
+
+  function toggleShuffle() {
+    setShuffle(s => {
+      const newS = !s;
+      if (newS) {
+        setQueue(q => shuffleArray(q));
+        setCurrentIndex(0);
+      } else {
+        setQueue(() => songsRef.current.map(s => s.id));
+        setCurrentIndex(() => {
+          const id = current?.id;
+          return id ? (songsRef.current.map(s => s.id).indexOf(id)) : 0;
+        });
+      }
+      return newS;
+    });
+  }
+
+  function toggleRepeat() {
+    setRepeatMode(r => {
+      if (r === 'off') return 'all';
+      if (r === 'all') return 'one';
+      return 'off';
+    });
+  }
+
+  function playNext({ manual = false } = {}) {
+    if (!queue.length) return;
+    if (repeatMode === 'one' && !manual) { setPlaying(true); return; }
+    const nextIdx = currentIndex + 1;
+    if (nextIdx < queue.length) {
+      setCurrentIndex(nextIdx);
+      setPlaying(true);
+    } else {
+      if (repeatMode === 'all') { setCurrentIndex(0); setPlaying(true); } else { setPlaying(false); }
+    }
+  }
+
+  function playPrev() {
+    if (!queue.length) return;
+    if (currentIndex > 0) { setCurrentIndex(ci => ci - 1); setPlaying(true); } 
+    else { if (repeatMode === 'all') { setCurrentIndex(queue.length - 1); setPlaying(true); } else { setPlaying(true); } }
+  }
+
+  function playAtIndex(idx) { if (idx < 0 || idx >= queue.length) return; setCurrentIndex(idx); setPlaying(true); }
+    
+  function removeAtIndex(idx) {
+    setQueue(prev => {
+      const newQ = prev.slice(0, idx).concat(prev.slice(idx + 1));
+      setCurrentIndex(ci => {
+        if (newQ.length === 0) { setPlaying(false); return -1; }
+        if (idx < ci) return ci - 1;
+        if (idx === ci) return Math.min(idx, newQ.length - 1);
+        return ci;
+      });
+      return newQ;
+    });
+  }
+
+  function moveItem(oldIndex, newIndex) {
+    setQueue(prev => {
+      const q = [...prev];
+      if (oldIndex < 0 || oldIndex >= q.length || newIndex < 0 || newIndex >= q.length) return q;
+      const [item] = q.splice(oldIndex, 1);
+      q.splice(newIndex, 0, item);
+      setCurrentIndex(ci => {
+        if (ci === oldIndex) return newIndex;
+        if (oldIndex < ci && newIndex >= ci) return ci - 1;
+        if (oldIndex > ci && newIndex <= ci) return ci + 1;
+        return ci;
+      });
+      return q;
+    });
+  }
+
+  useEffect(() => {
+    function onDocClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpenMenuSongId(null);
+    }
+    window.addEventListener('click', onDocClick);
+    return () => window.removeEventListener('click', onDocClick);
+  }, []);
 
   function addToQueue(songId) { if (!songId) return; setQueue(prev => [...prev, songId]); setOpenMenuSongId(null); }
   function playNextNow(songId) { if (!songId) return; setQueue(prev => { const q = [...prev]; q.splice(Math.max(0, currentIndex + 1), 0, songId); return q; }); setOpenMenuSongId(null); }
 
-  /* ---------- RENDER ---------- */
+  /* ---------- render ---------- */
   return (
     <div className="app-shell" style={{ alignItems: 'stretch' }}>
       
-      {/* --- SIDEBAR --- */}
+      {/* --- LIBRARY SIDEBAR --- */}
       <aside 
         className={`library card-surface ${isLibraryCollapsed ? 'collapsed' : ''}`} 
         style={{ 
@@ -548,72 +713,163 @@ export default function MusicApp({ user, onLogout }) {
           maxWidth: isLibraryCollapsed ? '80px' : '720px' 
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: isLibraryCollapsed ? 0 : 12, flexShrink: 0 }}>
-          <div onClick={() => window.location.reload()} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flex: 1, minWidth: 0 }}>
-            <img src="/my-brand.png" alt="Astronotes" style={{ height: 33, width: 'auto', maxWidth: '120px', objectFit: 'contain' }} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: isLibraryCollapsed ? 0 : 12 }}>
+          
+          <div 
+            onClick={() => window.location.reload()} 
+            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flex: 1, minWidth: 0, userSelect: 'none' }}
+            title={`Logged in as ${user ? user.username : 'Guest'}`}
+          >
+            <img 
+              src="/my-brand.png" 
+              alt="Astronotes" 
+              style={{ height: 33, width: 'auto', maxWidth: '120px', objectFit: 'contain' }}
+            />
           </div>
 
+          {/* --- RIGHT SIDE: Action Buttons --- */}
           <div style={{ display: 'flex', gap: 6, flexShrink: 0, position: 'relative' }}>
+              
               {!isLibraryCollapsed && (
               <>
+                {/* --- NEW: INSTALL APP BUTTON (Icon Only to fit header) --- */}
                 {isInstallable && (
-                  <button className="small-btn icon-only" onClick={handleInstallClick} title="Install App" style={{ background: 'rgba(0, 255, 128, 0.15)', color: '#00ff80', borderColor: '#00ff80' }}>
+                  <button 
+                    className="small-btn icon-only" 
+                    onClick={handleInstallClick} 
+                    title="Install App"
+                    style={{ 
+                      background: 'rgba(0, 255, 128, 0.15)', 
+                      color: '#00ff80', 
+                      borderColor: '#00ff80',
+                      boxShadow: '0 0 10px rgba(0, 255, 128, 0.1)'
+                    }}
+                  >
                     <Download size={20} />
                   </button>
                 )}
-                <button className="small-btn" onClick={() => setShowUpload(v => !v)} title="Upload"><Rocket size={18} /></button>
-                <button className="small-btn icon-only" onClick={() => setShowPlanet(true)} title="My Planet"><Orbit size={24} /></button>
+
+                {/* 1. Upload Button */}
+                <button className="small-btn" onClick={() => setShowUpload(v => !v)} title="Upload Song">
+                  {showUpload ? <ArrowLeft size={18}/>: <Rocket size={18} />} 
+                </button>
                 
-                <button id="account-menu-btn" className={`small-btn icon-only ${showAccountMenu ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); setShowAccountMenu(v => !v); }}>
+                {/* 2. Planet Profile Button */}
+                <button className="small-btn icon-only" onClick={() => setShowPlanet(true)} title="My Planet">
+                   <Orbit size={24} />
+                </button>
+                
+                {/* --- 3. ACCOUNT BUTTON (Replaces Logout/QR) --- */}
+                <button 
+                    id="account-menu-btn"
+                    className={`small-btn icon-only ${showAccountMenu ? 'active' : ''}`} 
+                    onClick={(e) => { e.stopPropagation(); setShowAccountMenu(v => !v); }} 
+                    title={user.username || "Account"}
+                >
                     <User size={24} />
                 </button>
 
+                {/* --- ACCOUNT DROPDOWN MENU --- */}
                 {showAccountMenu && (
-                    <div id="account-menu" className="more-menu" style={{ top: '45px', right: 0, width: '180px', padding: '8px 6px', gap: '4px' }} onClick={(e) => e.stopPropagation()}>
-                        <div style={{ padding: '6px 12px', fontSize: '14px', color: '#9146ff', fontWeight: 'bold', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', marginBottom: '4px' }}>
+                    <div 
+                        id="account-menu" 
+                        className="more-menu" 
+                        style={{ top: '45px', right: 0, width: '180px', padding: '8px 6px', gap: '4px' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Username Display (Read-Only) */}
+                        <div style={{ 
+                            padding: '6px 12px', 
+                            fontSize: '14px', 
+                            color: '#9146ff', 
+                            fontWeight: 'bold',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                            marginBottom: '4px'
+                        }}>
                             {user.username}
                         </div>
-                        <button className="menu-item" onClick={onLogout}><LogOut size={16} style={{marginRight: 8}}/> Sign Out</button>
+
+                        {/* Logout Button */}
+                        <button className="menu-item" onClick={onLogout}>
+                            <LogOut size={16} style={{marginRight: 8}}/> Sign Out
+                        </button>
                     </div>
                 )}
               </>
             )}
-              <button className="small-btn icon-only collapse-btn" onClick={() => setIsLibraryCollapsed(v => !v)}>
+
+              <button 
+                className="small-btn icon-only collapse-btn" 
+                onClick={() => setIsLibraryCollapsed(v => !v)} 
+              >
                 {isLibraryCollapsed ? <ChevronRight size={22}/> : <ChevronLeft size={22}/>}
               </button>
           </div>
         </div>
 
-        {/* --- SCROLLABLE CONTENT --- */}
-        <div className="library-content" ref={scrollRef}>
+        {/* --- NEW WRAPPER FOR SCROLLABLE CONTENT (Applies the flex stretch) --- */}
+        <div 
+            className="library-content"
+            ref={scrollRef} // Attach ref to the scrollable container
+        >
+
           {!isLibraryCollapsed && (
-            <div style={{ 
-                marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0, 
-                transition: 'transform 0.3s ease-out, opacity 0.3s ease-out, margin-bottom 0.3s ease-out, height 0.3s ease-out',
-                transform: showAdBar ? 'translateY(0)' : 'translateY(-100%)',
-                opacity: showAdBar ? 1 : 0,
-                marginBottom: showAdBar ? 10 : 0, 
-                height: showAdBar ? 'auto' : '0px', 
-                overflow: 'hidden' 
-            }}>
+            // --- SEARCH BAR AND AD BOX CONTAINER (HIDES/SHOWS) ---
+            <div 
+                style={{ 
+                    marginTop: 10, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: 10, 
+                    flexShrink: 0, 
+                    /* CRITICAL: Use transition for smooth hide/show */
+                    transition: 'transform 0.3s ease-out, opacity 0.3s ease-out, margin-bottom 0.3s ease-out, height 0.3s ease-out',
+                    transform: showAdBar ? 'translateY(0)' : 'translateY(-100%)',
+                    opacity: showAdBar ? 1 : 0,
+                    marginBottom: showAdBar ? 10 : 0, // Adjust margin when hidden
+                    pointerEvents: showAdBar ? 'auto' : 'none', // Disable interaction when hidden
+                    height: showAdBar ? 'auto' : '0px', // Collapse height when hidden
+                    overflow: 'hidden' // Hide overflow during collapse
+                }}
+            >
+              
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   <div style={{ position: 'relative', flex: 1 }}>
                     <Search size={16} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                    <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search..." className="search-input" style={{ paddingLeft: 32, width: '100%' }} />
+                    <input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search..."
+                    className="search-input"
+                    style={{ paddingLeft: 32, width: '100%' }}
+                    />
                   </div>
                   {searchTerm && <button className="small-btn" onClick={() => setSearchTerm('')}>Clear</button>}
                 </div>
-              <AdBoxGrid onFeatureClick={handleAdClick} />
+
+              {/* --- NEW: MOVING SLIDESHOW AD BOX PLACEMENT --- */}
+              <AdBoxGrid onFeatureClick={handleAdClickLogic} />
+
             </div>
           )}
 
+          {/* This container now holds the Upload/Song List. */}
+          {/* FIXED: Removed flex: 1 so the content grows naturally for scrolling */}
           <div style={{ marginTop: 12, position: 'relative' }}> 
             {showUpload && !isLibraryCollapsed ? (
               <div className="upload-area"><UploadCard onUploaded={() => { fetchSongs(); setShowUpload(false); }} /></div>
             ) : (
-              <div className="song-list" style={{ paddingRight: isLibraryCollapsed ? 0 : 4, position: 'relative' }}>
+              <div 
+                className="song-list" 
+                style={{ paddingRight: isLibraryCollapsed ? 0 : 4, position: 'relative' }} 
+              >
                 {isLoading ? (
-                  <div className="loading-container"><div className="loading-text">Loading Library</div></div>
+                  <div className="loading-container">
+                    <svg className="loading-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
+                    <div className="loading-text">Loading Library</div>
+                  </div>
                 ) : visibleSongs.length === 0 ? (
                     <div style={{ padding: 12, color: 'var(--text-secondary)' }}>No songs found.</div>
                 ) : (
@@ -621,26 +877,35 @@ export default function MusicApp({ user, onLogout }) {
                     {visibleSongs.map(s => (
                       <div key={s.id} className="song-item" onClick={() => playSong(s)} title={s.title}>
                         <CoverImage srcs={[s.coverUrl, s.artistImageUrl, PERSON_PLACEHOLDER]} alt={s.title} className="cover" />
+                        
                         {!isLibraryCollapsed && (
                           <>
                             <div className="song-info">
                               <div className="title" title={s.title}>{s.title}</div>
                               <div className="artist" title={s.artistName}>{s.artistName}</div>
                             </div>
+
                             <div className="like-wrap">
                               <button className={`icon-btn ${s.liked ? 'liked' : ''}`} onClick={(e) => { e.stopPropagation(); toggleLike(s.id); }}>
                                 <Heart size={18} fill={s.liked ? "currentColor" : "none"} />
                               </button>
                             </div>
+
                             <div className="more-wrap" ref={menuRef}>
                               <button className="icon-btn" onClick={(ev) => { ev.stopPropagation(); setOpenMenuSongId(openMenuSongId === s.id ? null : s.id); }}>
-                                <MoreVertical size={20}/>
+                                <MoreHorizontal size={40}/>
                               </button>
                               {openMenuSongId === s.id && (
                                 <div className="more-menu" onClick={(ev) => ev.stopPropagation()}>
-                                  <button className="menu-item" onClick={() => addToQueue(s.id)}><ListPlus size={16}/> Add to queue</button>
-                                  <button className="menu-item" onClick={() => playNextNow(s.id)}><SkipForward size={16}/> Play next</button>
-                                  <button className="menu-item" onClick={() => { playSong(s); setOpenMenuSongId(null); }}><PlayCircle size={16}/> Play now</button>
+                                  <button className="menu-item" onClick={() => addToQueue(s.id)}>
+                                      <ListPlus size={16} style={{marginRight: 8}}/> Add to queue
+                                  </button>
+                                  <button className="menu-item" onClick={() => playNextNow(s.id)}>
+                                      <SkipForward size={16} style={{marginRight: 8}}/> Play next
+                                  </button>
+                                  <button className="menu-item" onClick={() => { playSong(s); setOpenMenuSongId(null); }}>
+                                      <PlayCircle size={16} style={{marginRight: 8}}/> Play now
+                                  </button>
                                 </div>
                               )}
                             </div>
@@ -648,7 +913,31 @@ export default function MusicApp({ user, onLogout }) {
                         )}
                       </div>
                     ))}
-                    {isLoadingMore && <div style={{ padding: '16px', textAlign: 'center', fontSize: '13px' }}>Loading more...</div>}
+                    
+                    {/* Loading More Indicator */}
+                    {isLoadingMore && (
+                      <div style={{ 
+                        padding: '16px', 
+                        textAlign: 'center', 
+                        color: 'var(--text-secondary)',
+                        fontSize: '13px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                      }}>
+                        <svg 
+                          style={{ animation: 'spin 1s linear infinite', width: '16px', height: '16px' }} 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2"
+                        >
+                          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                        </svg>
+                        Loading more songs...
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -657,10 +946,12 @@ export default function MusicApp({ user, onLogout }) {
         </div>
       </aside>
 
-      {/* --- MAIN PLAYER AREA --- */}
       <main className={`player-area ${!isLibraryCollapsed ? 'mobile-hidden' : ''}`} style={{ flex: 1, minWidth: 0 }}>
+        
         <div className="mobile-only-header">
-           <button className="icon-btn" onClick={() => setIsLibraryCollapsed(false)}><ChevronDown size={28} /></button>
+           <button className="icon-btn" onClick={() => setIsLibraryCollapsed(false)}>
+             <ChevronDown size={28} />
+           </button>
         </div>
 
         <div className="content-split">
@@ -671,10 +962,12 @@ export default function MusicApp({ user, onLogout }) {
                   <img src={current.artistImageUrl || current.coverUrl || PERSON_PLACEHOLDER} alt="" className="glow-bg" onError={(e) => (e.currentTarget.src = PERSON_PLACEHOLDER)} />
                   <img src={current.artistImageUrl || current.coverUrl || PERSON_PLACEHOLDER} alt={current.title} className="real-cover" onError={(e) => (e.currentTarget.src = PERSON_PLACEHOLDER)} />
                 </div>
+
                 <div className="big-text">
                   <div className="big-title">{current.title}</div>
                   <div className="big-artist">{current.artistName}</div>
                   <div style={{ marginTop: 12 }}>
+                    
                     <Player
                       song={current}
                       playing={playing}
@@ -682,10 +975,12 @@ export default function MusicApp({ user, onLogout }) {
                       onToggleLike={() => current && toggleLike(current.id)}
                       onNext={() => playNext({ manual: true })}
                       onPrev={() => playPrev()}
-                      onEnded={useCallback(() => { 
-                          if (current) recordListen(current.durationSeconds || 180, current.genre); 
+                      
+                      onEnded={() => { 
+                          recordListen(current.durationSeconds || 180, current.genre); 
                           playNext({ manual: false });
-                      }, [current, playNext])} 
+                      }}
+                      
                       repeatMode={repeatMode}
                       onToggleRepeat={toggleRepeat}
                       shuffle={shuffle}
@@ -693,9 +988,11 @@ export default function MusicApp({ user, onLogout }) {
                       hideCover={true}
                       hideMeta={true}
                       onProgress={(curr, total) => setSongProgress(total ? (curr / total) * 100 : 0)}
+                      
                       sleepTime={sleepTime}
                       onSetSleepTimer={activateSleepTimer}
                     />
+
                   </div>
                 </div>
               </div>
@@ -703,33 +1000,68 @@ export default function MusicApp({ user, onLogout }) {
               <div style={{ color: 'var(--text-secondary)', marginTop: 40 }}>Select a song to play</div>
             )}
           </div>
+
           <div className="lyrics-right">
             <h2 className="lyrics-heading">Lyrics</h2>
-            <div className="lyrics-box"><LyricsPanel song={current} /></div>
+            <div className="lyrics-box">
+              <LyricsPanel song={current} />
+            </div>
           </div>
         </div>
 
         <div className="queue-panel">
           <div className="queue-header">
-            <div style={{ fontWeight: 700, display:'flex', alignItems:'center', gap:6 }}><ListMusic size={18}/> Up Next</div>
+            <div style={{ fontWeight: 700, display:'flex', alignItems:'center', gap:6 }}>
+                <ListMusic size={18}/> Up Next
+            </div>
             <div className="queue-controls">
-              <button className="small-btn icon-only" title="Clear" onClick={() => { if(window.confirm('Clear?')) { setQueue([]); setCurrentIndex(-1); setPlaying(false); } }}><Trash2 size={16}/></button>
-              <button className="small-btn icon-only" title="Restore" onClick={() => { if (songsRef.current) setQueue(songsRef.current.map(s => s.id)); }}><RotateCcw size={16}/></button>
+              <button 
+                className="small-btn icon-only" 
+                title="Clear"
+                onClick={() => {
+                  const hasCurrent = currentIndex >= 0 && queue[currentIndex];
+                  if (hasCurrent) {
+                    setQueue([queue[currentIndex]]);
+                    setCurrentIndex(0);
+                    setPlaying(true);
+                  } else {
+                    if (window.confirm('Clear?')) { setQueue([]); setCurrentIndex(-1); setPlaying(false); }
+                  }
+                }}
+              >
+                <Trash2 size={16}/>
+              </button>
+              
+              <button 
+                className="small-btn icon-only" 
+                onClick={() => { if (songsRef.current) setQueue(songsRef.current.map(s => s.id)); }} 
+                title="Restore"
+              >
+                <RotateCcw size={16}/>
+              </button>
             </div>
           </div>
+
+          {/* changing maxHeight to height ensures the container is always tall enough to show the scrollbar */}
           <div className="queue" style={{ height: '36vh', overflowY: 'auto' }}>
+            {queue.length === 0 && <div style={{ padding: 12, color: 'var(--text-secondary)', fontSize: 13 }}>Queue is empty</div>}
             {queue.map((id, idx) => {
               const s = songs.find(x => x.id === id) || { id, title: 'Unknown', artistName: '' };
               const isCurrent = idx === currentIndex;
               return (
                 <div key={`${id}-${idx}`} className={`queue-item ${isCurrent ? 'current' : ''}`}>
                   <div className="q-left">
-                    <img src={s.coverUrl || s.artistImageUrl || PERSON_PLACEHOLDER} className="q-cover" onError={(e) => e.currentTarget.src = PERSON_PLACEHOLDER} />
-                    <div className="q-meta"><div className="q-title">{s.title}</div><div className="q-artist">{s.artistName}</div></div>
+                    <img src={s.coverUrl || s.artistImageUrl || PERSON_PLACEHOLDER} alt={s.title} className="q-cover" onError={(e) => e.currentTarget.src = PERSON_PLACEHOLDER} />
+                    <div className="q-meta">
+                      <div className="q-title">{s.title}</div>
+                      <div className="q-artist">{s.artistName}</div>
+                    </div>
                   </div>
                   <div className="q-actions">
                     {!isCurrent && <button className="icon-btn" onClick={() => playAtIndex(idx)}><Play size={16}/></button>}
-                    <button className="icon-btn" onClick={() => removeAtIndex(idx)}><Trash2 size={16}/></button>
+                    <button className="icon-btn" onClick={() => moveItem(idx, Math.max(0, idx - 1))}><ArrowUp size={16}/></button>
+                    <button className="icon-btn" onClick={() => moveItem(idx, Math.min(queue.length - 1, idx + 1))}><ArrowDown size={16}/></button>
+                    <button className="icon-btn danger" onClick={() => removeAtIndex(idx)}><Trash2 size={16}/></button>
                   </div>
                 </div>
               );
@@ -738,6 +1070,7 @@ export default function MusicApp({ user, onLogout }) {
         </div>
       </main>
 
+      {/* --- MINI PLAYER (MOBILE ONLY) --- */}
       {current && !isLibraryCollapsed && (
         <div className="mini-player" onClick={() => setIsLibraryCollapsed(true)}>
            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
@@ -748,30 +1081,132 @@ export default function MusicApp({ user, onLogout }) {
              </div>
            </div>
            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-             <button className="icon-btn" onClick={(e) => { e.stopPropagation(); toggleLike(current.id); }}><Sparkle size={20} fill={current.liked ? "var(--neon-pink)" : "none"} color={current.liked ? "var(--neon-pink)" : "white"} /></button>
-             <button className="icon-btn" onClick={(e) => { e.stopPropagation(); setPlaying(p => !p); }}>{playing ? <Pause size={24} fill="white"/> : <Play size={24} fill="white"/>}</button>
+             <button className="icon-btn" onClick={(e) => { e.stopPropagation(); toggleLike(current.id); }}>
+               <Sparkle size={20} fill={current.liked ? "var(--neon-pink)" : "none"} color={current.liked ? "var(--neon-pink)" : "white"} />
+             </button>
+             <button className="icon-btn" onClick={(e) => { e.stopPropagation(); setPlaying(p => !p); }}>
+               {playing ? <Pause size={24} fill="white"/> : <Play size={24} fill="white"/>}
+             </button>
            </div>
-           <div className="mini-progress"><div className="mini-progress-fill" style={{ width: `${songProgress}%`, transition: 'width 0.1s linear' }}></div></div>
+           
+           <div className="mini-progress">
+             <div className="mini-progress-fill" style={{ width: `${songProgress}%`, transition: 'width 0.1s linear' }}></div>
+           </div>
         </div>
       )}
 
+      {/* PLANET CARD OVERLAY */}
       {showPlanet && <PlanetCard user={user} onClose={() => setShowPlanet(false)} />}
 
+      {/* EXIT PROMPT OVERLAY */}
       {showExitPrompt && exitMascot && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px', animation: 'fadeIn 0.2s ease-out' }} onClick={() => setShowExitPrompt(false)}>
-          <div style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', borderRadius: '24px', padding: '32px', maxWidth: '400px', width: '100%', textAlign: 'center', border: '2px solid rgba(255, 255, 255, 0.1)', boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)', animation: 'slideUp 0.3s ease-out' }} onClick={(e) => e.stopPropagation()}>
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px',
+            animation: 'fadeIn 0.2s ease-out'
+          }}
+          onClick={() => setShowExitPrompt(false)}
+        >
+          <div 
+            style={{
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+              borderRadius: '24px',
+              padding: '32px',
+              maxWidth: '400px',
+              width: '100%',
+              textAlign: 'center',
+              border: '2px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+              animation: 'slideUp 0.3s ease-out'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Custom Mascot Image - Random Expression */}
             <div style={{ marginBottom: '20px' }}>
-              <img src={exitMascot.img} alt="Mascot" style={{ width: '120px', height: '120px', objectFit: 'contain', animation: 'float 3s ease-in-out infinite', filter: 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))' }} onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.innerHTML = '<div style="font-size: 80px; animation: float 3s ease-in-out infinite">🚀😢</div>'; }} />
+              <img 
+                src={exitMascot.img}
+                alt="Mascot" 
+                style={{ 
+                  width: '120px', 
+                  height: '120px', 
+                  objectFit: 'contain',
+                  animation: 'float 3s ease-in-out infinite',
+                  filter: 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))'
+                }}
+                onError={(e) => {
+                  // Fallback to emoji if image fails to load
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement.innerHTML = '<div style="font-size: 80px; animation: float 3s ease-in-out infinite">🚀😢</div>';
+                }}
+              />
             </div>
-            <h2 style={{ color: 'white', fontSize: '24px', fontWeight: 'bold', marginBottom: '12px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{exitMascot.msg}</h2>
-            <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '16px', lineHeight: '1.5', marginBottom: '24px' }}>{exitMascot.sub}</p>
+            
+            <h2 style={{ 
+              color: 'white', 
+              fontSize: '24px', 
+              fontWeight: 'bold', 
+              marginBottom: '12px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              {exitMascot.msg}
+            </h2>
+            
+            <p style={{ 
+              color: 'rgba(255, 255, 255, 0.7)', 
+              fontSize: '16px', 
+              lineHeight: '1.5',
+              marginBottom: '24px' 
+            }}>
+              {exitMascot.sub}
+            </p>
+
             <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
-              <button onClick={() => setShowExitPrompt(false)} style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '12px', padding: '14px 24px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s', boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)' }} onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'} onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>Stay & Keep Listening 🎧</button>
-              <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '13px', marginTop: '8px' }}>💡 Use your phone's home button or minimize to put the app in background</p>
+              <button
+                onClick={() => setShowExitPrompt(false)}
+                style={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '14px 24px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+                }}
+                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
+                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                Stay & Keep Listening 🎧
+              </button>
+
+              <p style={{ 
+                color: 'rgba(255, 255, 255, 0.5)', 
+                fontSize: '13px',
+                marginTop: '8px'
+              }}>
+                💡 Use your phone's home button or minimize to put the app in background
+              </p>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }
