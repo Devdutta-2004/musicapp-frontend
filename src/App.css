@@ -241,9 +241,12 @@ body {
 /* ============================================================================
    8. MINI PLAYER DOCK
    ============================================================================ */
+/* ============================================================================
+   8. MINI PLAYER DOCK
+   ============================================================================ */
 .glass-dock {
   position: fixed;
-  bottom: 85px; /* Sits above the Bottom Nav */
+  bottom: 85px;
   left: 10px; right: 10px;
   height: 64px;
   background: rgba(25, 25, 35, 0.9);
@@ -251,17 +254,43 @@ body {
   -webkit-backdrop-filter: blur(30px) saturate(180%);
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 16px;
-  display: flex; align-items: center;
+  display: flex; 
+  align-items: center; /* This centers items vertically */
   padding: 0 12px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.6);
   z-index: 100;
-  overflow: hidden; /* Clips the progress bar */
+  overflow: hidden;
 }
 
-/* Static Thumb (Removed Spin) */
-.dock-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; margin-right: 12px; }
+/* --- ADD THIS MISSING CLASS --- */
+.dock-left {
+  display: flex;
+  align-items: center;
+  flex: 1;       /* Takes up remaining space to push controls to the right */
+  min-width: 0;  /* Allows text truncation to work */
+  overflow: hidden; 
+}
 
-.dock-info { flex: 1; min-width: 0; padding-right: 10px; }
+/* Static Thumb */
+.dock-thumb { 
+  width: 44px; 
+  height: 44px; 
+  border-radius: 8px; 
+  object-fit: cover; 
+  margin-right: 12px;
+  flex-shrink: 0; /* Prevents image from squishing */
+}
+
+.dock-info { 
+  flex: 1; 
+  min-width: 0; 
+  padding-right: 10px; 
+  display: flex;        /* Optional: ensures clean vertical stacking */
+  flex-direction: column; 
+  justify-content: center;
+}
+
+/* ... rest of your existing CSS ... */
 .dock-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: white; }
 .dock-artist { font-size: 12px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
