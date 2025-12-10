@@ -13,6 +13,7 @@ import {
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
 
+// USP / "Ad" Boxes (Horizontal Scroll)
 const USP_FEATURES = [
     { title: "Planet Evolution", subtitle: "Your taste creates a world.", icon: <Sparkles size={24} color="#00ffff" />, accent: "linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(0, 0, 0, 0))" },
     { title: "Neon Vibes", subtitle: "Experience the glow.", icon: <Zap size={24} color="#ff00cc" />, accent: "linear-gradient(135deg, rgba(255, 0, 204, 0.15), rgba(0, 0, 0, 0))" },
@@ -40,6 +41,7 @@ export default function MusicApp({ user, onLogout }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // API Config
   const API_BASE = (process.env.REACT_APP_API_BASE_URL || "https://musicapp-o3ow.onrender.com").replace(/\/$/, ""); 
   const authHeaders = { headers: { "X-User-Id": user?.id || 0 } };
 
@@ -55,6 +57,7 @@ export default function MusicApp({ user, onLogout }) {
           setHomeFeed(recent.data);
           const random = await axios.get(`${API_BASE}/api/songs/discover`, authHeaders);
           setDiscoveryFeed(random.data);
+          // Pre-load liked songs for the library tab
           const liked = await axios.get(`${API_BASE}/api/songs/liked`, authHeaders);
           setLikedSongs(liked.data);
       } catch(e) { console.error(e); }
@@ -63,6 +66,7 @@ export default function MusicApp({ user, onLogout }) {
 
   // --- 2. TAB LOGIC ---
   useEffect(() => {
+      // Refresh liked songs when entering library
       if (activeTab === 'library') {
           axios.get(`${API_BASE}/api/songs/liked`, authHeaders).then(r => setLikedSongs(r.data));
       }
@@ -90,6 +94,7 @@ export default function MusicApp({ user, onLogout }) {
 
   const playSong = (song, contextList) => {
      if(!song) return;
+     // Create a new queue based on the context (e.g., play all songs in "Recent" if clicked from home)
      let newQueue = contextList && contextList.length > 0 ? contextList.map(s=>s.id) : [song.id];
      setQueue(newQueue);
      setCurrentIndex(newQueue.indexOf(song.id));
@@ -97,8 +102,10 @@ export default function MusicApp({ user, onLogout }) {
   };
 
   const toggleLike = async (songId) => {
+      // Optimistic UI Update
       const update = (list) => list.map(s => s.id === songId ? {...s, liked: !s.liked} : s);
       setHomeFeed(update); setDiscoveryFeed(update); setSearchResults(update); setLikedSongs(update);
+      
       try { await axios.post(`${API_BASE}/api/likes/${songId}`, {}, authHeaders); } catch(e) {}
   };
 
@@ -106,7 +113,7 @@ export default function MusicApp({ user, onLogout }) {
       try {
           const mins = Math.ceil((duration || 180) / 60);
           await axios.post(`${API_BASE}/api/users/${user.id}/add-minutes`, { minutes: mins, genre: genre || "Unknown" });
-          user.totalMinutesListened += mins; 
+          if(user.totalMinutesListened !== undefined) user.totalMinutesListened += mins; 
       } catch(e) {}
   };
 
@@ -312,7 +319,7 @@ export default function MusicApp({ user, onLogout }) {
                 </div>
             </div>
 
-            {/* B. ARC REACTOR MINI PLAYER (The Semi-Circle) */}
+            {/* B. THE ARC REACTOR MINI PLAYER (SEMI-CIRCLE) */}
             {!isFullScreenPlayer && (
                 <div className="arc-player-container" onClick={() => setIsFullScreenPlayer(true)}>
                     
@@ -321,12 +328,21 @@ export default function MusicApp({ user, onLogout }) {
                         
                         {/* SVG Progress Bar (On the Edge) */}
                         <svg className="arc-progress-svg" viewBox="0 0 200 100">
-                            {/* Track */}
-                            <path d="M 10,100 A 90,90 0 0 1 190,100" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="4" strokeLinecap="round" />
-                            {/* Active Fill */}
+                            {/* Track (Gray Background) */}
                             <path 
                                 d="M 10,100 A 90,90 0 0 1 190,100" 
-                                fill="none" stroke="var(--neon-pink)" strokeWidth="6" strokeLinecap="round"
+                                fill="none" 
+                                stroke="rgba(255,255,255,0.1)" 
+                                strokeWidth="4" 
+                                strokeLinecap="round" 
+                            />
+                            {/* Active Fill (Neon Pink) */}
+                            <path 
+                                d="M 10,100 A 90,90 0 0 1 190,100" 
+                                fill="none" 
+                                stroke="var(--neon-pink)" 
+                                strokeWidth="6" 
+                                strokeLinecap="round"
                                 strokeDasharray="283" 
                                 strokeDashoffset={283 - (283 * songProgress / 100)}
                                 className="arc-progress-fill"
@@ -336,7 +352,7 @@ export default function MusicApp({ user, onLogout }) {
                         {/* Controls Layout */}
                         <div className="arc-controls">
                             
-                            {/* Left: Like */}
+                            {/* Left: Like Button */}
                             <button className="arc-btn" onClick={(e) => { e.stopPropagation(); toggleLike(currentSong.id); }}>
                                 <Heart size={24} fill={currentSong.liked ? "#ff00cc" : "none"} color={currentSong.liked ? "#ff00cc" : "white"} />
                             </button>
@@ -346,7 +362,7 @@ export default function MusicApp({ user, onLogout }) {
                                 <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} alt="Album" onError={e=>e.target.src=PERSON_PLACEHOLDER} />
                             </div>
 
-                            {/* Right: Play/Pause */}
+                            {/* Right: Play/Pause Button */}
                             <button className="arc-btn" onClick={(e) => { e.stopPropagation(); setPlaying(!playing); }}>
                                 {playing ? <Pause size={28} fill="white" /> : <Play size={28} fill="white" style={{marginLeft:4}} />}
                             </button>
@@ -357,7 +373,7 @@ export default function MusicApp({ user, onLogout }) {
           </>
       )}
 
-      {/* 3. BOTTOM NAVIGATION */}
+      {/* 3. BOTTOM NAVIGATION (5 Items) */}
       <nav className="glass-nav">
           <button className={activeTab === 'home' ? 'active' : ''} onClick={() => setActiveTab('home')}>
               <Home size={24}/><span>Home</span>
@@ -365,6 +381,7 @@ export default function MusicApp({ user, onLogout }) {
           <button className={activeTab === 'search' ? 'active' : ''} onClick={() => setActiveTab('search')}>
               <Search size={24}/><span>Search</span>
           </button>
+          {/* UPLOAD BUTTON IN MIDDLE */}
           <button className={activeTab === 'upload' ? 'active' : ''} onClick={() => setActiveTab('upload')}>
               <PlusCircle size={32} color={activeTab === 'upload' ? '#9146ff' : '#ccc'} /><span>Upload</span>
           </button>
