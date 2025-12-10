@@ -55,7 +55,6 @@ export default function MusicApp({ user, onLogout }) {
           setHomeFeed(recent.data);
           const random = await axios.get(`${API_BASE}/api/songs/discover`, authHeaders);
           setDiscoveryFeed(random.data);
-          // Pre-load liked songs so the list is ready
           const liked = await axios.get(`${API_BASE}/api/songs/liked`, authHeaders);
           setLikedSongs(liked.data);
       } catch(e) { console.error(e); }
@@ -313,50 +312,41 @@ export default function MusicApp({ user, onLogout }) {
                 </div>
             </div>
 
-            {/* B. THE ARC REACTOR MINI PLAYER (SEMI-CIRCLE) */}
+            {/* B. ARC REACTOR MINI PLAYER (The Semi-Circle) */}
             {!isFullScreenPlayer && (
                 <div className="arc-player-container" onClick={() => setIsFullScreenPlayer(true)}>
                     
-                    {/* 1. The Glass Semi-Circle */}
+                    {/* The Glass Semi-Circle */}
                     <div className="arc-glass">
                         
-                        {/* 2. SVG Circular Progress Bar (The Edge) */}
+                        {/* SVG Progress Bar (On the Edge) */}
                         <svg className="arc-progress-svg" viewBox="0 0 200 100">
-                            {/* Background Track (Gray) */}
+                            {/* Track */}
+                            <path d="M 10,100 A 90,90 0 0 1 190,100" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="4" strokeLinecap="round" />
+                            {/* Active Fill */}
                             <path 
                                 d="M 10,100 A 90,90 0 0 1 190,100" 
-                                fill="none" 
-                                stroke="rgba(255,255,255,0.1)" 
-                                strokeWidth="4" 
-                                strokeLinecap="round"
-                            />
-                            {/* Active Progress (Neon) */}
-                            <path 
-                                d="M 10,100 A 90,90 0 0 1 190,100" 
-                                fill="none" 
-                                stroke="var(--neon-pink)" 
-                                strokeWidth="6" 
-                                strokeLinecap="round"
+                                fill="none" stroke="var(--neon-pink)" strokeWidth="6" strokeLinecap="round"
                                 strokeDasharray="283" 
                                 strokeDashoffset={283 - (283 * songProgress / 100)}
                                 className="arc-progress-fill"
                             />
                         </svg>
 
-                        {/* 3. Controls Layout */}
+                        {/* Controls Layout */}
                         <div className="arc-controls">
                             
-                            {/* Left: Like Button */}
+                            {/* Left: Like */}
                             <button className="arc-btn" onClick={(e) => { e.stopPropagation(); toggleLike(currentSong.id); }}>
                                 <Heart size={24} fill={currentSong.liked ? "#ff00cc" : "none"} color={currentSong.liked ? "#ff00cc" : "white"} />
                             </button>
 
-                            {/* Center: Album Art (The Core) */}
+                            {/* Center: Static Album Art */}
                             <div className="arc-album">
                                 <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} alt="Album" onError={e=>e.target.src=PERSON_PLACEHOLDER} />
                             </div>
 
-                            {/* Right: Play Button */}
+                            {/* Right: Play/Pause */}
                             <button className="arc-btn" onClick={(e) => { e.stopPropagation(); setPlaying(!playing); }}>
                                 {playing ? <Pause size={28} fill="white" /> : <Play size={28} fill="white" style={{marginLeft:4}} />}
                             </button>
@@ -367,7 +357,7 @@ export default function MusicApp({ user, onLogout }) {
           </>
       )}
 
-      {/* 3. BOTTOM NAVIGATION (5 Items) */}
+      {/* 3. BOTTOM NAVIGATION */}
       <nav className="glass-nav">
           <button className={activeTab === 'home' ? 'active' : ''} onClick={() => setActiveTab('home')}>
               <Home size={24}/><span>Home</span>
