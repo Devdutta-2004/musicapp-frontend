@@ -258,12 +258,18 @@ body {
   overflow: hidden; /* Clips the progress bar */
 }
 
+/* Static Thumb (Removed Spin) */
 .dock-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; margin-right: 12px; }
-.dock-thumb.spin-slow { animation: spin 12s linear infinite; }
+
 .dock-info { flex: 1; min-width: 0; padding-right: 10px; }
 .dock-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: white; }
 .dock-artist { font-size: 12px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dock-right { display: flex; gap: 14px; align-items: center; }
+
+/* Right Side - Pushed to corner with margin-left: auto */
+.dock-right { 
+  display: flex; gap: 14px; align-items: center; 
+  margin-left: auto; /* Pushes buttons to the far right */
+}
 .dock-play { background: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
 
 /* The Animated Progress Line */
