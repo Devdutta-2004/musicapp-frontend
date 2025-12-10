@@ -480,3 +480,103 @@ body {
   height: 16px;
   color: var(--neon);
 }
+/* ============================================================================
+   11. NEW LIBRARY BOXES & MENU
+   ============================================================================ */
+
+/* The Container for the two boxes */
+.lib-box-container {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Individual Box Styling */
+.lib-box {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.lib-box:active {
+  transform: scale(0.96);
+}
+
+/* Active State (Neon Glow) */
+.lib-box.active {
+  background: linear-gradient(135deg, rgba(145, 70, 255, 0.25), rgba(145, 70, 255, 0.05));
+  border-color: var(--neon);
+  box-shadow: 0 8px 32px rgba(145, 70, 255, 0.15);
+}
+
+.lib-box-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.5px;
+}
+
+/* --- CONTEXT MENU (From previous request) --- */
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.context-menu-container {
+  position: relative;
+}
+
+.context-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: 170px;
+  background: #15151a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #ddd;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.menu-item svg {
+  width: 16px;
+  height: 16px;
+  color: var(--neon);
+}
