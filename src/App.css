@@ -238,165 +238,43 @@ body {
   padding: 10px; color: #ddd; line-height: 1.6; font-size: 16px; text-align: center;
 }
 
-/* ============================================================================
-   8. MINI PLAYER DOCK
-   ============================================================================ */
-.glass-dock {
-  position: fixed;
-  bottom: 85px; /* Sits above the Bottom Nav */
-  left: 10px; right: 10px;
-  height: 64px;
-  background: rgba(25, 25, 35, 0.9);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 16px;
-  display: flex; align-items: center;
-  padding: 0 12px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-  z-index: 100;
-  overflow: hidden; /* Clips the progress bar */
-}
-
-/* Static Thumb (Removed Spin) */
-.dock-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; margin-right: 12px; }
-
-.dock-info { flex: 1; min-width: 0; padding-right: 10px; }
-.dock-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: white; }
-.dock-artist { font-size: 12px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* Right Side - Pushed to corner with margin-left: auto */
-.dock-right { 
-  display: flex; gap: 14px; align-items: center; 
-  margin-left: auto; /* Pushes buttons to the far right */
-}
-.dock-play { background: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
-
-/* The Animated Progress Line */
-.dock-progress {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: rgba(255,255,255,0.1);
-}
-.dock-progress-fill {
-  height: 100%; background: var(--neon-pink);
-  box-shadow: 0 0 10px var(--neon-pink);
-  transition: width 0.2s linear;
-}
-
-/* ============================================================================
-   9. BOTTOM NAVIGATION
-   ============================================================================ */
-.glass-nav {
-  position: fixed; bottom: 0; left: 0; width: 100%; height: 80px;
-  background: linear-gradient(to top, rgba(0,0,0,1) 20%, rgba(10,10,15,0.85) 100%);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  display: flex; justify-content: space-around; align-items: center;
-  padding-bottom: 20px;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  z-index: 90;
-}
-.glass-nav button {
-  background: none; border: none; color: #666;
-  display: flex; flex-direction: column; align-items: center; gap: 5px;
-  font-size: 10px; font-weight: 600; padding: 10px;
-  transition: color 0.2s;
-}
-.glass-nav button.active {
-  color: white; text-shadow: 0 0 12px var(--neon);
-}
-.glass-nav button.active svg { stroke: var(--neon); }
-
-/* ============================================================================
-   10. FULL SCREEN PLAYER MODAL
-   ============================================================================ */
-.glass-modal {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: #050508; z-index: 200;
-  transform: translateY(100%);
-  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-  display: flex; flex-direction: column;
-}
-.glass-modal.open { transform: translateY(0); }
-
-.modal-header { padding: 40px 20px 20px; display: flex; justify-content: space-between; align-items: center; }
-.modal-scroll-body { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; }
-
-/* The Premium Glow Effect */
-.art-glow-container {
-  position: relative; width: 280px; height: 280px; margin: 20px auto 50px;
-}
-.art-glow-bg {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  border-radius: 40px;
-  filter: blur(50px) saturate(200%);
-  opacity: 0.5; transform: scale(0.9); z-index: 0;
-}
-.art-front {
-  position: relative; width: 100%; height: 100%;
-  border-radius: 24px; object-fit: cover; z-index: 2;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-  border: 1px solid rgba(255,255,255,0.1);
-}
-
-.modal-meta { text-align: center; margin-bottom: 40px; }
-.modal-meta h1 { font-size: 26px; margin: 0 0 8px; letter-spacing: -0.5px; }
-.modal-meta p { color: var(--neon); font-size: 16px; margin: 0; }
-
-.modal-controls-wrapper { margin-bottom: 40px; }
-
-/* Section styling within Modal */
-.modal-section { margin-top: 40px; }
-.modal-section h3 { margin-bottom: 15px; font-size: 18px; font-weight: 700; color: #ddd; }
-.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-
-.glass-inset {
-  background: rgba(255,255,255,0.03);
-  border-radius: 16px; padding: 20px;
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-.more-queue { text-align: center; color: #666; font-size: 12px; padding: 10px; }
 /* =========================================
    THE ARC REACTOR (Semi-Circle Mini Player)
    ========================================= */
 
-/* The Wrapper - Centers everything at the bottom */
 .arc-player-container {
   position: fixed;
   bottom: 0; 
   left: 50%;
   transform: translateX(-50%);
-  width: 340px; /* Width of the semi-circle */
-  height: 140px; /* Height of the semi-circle */
-  z-index: 150; /* Above navbar */
+  width: 340px; 
+  height: 140px; 
+  z-index: 150; 
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  pointer-events: none; /* Let clicks pass through empty space */
-  padding-bottom: 90px; /* Push it up so it sits nicely */
+  pointer-events: none; 
+  padding-bottom: 90px; 
 }
 
-/* The Frosted Glass Shape */
 .arc-glass {
   position: relative;
   width: 100%;
   height: 100%;
-  /* The Semi-Circle Shape */
   border-top-left-radius: 170px;
   border-top-right-radius: 170px;
-  background: rgba(20, 20, 25, 0.75); /* Dark Glass */
+  background: rgba(20, 20, 25, 0.75); 
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   border-left: 1px solid rgba(255, 255, 255, 0.1);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-  pointer-events: auto; /* Re-enable clicks on the player */
+  pointer-events: auto; 
   cursor: pointer;
   overflow: hidden;
 }
 
-/* The SVG Progress Bar Container */
 .arc-progress-svg {
   position: absolute;
   top: 0;
@@ -412,21 +290,19 @@ body {
   filter: drop-shadow(0 0 5px var(--neon-pink));
 }
 
-/* Grid for placing Buttons & Art */
 .arc-controls {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 90%; /* Occupy bottom area */
+  height: 90%; 
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 30px; /* Space between buttons and art */
+  gap: 30px; 
   padding-bottom: 20px;
 }
 
-/* The Central Album Art */
 .arc-album {
   width: 100px;
   height: 100px;
@@ -437,7 +313,7 @@ body {
   z-index: 10;
   overflow: hidden;
   background: #000;
-  margin-bottom: 10px; /* Push slightly up into the arc */
+  margin-bottom: 10px; 
 }
 
 .arc-album img {
@@ -446,7 +322,6 @@ body {
   object-fit: cover;
 }
 
-/* The Buttons (Like & Play) */
 .arc-btn {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -459,7 +334,7 @@ body {
   color: white;
   cursor: pointer;
   transition: all 0.2s;
-  margin-bottom: -10px; /* Align slightly lower than the art */
+  margin-bottom: -10px; 
 }
 
 .arc-btn:active {
@@ -467,12 +342,6 @@ body {
   transform: scale(0.95);
 }
 
-/* Adjust Bottom Nav to not overlap badly */
-.glass-nav {
-  z-index: 100; /* Player sits ABOVE nav */
-}
-
-/* Mobile Tweak: Ensure it fits small screens */
 @media (max-width: 380px) {
   .arc-player-container { width: 300px; height: 130px; }
   .arc-album { width: 80px; height: 80px; }
