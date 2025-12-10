@@ -237,7 +237,7 @@ export default function MusicApp({ user, onLogout }) {
          {/* --- PLANET TAB --- */}
          {activeTab === 'planet' && (
              <div className="tab-pane">
-                 <PlanetCard user={user} onClose={()=>{}} />
+                 <PlanetCard user={user} onClose={() => setActiveTab('home')} />
                  <button className="glass-btn logout-btn" onClick={onLogout}>Sign Out</button>
                  <div className="spacer"></div>
              </div>
