@@ -10,7 +10,8 @@ import {
   Home, Search, Library, User, PlusCircle, 
   Play, Pause, Heart, ChevronDown, 
   Sparkles, Zap, Mic2, ListMusic, MoreHorizontal, 
-  ListPlus, PlayCircle, ArrowRightCircle
+  ListPlus, PlayCircle, ArrowRightCircle,
+  Shuffle, Repeat, Repeat1, Trash2, ArrowUp, ArrowDown, RotateCcw
 } from "lucide-react"; 
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -22,30 +23,36 @@ const USP_FEATURES = [
 ];
 
 export default function MusicApp({ user, onLogout }) {
+  // --- VIEW STATE ---
   const [activeTab, setActiveTab] = useState('home'); 
   const [isFullScreenPlayer, setIsFullScreenPlayer] = useState(false);
   
   // Library State
-  const [libraryTab, setLibraryTab] = useState('liked'); // 'liked' or 'playlists'
-  
-  // Context Menu State
+  const [libraryTab, setLibraryTab] = useState('liked'); 
   const [openMenuId, setOpenMenuId] = useState(null);
 
-  // Data State
+  // --- DATA STATE ---
   const [homeFeed, setHomeFeed] = useState([]);      
   const [discoveryFeed, setDiscoveryFeed] = useState([]); 
   const [searchResults, setSearchResults] = useState([]);
   const [likedSongs, setLikedSongs] = useState([]);
   const [playlists, setPlaylists] = useState([]); 
   
-  // Player State
+  // --- PLAYER STATE ---
   const [queue, setQueue] = useState([]);          
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [playing, setPlaying] = useState(false);
   const [songProgress, setSongProgress] = useState(0); 
+  
+  // New Player States
+  const [shuffle, setShuffle] = useState(false);
+  const [repeatMode, setRepeatMode] = useState('off'); // 'off', 'all', 'one'
+  const [sleepTime, setSleepTime] = useState(null);
 
+  // --- UI STATE ---
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
+  const sleepIntervalRef = useRef(null);
 
   // Close menus when clicking anywhere else
   useEffect(() => {
@@ -57,7 +64,10 @@ export default function MusicApp({ user, onLogout }) {
   const API_BASE = (process.env.REACT_APP_API_BASE_URL || "https://musicapp-o3ow.onrender.com").replace(/\/$/, ""); 
   const authHeaders = { headers: { "X-User-Id": user?.id || 0 } };
 
-  useEffect(() => { loadFeeds(); }, []);
+  // --- INITIAL LOAD ---
+  useEffect(() => {
+    loadFeeds();
+  }, []);
 
   async function loadFeeds() {
       setLoading(true);
@@ -94,18 +104,46 @@ export default function MusicApp({ user, onLogout }) {
       return () => clearTimeout(delay);
   }, [searchTerm]);
 
+  // --- HELPER: GET SONG ---
   function getSongById(id) {
       const all = [...homeFeed, ...discoveryFeed, ...searchResults, ...likedSongs];
       return all.find(s => s.id === id) || { id, title: 'Unknown', artistName: 'Unknown', coverUrl: null };
   }
   const currentSong = queue[currentIndex] ? getSongById(queue[currentIndex]) : null;
 
+  // --- PLAY LOGIC ---
   const playSong = (song, contextList) => {
      if(!song) return;
      let newQueue = contextList && contextList.length > 0 ? contextList.map(s=>s.id) : [song.id];
+     if (shuffle) newQueue = shuffleArray(newQueue);
      setQueue(newQueue);
      setCurrentIndex(newQueue.indexOf(song.id));
      setPlaying(true);
+  };
+
+  // Helper: Shuffle
+  function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  const toggleShuffle = () => {
+    setShuffle(prev => {
+        if (!prev) {
+            // Turn ON Shuffle: Shuffle current queue
+            setQueue(q => shuffleArray(q));
+            setCurrentIndex(0); 
+        }
+        return !prev;
+    });
+  };
+
+  const toggleRepeat = () => {
+    setRepeatMode(prev => prev === 'off' ? 'all' : (prev === 'all' ? 'one' : 'off'));
   };
 
   const toggleLike = async (songId) => {
@@ -114,18 +152,108 @@ export default function MusicApp({ user, onLogout }) {
       try { await axios.post(`${API_BASE}/api/likes/${songId}`, {}, authHeaders); fetchLibraryData(); } catch(e) {}
   };
 
+  // --- QUEUE ACTIONS ---
+  
+  // 1. Play Next (Insert after current)
   const playNext = (song) => {
       if (queue.length === 0) { playSong(song); return; }
+      
       const newQueue = [...queue];
-      newQueue.splice(currentIndex + 1, 0, song.id);
+      const insertIndex = currentIndex + 1;
+      
+      // Remove if already in queue to avoid duplicates
+      const existingIdx = newQueue.indexOf(song.id);
+      if (existingIdx > -1 && existingIdx !== currentIndex) {
+          newQueue.splice(existingIdx, 1);
+          if (existingIdx < insertIndex) insertIndex--;
+      }
+      
+      newQueue.splice(insertIndex, 0, song.id);
       setQueue(newQueue);
       alert("Added to play next!");
   };
 
+  // 2. Add to Queue (Append to end)
   const addToQueue = (song) => {
       if (queue.length === 0) { playSong(song); return; }
-      setQueue([...queue, song.id]);
-      alert("Added to queue!");
+      if (!queue.includes(song.id)) {
+          setQueue([...queue, song.id]);
+          alert("Added to queue!");
+      } else {
+          alert("Already in queue!");
+      }
+  };
+
+  // 3. Clear Queue (Keep playing song)
+  const clearQueue = () => {
+      if (currentIndex === -1) return;
+      if(window.confirm("Clear queue except current song?")) {
+        setQueue([queue[currentIndex]]);
+        setCurrentIndex(0);
+      }
+  };
+
+  // 4. Restore Queue (Reset to Home Feed)
+  constHZrestoreQueue = () => { // FIXED TYPO from previous version
+      if(homeFeed.length === 0) return alert("No songs to restore.");
+      if(window.confirm("Restore queue from Fresh Arrivals?")) {
+          const newQ = homeFeed.map(s => s.id);
+          setQueue(newQ);
+          // If playing, try to find current song in new queue
+          const newIdx = newQ.indexOf(currentSong?.id);
+          setCurrentIndex(newIdx !== -1 ? newIdx : 0);
+      }
+  };
+
+  // 5. Move Item (Up/Down)
+  const moveItem = (oldIndex, newIndex) => {
+    if (oldIndex < 0 || oldIndex >= queue.length || newIndex < 0 || newIndex >= queue.length) return;
+    setQueue(prev => {
+        const q = [...prev];
+        const [item] = q.splice(oldIndex, 1);
+        q.splice(newIndex, 0, item);
+        
+        // Adjust current index to follow the playing song
+        if (currentIndex === oldIndex) setCurrentIndex(newIndex);
+        else if (currentIndex >= newIndex && currentIndex < oldIndex) setCurrentIndex(c => c + 1);
+        else if (currentIndex <= newIndex && currentIndex > oldIndex) setCurrentIndex(c => c - 1);
+        
+        return q;
+    });
+  };
+
+  // 6. Remove specific item
+  const removeAtIndex = (idx) => {
+    setQueue(prev => {
+      const newQ = [...prev];
+      newQ.splice(idx, 1);
+      if (idx < currentIndex) setCurrentIndex(c => c - 1);
+      return newQ;
+    });
+  };
+
+  // --- PLAYER CONTROL LOGIC ---
+  const handleNextSong = () => {
+      const nextIdx = currentIndex + 1;
+      if (nextIdx < queue.length) {
+          setCurrentIndex(nextIdx);
+          setPlaying(true);
+      } else if (repeatMode === 'all') {
+          setCurrentIndex(0);
+          setPlaying(true);
+      } else {
+          setPlaying(false);
+      }
+  };
+
+  const handlePrevSong = () => {
+      if (currentIndex > 0) {
+          setCurrentIndex(currentIndex - 1);
+          setPlaying(true);
+      } else if (repeatMode === 'all') {
+          setCurrentIndex(queue.length - 1);
+          setPlaying(true);
+      }
   };
 
   const recordListen = async (duration, genre) => {
@@ -135,6 +263,23 @@ export default function MusicApp({ user, onLogout }) {
           user.totalMinutesListened += mins; 
       } catch(e) {}
   };
+
+  // --- SLEEP TIMER ---
+  useEffect(() => {
+    if (sleepTime !== null && sleepTime > 0) {
+      sleepIntervalRef.current = setTimeout(() => {
+        setSleepTime(prev => {
+          if (prev <= 1) {
+            setPlaying(false);
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 60000);
+    }
+    return () => clearTimeout(sleepIntervalRef.current);
+  }, [sleepTime]);
+
 
   // --- SHARED SONG ROW COMPONENT ---
   const SongRow = ({ s, list }) => (
@@ -259,12 +404,10 @@ export default function MusicApp({ user, onLogout }) {
              </div>
          )}
 
-         {/* --- LIBRARY TAB --- */}
          {activeTab === 'library' && (
              <div className="tab-pane">
                  <h2 className="page-title">Your Library</h2>
                  
-                 {/* --- TWO BOXES NAVIGATION --- */}
                  <div className="lib-box-container">
                     <div 
                         className={`lib-box ${libraryTab === 'liked' ? 'active' : ''}`}
@@ -282,7 +425,6 @@ export default function MusicApp({ user, onLogout }) {
                     </div>
                  </div>
 
-                 {/* TAB CONTENT: LIKED SONGS */}
                  {libraryTab === 'liked' && (
                      likedSongs.length === 0 ? (
                          <div style={{textAlign:'center', marginTop: 50, color: '#666'}}>
@@ -298,7 +440,6 @@ export default function MusicApp({ user, onLogout }) {
                      )
                  )}
 
-                 {/* TAB CONTENT: PLAYLISTS */}
                  {libraryTab === 'playlists' && (
                      <PlaylistPanel 
                         playlists={playlists} 
@@ -326,7 +467,8 @@ export default function MusicApp({ user, onLogout }) {
                 <div className="modal-header">
                     <button onClick={() => setIsFullScreenPlayer(false)} className="icon-btn"><ChevronDown size={32}/></button>
                     <span>Now Playing</span>
-                    <button className="icon-btn"><MoreHorizontal size={24}/></button>
+                    {/* Add to Queue etc. from top menu if needed, or just keep cleaner */}
+                    <button className="icon-btn" onClick={() => setOpenMenuId(openMenuId === 'player' ? null : 'player')}><MoreHorizontal size={24}/></button>
                 </div>
                 
                 <div className="modal-scroll-body">
@@ -345,14 +487,20 @@ export default function MusicApp({ user, onLogout }) {
                             song={currentSong}
                             playing={playing}
                             onToggle={() => setPlaying(!playing)}
-                            onNext={() => setCurrentIndex((currentIndex + 1) % queue.length)}
-                            onPrev={() => setCurrentIndex((currentIndex - 1 + queue.length) % queue.length)}
+                            onNext={handleNextSong}
+                            onPrev={handlePrevSong}
                             onToggleLike={() => toggleLike(currentSong.id)}
                             onEnded={() => {
                                 recordListen(currentSong.durationSeconds, currentSong.genre);
-                                setCurrentIndex((currentIndex + 1) % queue.length);
+                                handleNextSong();
                             }}
                             hideCover={true} hideMeta={true}
+                            repeatMode={repeatMode}
+                            onToggleRepeat={toggleRepeat}
+                            shuffle={shuffle}
+                            onToggleShuffle={toggleShuffle}
+                            sleepTime={sleepTime}
+                            onSetSleepTimer={(min) => setSleepTime(min)}
                             onProgress={(c, t) => setSongProgress(t ? (c/t)*100 : 0)}
                         />
                     </div>
@@ -366,18 +514,52 @@ export default function MusicApp({ user, onLogout }) {
 
                     <div className="modal-section">
                         <div className="section-header">
-                            <h3>Up Next</h3>
-                            <ListMusic size={18} color="#aaa"/>
+                            <div style={{display:'flex', alignItems:'center', gap:8}}>
+                                <ListMusic size={20} color="#aaa"/>
+                                <h3>Up Next</h3>
+                            </div>
+                            {/* QUEUE CONTROLS: CLEAR & RESTORE */}
+                            <div style={{display:'flex', gap:10}}>
+                                <button className="icon-btn" onClick={clearQueue} title="Clear Queue (Keep Current)">
+                                    <Trash2 size={18} color="#ff4d7a"/>
+                                </button>
+                                <button className="icon-btn" onClick={constHZrestoreQueue} title="Restore Default Queue">
+                                    <RotateCcw size={18} color="#00ff88"/>
+                                </button>
+                            </div>
                         </div>
+
                         <div className="list-vertical">
-                            {queue.slice(currentIndex + 1, currentIndex + 10).map((id, i) => {
+                            {queue.map((id, i) => {
+                                // Only show surrounding songs to improve performance if queue is huge
+                                if (i < currentIndex - 2 || i > currentIndex + 20) return null;
+                                
                                 const s = getSongById(id);
+                                const isCurrent = i === currentIndex;
+                                
                                 return (
-                                    <div key={i} className="glass-row compact">
+                                    <div key={`${id}-${i}`} className={`glass-row compact ${isCurrent ? 'active-row' : ''}`}>
                                         <img src={s.coverUrl || PERSON_PLACEHOLDER} className="row-thumb small"/>
                                         <div className="row-info">
-                                            <div className="row-title">{s.title}</div>
+                                            <div className="row-title" style={{color: isCurrent ? 'var(--neon)' : 'white'}}>{s.title}</div>
                                             <div className="row-artist">{s.artistName}</div>
+                                        </div>
+                                        {/* QUEUE ITEM ACTIONS */}
+                                        <div className="row-actions">
+                                            {!isCurrent && (
+                                                <button className="icon-btn" onClick={() => { setCurrentIndex(i); setPlaying(true); }}>
+                                                    <Play size={14}/>
+                                                </button>
+                                            )}
+                                            <button className="icon-btn" onClick={() => moveItem(i, i - 1)}>
+                                                <ArrowUp size={16}/>
+                                            </button>
+                                            <button className="icon-btn" onClick={() => moveItem(i, i + 1)}>
+                                                <ArrowDown size={16}/>
+                                            </button>
+                                            <button className="icon-btn" onClick={() => removeAtIndex(i)}>
+                                                <Trash2 size={16} color="#666"/>
+                                            </button>
                                         </div>
                                     </div>
                                 )
