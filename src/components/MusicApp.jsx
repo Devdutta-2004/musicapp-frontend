@@ -134,7 +134,6 @@ export default function MusicApp({ user, onLogout }) {
   const toggleShuffle = () => {
     setShuffle(prev => {
         if (!prev) {
-            // Turn ON Shuffle: Shuffle current queue
             setQueue(q => shuffleArray(q));
             setCurrentIndex(0); 
         }
@@ -153,15 +152,12 @@ export default function MusicApp({ user, onLogout }) {
   };
 
   // --- QUEUE ACTIONS ---
-  
-  // 1. Play Next (Insert after current)
   const playNext = (song) => {
       if (queue.length === 0) { playSong(song); return; }
       
       const newQueue = [...queue];
       const insertIndex = currentIndex + 1;
       
-      // Remove if already in queue to avoid duplicates
       const existingIdx = newQueue.indexOf(song.id);
       if (existingIdx > -1 && existingIdx !== currentIndex) {
           newQueue.splice(existingIdx, 1);
@@ -173,7 +169,6 @@ export default function MusicApp({ user, onLogout }) {
       alert("Added to play next!");
   };
 
-  // 2. Add to Queue (Append to end)
   const addToQueue = (song) => {
       if (queue.length === 0) { playSong(song); return; }
       if (!queue.includes(song.id)) {
@@ -184,7 +179,6 @@ export default function MusicApp({ user, onLogout }) {
       }
   };
 
-  // 3. Clear Queue (Keep playing song)
   const clearQueue = () => {
       if (currentIndex === -1) return;
       if(window.confirm("Clear queue except current song?")) {
@@ -193,19 +187,16 @@ export default function MusicApp({ user, onLogout }) {
       }
   };
 
-  // 4. Restore Queue (Reset to Home Feed)
-  constHZrestoreQueue = () => { // FIXED TYPO from previous version
+  const restoreQueue = () => { 
       if(homeFeed.length === 0) return alert("No songs to restore.");
       if(window.confirm("Restore queue from Fresh Arrivals?")) {
           const newQ = homeFeed.map(s => s.id);
           setQueue(newQ);
-          // If playing, try to find current song in new queue
           const newIdx = newQ.indexOf(currentSong?.id);
           setCurrentIndex(newIdx !== -1 ? newIdx : 0);
       }
   };
 
-  // 5. Move Item (Up/Down)
   const moveItem = (oldIndex, newIndex) => {
     if (oldIndex < 0 || oldIndex >= queue.length || newIndex < 0 || newIndex >= queue.length) return;
     setQueue(prev => {
@@ -213,7 +204,6 @@ export default function MusicApp({ user, onLogout }) {
         const [item] = q.splice(oldIndex, 1);
         q.splice(newIndex, 0, item);
         
-        // Adjust current index to follow the playing song
         if (currentIndex === oldIndex) setCurrentIndex(newIndex);
         else if (currentIndex >= newIndex && currentIndex < oldIndex) setCurrentIndex(c => c + 1);
         else if (currentIndex <= newIndex && currentIndex > oldIndex) setCurrentIndex(c => c - 1);
@@ -222,7 +212,6 @@ export default function MusicApp({ user, onLogout }) {
     });
   };
 
-  // 6. Remove specific item
   const removeAtIndex = (idx) => {
     setQueue(prev => {
       const newQ = [...prev];
@@ -263,6 +252,35 @@ export default function MusicApp({ user, onLogout }) {
           user.totalMinutesListened += mins; 
       } catch(e) {}
   };
+
+  // --- ✅ FIXED: MEDIA SESSION (LOCK SCREEN & HEADPHONES) ---
+  useEffect(() => {
+    if (!currentSong || !('mediaSession' in navigator)) return;
+
+    // 1. Set Metadata (Cover Art, Title, Artist)
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentSong.title,
+      artist: currentSong.artistName,
+      album: "Astronote Music",
+      artwork: [
+        { src: currentSong.coverUrl || PERSON_PLACEHOLDER, sizes: '512x512', type: 'image/png' }
+      ]
+    });
+
+    // 2. Set Action Handlers (Play/Pause/Next/Prev)
+    navigator.mediaSession.setActionHandler('play', () => setPlaying(true));
+    navigator.mediaSession.setActionHandler('pause', () => setPlaying(false));
+    
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+        handlePrevSong();
+    });
+    
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+        handleNextSong();
+    });
+
+  }, [currentSong, playing, currentIndex, queue]);
+
 
   // --- SLEEP TIMER ---
   useEffect(() => {
@@ -467,7 +485,6 @@ export default function MusicApp({ user, onLogout }) {
                 <div className="modal-header">
                     <button onClick={() => setIsFullScreenPlayer(false)} className="icon-btn"><ChevronDown size={32}/></button>
                     <span>Now Playing</span>
-                    {/* Add to Queue etc. from top menu if needed, or just keep cleaner */}
                     <button className="icon-btn" onClick={() => setOpenMenuId(openMenuId === 'player' ? null : 'player')}><MoreHorizontal size={24}/></button>
                 </div>
                 
@@ -518,12 +535,11 @@ export default function MusicApp({ user, onLogout }) {
                                 <ListMusic size={20} color="#aaa"/>
                                 <h3>Up Next</h3>
                             </div>
-                            {/* QUEUE CONTROLS: CLEAR & RESTORE */}
                             <div style={{display:'flex', gap:10}}>
                                 <button className="icon-btn" onClick={clearQueue} title="Clear Queue (Keep Current)">
                                     <Trash2 size={18} color="#ff4d7a"/>
                                 </button>
-                                <button className="icon-btn" onClick={constHZrestoreQueue} title="Restore Default Queue">
+                                <button className="icon-btn" onClick={restoreQueue} title="Restore Default Queue">
                                     <RotateCcw size={18} color="#00ff88"/>
                                 </button>
                             </div>
@@ -531,7 +547,6 @@ export default function MusicApp({ user, onLogout }) {
 
                         <div className="list-vertical">
                             {queue.map((id, i) => {
-                                // Only show surrounding songs to improve performance if queue is huge
                                 if (i < currentIndex - 2 || i > currentIndex + 20) return null;
                                 
                                 const s = getSongById(id);
@@ -544,7 +559,6 @@ export default function MusicApp({ user, onLogout }) {
                                             <div className="row-title" style={{color: isCurrent ? 'var(--neon)' : 'white'}}>{s.title}</div>
                                             <div className="row-artist">{s.artistName}</div>
                                         </div>
-                                        {/* QUEUE ITEM ACTIONS */}
                                         <div className="row-actions">
                                             {!isCurrent && (
                                                 <button className="icon-btn" onClick={() => { setCurrentIndex(i); setPlaying(true); }}>
