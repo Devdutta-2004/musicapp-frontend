@@ -46,7 +46,7 @@ export default function MusicApp({ user, onLogout }) {
   
   // New Player States
   const [shuffle, setShuffle] = useState(false);
-  const [repeatMode, setRepeatMode] = useState('off'); // 'off', 'all', 'one'
+  const [repeatMode, setRepeatMode] = useState('off'); 
   const [sleepTime, setSleepTime] = useState(null);
 
   // --- UI STATE ---
@@ -111,7 +111,7 @@ export default function MusicApp({ user, onLogout }) {
   }
   const currentSong = queue[currentIndex] ? getSongById(queue[currentIndex]) : null;
 
-  // --- PLAY LOGIC ---
+  // --- PLAY LOGIC (Standard - Resets Queue) ---
   const playSong = (song, contextList) => {
      if(!song) return;
      let newQueue = contextList && contextList.length > 0 ? contextList.map(s=>s.id) : [song.id];
@@ -119,6 +119,22 @@ export default function MusicApp({ user, onLogout }) {
      setQueue(newQueue);
      setCurrentIndex(newQueue.indexOf(song.id));
      setPlaying(true);
+  };
+
+  // --- NEW: PLAY NOW LOGIC (Preserves Queue) ---
+  const playNow = (song) => {
+      if (queue.length === 0) {
+          playSong(song);
+          return;
+      }
+      // Insert song AFTER current playing song
+      const newQueue = [...queue];
+      const insertIndex = currentIndex + 1;
+      newQueue.splice(insertIndex, 0, song.id);
+      
+      setQueue(newQueue);
+      setCurrentIndex(insertIndex); // Jump to new song
+      setPlaying(true);
   };
 
   // Helper: Shuffle
@@ -152,12 +168,15 @@ export default function MusicApp({ user, onLogout }) {
   };
 
   // --- QUEUE ACTIONS ---
+  
+  // 1. Play Next (Insert after current)
   const playNext = (song) => {
       if (queue.length === 0) { playSong(song); return; }
       
       const newQueue = [...queue];
       const insertIndex = currentIndex + 1;
       
+      // Remove if already in queue to avoid duplicates
       const existingIdx = newQueue.indexOf(song.id);
       if (existingIdx > -1 && existingIdx !== currentIndex) {
           newQueue.splice(existingIdx, 1);
@@ -169,6 +188,7 @@ export default function MusicApp({ user, onLogout }) {
       alert("Added to play next!");
   };
 
+  // 2. Add to Queue (Append to end)
   const addToQueue = (song) => {
       if (queue.length === 0) { playSong(song); return; }
       if (!queue.includes(song.id)) {
@@ -179,6 +199,7 @@ export default function MusicApp({ user, onLogout }) {
       }
   };
 
+  // 3. Clear Queue (Keep playing song)
   const clearQueue = () => {
       if (currentIndex === -1) return;
       if(window.confirm("Clear queue except current song?")) {
@@ -187,16 +208,19 @@ export default function MusicApp({ user, onLogout }) {
       }
   };
 
-  const restoreQueue = () => { 
+  // 4. Restore Queue (Reset to Home Feed)
+  const restoreQueue = () => {
       if(homeFeed.length === 0) return alert("No songs to restore.");
       if(window.confirm("Restore queue from Fresh Arrivals?")) {
           const newQ = homeFeed.map(s => s.id);
           setQueue(newQ);
+          // If playing, try to find current song in new queue
           const newIdx = newQ.indexOf(currentSong?.id);
           setCurrentIndex(newIdx !== -1 ? newIdx : 0);
       }
   };
 
+  // 5. Move Item (Up/Down)
   const moveItem = (oldIndex, newIndex) => {
     if (oldIndex < 0 || oldIndex >= queue.length || newIndex < 0 || newIndex >= queue.length) return;
     setQueue(prev => {
@@ -212,6 +236,7 @@ export default function MusicApp({ user, onLogout }) {
     });
   };
 
+  // 6. Remove specific item
   const removeAtIndex = (idx) => {
     setQueue(prev => {
       const newQ = [...prev];
@@ -253,11 +278,11 @@ export default function MusicApp({ user, onLogout }) {
       } catch(e) {}
   };
 
-  // --- ✅ FIXED: MEDIA SESSION (LOCK SCREEN & HEADPHONES) ---
+  // --- MEDIA SESSION (Phone Lock Screen Controls) ---
   useEffect(() => {
     if (!currentSong || !('mediaSession' in navigator)) return;
-
-    // 1. Set Metadata (Cover Art, Title, Artist)
+    
+    // Metadata for lock screen
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentSong.title,
       artist: currentSong.artistName,
@@ -267,20 +292,13 @@ export default function MusicApp({ user, onLogout }) {
       ]
     });
 
-    // 2. Set Action Handlers (Play/Pause/Next/Prev)
+    // Button handlers
     navigator.mediaSession.setActionHandler('play', () => setPlaying(true));
     navigator.mediaSession.setActionHandler('pause', () => setPlaying(false));
-    
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-        handlePrevSong();
-    });
-    
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
-        handleNextSong();
-    });
+    navigator.mediaSession.setActionHandler('previoustrack', handlePrevSong);
+    navigator.mediaSession.setActionHandler('nexttrack', handleNextSong);
 
-  }, [currentSong, playing, currentIndex, queue]);
-
+  }, [currentSong]);
 
   // --- SLEEP TIMER ---
   useEffect(() => {
@@ -327,7 +345,7 @@ export default function MusicApp({ user, onLogout }) {
 
                 {openMenuId === s.id && (
                     <div className="context-menu" onClick={e => e.stopPropagation()}>
-                        <button className="menu-item" onClick={() => { playSong(s); setOpenMenuId(null); }}>
+                        <button className="menu-item" onClick={() => { playNow(s); setOpenMenuId(null); }}>
                             <PlayCircle/> Play Now
                         </button>
                         <button className="menu-item" onClick={() => { playNext(s); setOpenMenuId(null); }}>
@@ -485,6 +503,7 @@ export default function MusicApp({ user, onLogout }) {
                 <div className="modal-header">
                     <button onClick={() => setIsFullScreenPlayer(false)} className="icon-btn"><ChevronDown size={32}/></button>
                     <span>Now Playing</span>
+                    {/* Add to Queue etc. from top menu if needed, or just keep cleaner */}
                     <button className="icon-btn" onClick={() => setOpenMenuId(openMenuId === 'player' ? null : 'player')}><MoreHorizontal size={24}/></button>
                 </div>
                 
@@ -535,6 +554,7 @@ export default function MusicApp({ user, onLogout }) {
                                 <ListMusic size={20} color="#aaa"/>
                                 <h3>Up Next</h3>
                             </div>
+                            {/* QUEUE CONTROLS: CLEAR & RESTORE */}
                             <div style={{display:'flex', gap:10}}>
                                 <button className="icon-btn" onClick={clearQueue} title="Clear Queue (Keep Current)">
                                     <Trash2 size={18} color="#ff4d7a"/>
@@ -547,6 +567,7 @@ export default function MusicApp({ user, onLogout }) {
 
                         <div className="list-vertical">
                             {queue.map((id, i) => {
+                                // Only show surrounding songs to improve performance if queue is huge
                                 if (i < currentIndex - 2 || i > currentIndex + 20) return null;
                                 
                                 const s = getSongById(id);
@@ -559,6 +580,7 @@ export default function MusicApp({ user, onLogout }) {
                                             <div className="row-title" style={{color: isCurrent ? 'var(--neon)' : 'white'}}>{s.title}</div>
                                             <div className="row-artist">{s.artistName}</div>
                                         </div>
+                                        {/* QUEUE ITEM ACTIONS - USING ARROWS FOR STABILITY */}
                                         <div className="row-actions">
                                             {!isCurrent && (
                                                 <button className="icon-btn" onClick={() => { setCurrentIndex(i); setPlaying(true); }}>
