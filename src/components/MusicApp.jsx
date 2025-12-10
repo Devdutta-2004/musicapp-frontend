@@ -1,4 +1,3 @@
-// src/components/MusicApp.jsx
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import Player from './Player';
@@ -6,1218 +5,365 @@ import UploadCard from './UploadCard';
 import LyricsPanel from './LyricsPanel';
 import PlanetCard from './PlanetCard'; 
 import '../App.css';
-import { QRCodeCanvas } from "qrcode.react";
 import { 
-  Heart, Trash2, ArrowUp, ArrowDown, Play, Pause,
-  MoreHorizontal, ListMusic, Shuffle, 
-  QrCode, ChevronDown, ChevronLeft, ChevronRight, 
-  Search, Upload, Rocket, ListPlus, SkipForward, PlayCircle,
-  RotateCcw, ArrowLeft, Sparkle, LogOut, User ,Globe,
-  TrendingUp, HardHat, Zap, Orbit, Clock, Download 
+  Home, Search, Library, User, PlusCircle, // New Upload Icon
+  Play, Pause, Heart, ChevronDown, 
+  Sparkles, Zap, Mic2, ListMusic, MoreHorizontal 
 } from "lucide-react"; 
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
 
-// Custom hook for the slideshow interval
-const useInterval = (callback, delay) => {
-    const savedCallback = useRef();
-
-    useEffect(() => {
-        savedCallback.current = callback;
-    }, [callback]);
-
-    useEffect(() => {
-        function tick() {
-            savedCallback.current();
-        }
-        if (delay !== null) {
-            let id = setInterval(tick, delay);
-            return () => clearInterval(id);
-        }
-    }, [delay]);
-};
-
-// --- AD BOX CONTENT DEFINITION (GLOBAL) ---
-const ALL_PROMOS = [
-    // --- PAGE 1 (Default View) ---
-    { title: "Planet Evolution", subtitle: "See your taste define your world.", icon: <Orbit size={20} color="#00ffff" />, accent: "#0f3460" },
-    { title: "Go Premium Today", subtitle: "Unlimited uploads & lossless audio.", icon: <TrendingUp size={20} color="#ff00cc" />, accent: "#6e1c4e" },
-    { title: "Collaborative Playlists", subtitle: "Share your queue with friends.", icon: <ListMusic size={20} color="#ffff00" />, accent: "#4c4e1c" },
-    { title: "Sleep Timer Pro", subtitle: "Auto-pause after a set time.", icon: <Clock size={20} color="#ffae00" />, accent: "#60420f" },
-    
-    // --- PAGE 2 (Sliding View) ---
-    { title: "Lossless Audio", subtitle: "Hear every note, crystal clear.", icon: <Zap size={20} color="#ff00ff" />, accent: "#3e163e" },
-    { title: "Custom Themes", subtitle: "Unlock exclusive color palettes.", icon: <Sparkle size={20} color="#ffffff" />, accent: "#1c6e6e" },
-    { title: "Fast Loading", subtitle: "Progressive library download.", icon: <Rocket size={20} color="#00ff00" />, accent: "#35600f" },
-    { title: "Ad-Free Experience", subtitle: "Enjoy music with zero interruption.", icon: <SkipForward size={20} color="#cccccc" />, accent: "#4e4c4c" },
+const USP_FEATURES = [
+    { title: "Planet Evolution", subtitle: "Your taste creates a world.", icon: <Sparkles size={24} color="#00ffff" />, accent: "linear-gradient(135deg, rgba(0, 255, 255, 0.15), rgba(0, 0, 0, 0))" },
+    { title: "Neon Vibes", subtitle: "Experience the glow.", icon: <Zap size={24} color="#ff00cc" />, accent: "linear-gradient(135deg, rgba(255, 0, 204, 0.15), rgba(0, 0, 0, 0))" },
+    { title: "Lossless Audio", subtitle: "Crystal clear sound.", icon: <Mic2 size={24} color="#00ff88" />, accent: "linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 0, 0, 0))" },
 ];
 
-// --- AD BOX GRID COMPONENT (GLOBAL) ---
-function AdBoxGrid({ onFeatureClick }) {
-    const [pageIndex, setPageIndex] = useState(0);
-    const containerRef = useRef(null);
-
-    const CARDS_PER_PAGE = 4;
-    const TOTAL_PAGES = Math.ceil(ALL_PROMOS.length / CARDS_PER_PAGE);
-
-    const handleScroll = (direction) => {
-        setPageIndex(prev => {
-            const newIndex = (prev + direction + TOTAL_PAGES) % TOTAL_PAGES;
-            if (containerRef.current) {
-                const scrollPos = containerRef.current.clientWidth * newIndex;
-                containerRef.current.scrollTo({ left: scrollPos, behavior: 'smooth' }); 
-            }
-            return newIndex;
-        });
-    };
-
-    useInterval(() => {
-        handleScroll(1);
-    }, 8000); // Auto-scroll every 8 seconds
-
-    return (
-        <div className="ad-grid-wrapper">
-            <div className="ad-grid-scroll-container" ref={containerRef}>
-                
-                {[...Array(TOTAL_PAGES)].map((_, page) => (
-                    <div key={page} className="ad-grid-page">
-                        {ALL_PROMOS.slice(page * CARDS_PER_PAGE, (page + 1) * CARDS_PER_PAGE).map((card, index) => (
-                            <div 
-                                key={page * CARDS_PER_PAGE + index}
-                                className="ad-box-item" 
-                                style={{ background: card.accent }}
-                                onClick={() => onFeatureClick(page * CARDS_PER_PAGE + index)}
-                            >
-                                {card.icon}
-                                <div className="ad-content">
-                                    <div className="ad-title">{card.title}</div>
-                                    <div className="ad-subtitle">{card.subtitle}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ))}
-            </div>
-            
-            {/* Optional: Page Indicators */}
-            <div className="ad-grid-dots">
-                {[...Array(TOTAL_PAGES)].map((_, index) => (
-                    <span 
-                        key={index} 
-                        className={`ad-dot ${index === pageIndex ? 'active' : ''}`}
-                        onClick={() => { setPageIndex(index); handleScroll(index - pageIndex); }}
-                    />
-                ))}
-            </div>
-
-            {/* Optional: Manual Navigation Arrows */}
-            {TOTAL_PAGES > 1 && (
-                <>
-                    <button className="ad-arrow left" onClick={() => handleScroll(-1)}>&lt;</button>
-                    <button className="ad-arrow right" onClick={() => handleScroll(1)}>&gt;</button>
-                </>
-            )}
-        </div>
-    );
-}
-
-// ... (CoverImage function remains the same) ...
-function CoverImage({ srcs = [], alt, className }) {
-  const [src, setSrc] = useState(srcs.find(Boolean) || PERSON_PLACEHOLDER);
-  useEffect(() => setSrc(srcs.find(Boolean) || PERSON_PLACEHOLDER), [JSON.stringify(srcs)]);
-  const onError = (e) => { if (e.currentTarget.src !== PERSON_PLACEHOLDER) e.currentTarget.src = PERSON_PLACEHOLDER; };
-  return <img src={src} alt={alt} className={className} onError={onError} />;
-}
-
-
 export default function MusicApp({ user, onLogout }) {
-    // --- START STATE DEFINITIONS ---
-  const [songs, setSongs] = useState([]);          
+  // --- VIEW STATE ---
+  const [activeTab, setActiveTab] = useState('home'); 
+  const [isFullScreenPlayer, setIsFullScreenPlayer] = useState(false);
+
+  // --- DATA STATE ---
+  const [homeFeed, setHomeFeed] = useState([]);      
+  const [discoveryFeed, setDiscoveryFeed] = useState([]); 
+  const [searchResults, setSearchResults] = useState([]);
+  const [likedSongs, setLikedSongs] = useState([]);
+  
+  // --- PLAYER STATE ---
   const [queue, setQueue] = useState([]);          
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [playing, setPlaying] = useState(false);
-  const [showUpload, setShowUpload] = useState(false);
-  const [repeatMode, setRepeatMode] = useState('off'); 
-  const [shuffle, setShuffle] = useState(false);
-  
-  const [showPlanet, setShowPlanet] = useState(false); 
-  const [showExitPrompt, setShowExitPrompt] = useState(false); 
-  const [exitMascot, setExitMascot] = useState({}); 
+  const [songProgress, setSongProgress] = useState(0); 
 
-  // New Account Menu State
-  const [showAccountMenu, setShowAccountMenu] = useState(false); 
-
-  // --- SCROLL LOGIC STATE & REFS ---
-  const [showAdBar, setShowAdBar] = useState(true); // Control visibility of search/ad
-  const scrollRef = useRef(null); // Ref for the scrollable container (.library-content)
-  const lastScrollY = useRef(0); // To track scroll position for direction detection
-
-  // Loading State
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [songProgress, setSongProgress] = useState(0);
-
-  // --- PWA INSTALL LOGIC ---
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [isInstallable, setIsInstallable] = useState(false);
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setIsInstallable(true);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response to the install prompt: ${outcome}`);
-    setDeferredPrompt(null);
-    setIsInstallable(false);
-  };
-
-  // Mascot expressions with messages (Keep this structure)
-  const mascotExpressions = [
-    { img: '/mascots/mascot-sad.png', msg: "Don't leave me alone in space! 🌌", sub: "I'll be floating here with your music waiting for you to come back! 🎵" },
-    { img: '/mascots/mascot-crying.png', msg: "Please don't go! ", sub: "The stars won't be the same without you listening! ✨" },
-    { img: '/mascots/mascot-lonely.png', msg: "It's so quiet without you! ", sub: "Your playlists keep me company in the void! 🎶" },
-    { img: '/mascots/mascot-puppy-eyes.png', msg: "Just one more song? ", sub: "I promise this next track will blow your mind! 🚀" },
-    { img: '/mascots/mascot-waving.png', msg: "Come back soon, okay? ", sub: "I'll keep your queue warm for you! 🔥" }
-  ];
-
-  // --- SLEEP TIMER STATE ---
-  const [sleepTime, setSleepTime] = useState(null); 
-  const sleepIntervalRef = useRef(null);
-
+  // --- UI STATE ---
   const [searchTerm, setSearchTerm] = useState('');
-  const [isLibraryCollapsed, setIsLibraryCollapsed] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(400);
+  const [loading, setLoading] = useState(false);
 
-  const [showQR, setShowQR] = useState(false); // REMAINED for QR code component definition (even though not used in header)
-  const qrUrl = window.location.href.replace("localhost", window.location.hostname);
+  const API_BASE = (process.env.REACT_APP_API_BASE_URL || "https://musicapp-o3ow.onrender.com").replace(/\/$/, ""); 
+  const authHeaders = { headers: { "X-User-Id": user?.id || 0 } };
 
-  const [openMenuSongId, setOpenMenuSongId] = useState(null);
-  const menuRef = useRef(null);
-
-  const songsRef = useRef(songs);
-  useEffect(() => { songsRef.current = songs }, [songs]);
-
-  const current = songs.find(s => s.id === queue[currentIndex]) || null;
-    // --- END STATE DEFINITIONS ---
-
-  // --- AD BAR COLLAPSE LOGIC (UPDATED FOR DESKTOP ONLY) ---
+  // --- 1. INITIAL LOAD ---
   useEffect(() => {
-    const handleScroll = () => {
-        if (!scrollRef.current) return;
-        
-        const currentScrollY = scrollRef.current.scrollTop;
-        const scrollDifference = currentScrollY - lastScrollY.current;
-
-        const scrollThreshold = 10; 
-        
-        // --- CRITICAL CHECK: ONLY APPLY ON DESKTOP/LARGE SCREENS ---
-        if (!isLibraryCollapsed && window.innerWidth > 768) { 
-            
-            if (currentScrollY > 60) { // Start hiding after scrolling past header/top margin
-                if (scrollDifference > scrollThreshold) {
-                    // Scrolling Down (Hide the bar)
-                    if (showAdBar) setShowAdBar(false);
-                } else if (scrollDifference < -scrollThreshold) {
-                    // Scrolling Up (Show the bar)
-                    if (!showAdBar) setShowAdBar(true);
-                }
-            }
-        }
-        
-        // Always show if scroll is near the top
-        if (currentScrollY <= 20) {
-            if (!showAdBar) setShowAdBar(true);
-        }
-
-        lastScrollY.current = currentScrollY;
-    };
-
-    const element = scrollRef.current;
-    if (element) {
-        // Add passive: true for better scroll performance
-        element.addEventListener('scroll', handleScroll, { passive: true });
-    }
-    
-    return () => {
-        if (element) {
-            element.removeEventListener('scroll', handleScroll, { passive: true });
-        }
-    };
-  }, [isLibraryCollapsed, showAdBar]); 
-
-  // --- AD BOX CLICK HANDLER ---
-  const handleAdClickLogic = (index) => {
-      // Logic for what happens when a specific grid item is clicked (0 to 7)
-      if (index === 0) { // Planet Evolution
-          setShowPlanet(true);
-      } else if (index === 1) { // Go Premium Today (Placeholder for image/upgrade)
-          console.log("Navigating to Premium Page/Modal...");
-          // You can add: setShowPremiumModal(true); here later
-      } else {
-          console.log(`Ad clicked, index: ${index} - Title: ${ALL_PROMOS[index].title}`);
-      }
-  };
-
-
-  /* --- STATE PERSISTENCE: RESTORE ON MOUNT (Restored logic block) --- */
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('musicAppState');
-      if (saved) {
-        const state = JSON.parse(saved);
-        
-        // Only restore if saved within last 24 hours
-        const timeDiff = Date.now() - (state.timestamp || 0);
-        if (timeDiff < 24 * 60 * 60 * 1000) {
-          
-          if (state.queue?.length > 0) {
-            setQueue(state.queue);
-            setCurrentIndex(state.currentIndex ?? -1);
-          }
-          
-          // Don't auto-resume playing - let user decide
-          if (state.shuffle !== undefined) setShuffle(state.shuffle);
-          if (state.repeatMode) setRepeatMode(state.repeatMode);
-          if (state.isLibraryCollapsed !== undefined) {
-            setIsLibraryCollapsed(state.isLibraryCollapsed);
-          }
-          
-          console.log('✅ Session restored from', Math.floor(timeDiff / 60000), 'minutes ago');
-        } else {
-          // Clear old state
-          localStorage.removeItem('musicAppState');
-        }
-      }
-    } catch (e) {
-      console.error('Failed to restore state:', e);
-    }
-  }, []); 
-
-  /* --- STATE PERSISTENCE: SAVE ON CHANGES (Restored logic block) --- */
-  useEffect(() => {
-    // Only save if we have meaningful state
-    if (queue.length === 0) return;
-
-    const stateToSave = {
-      queue,
-      currentIndex,
-      shuffle,
-      repeatMode,
-      isLibraryCollapsed,
-      timestamp: Date.now()
-    };
-    
-    try {
-      localStorage.setItem('musicAppState', JSON.stringify(stateToSave));
-    } catch (e) {
-      console.error('Failed to save state:', e);
-    }
-  }, [queue, currentIndex, shuffle, repeatMode, isLibraryCollapsed]);
-
-  /* --- STATE PERSISTENCE: SAVE BEFORE CLOSE (Restored logic block) --- */
-  useEffect(() => {
-    const saveOnClose = () => {
-      if (queue.length === 0) return;
-
-      const stateToSave = {
-        queue,
-        currentIndex,
-        shuffle,
-        repeatMode,
-        isLibraryCollapsed,
-        timestamp: Date.now()
-      };
-      
-      try {
-        localStorage.setItem('musicAppState', JSON.stringify(stateToSave));
-      } catch (e) {
-        console.error('Failed to save on close:', e);
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) saveOnClose();
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', saveOnClose);
-    window.addEventListener('pagehide', saveOnClose);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', saveOnClose);
-      window.removeEventListener('pagehide', saveOnClose);
-    };
-  }, [queue, currentIndex, shuffle, repeatMode, isLibraryCollapsed]);
-  
-  /* --- Account Menu Close Handler --- */
-  useEffect(() => {
-    function onDocClick(e) {
-      // Close the menu if click is outside the menu container
-      const accountMenuBtn = document.getElementById('account-menu-btn');
-      const accountMenu = document.getElementById('account-menu');
-      
-      if (accountMenuBtn && !accountMenuBtn.contains(e.target) && accountMenu && !accountMenu.contains(e.target)) {
-        setShowAccountMenu(false);
-      }
-    }
-    // Listen for clicks everywhere to close the menu
-    window.addEventListener('click', onDocClick);
-
-    // Also close if ESC is pressed
-    const handleEsc = (e) => {
-        if (e.key === 'Escape') setShowAccountMenu(false);
-    };
-    window.addEventListener('keydown', handleEsc);
-
-    return () => {
-        window.removeEventListener('click', onDocClick);
-        window.removeEventListener('keydown', handleEsc);
-    };
-  }, []); // Run once on mount
-
-  /* --- PWA SMART BACK BUTTON LOGIC (Restored logic block) --- */
-  useEffect(() => {
-    if (!window.matchMedia('(display-mode: standalone)').matches) {
-        return;
-    }
-
-    const handleBackButton = () => {
-        // Priority 1: Close exit prompt/Account Menu/modals first
-        if (showExitPrompt) {
-            setShowExitPrompt(false);
-            window.history.pushState(null, '', window.location.href);
-            return;
-        }
-        if (showAccountMenu) {
-            setShowAccountMenu(false);
-            window.history.pushState(null, '', window.location.href);
-            return;
-        }
-        if (showPlanet || showUpload) {
-            setShowPlanet(false);
-            setShowUpload(false);
-            window.history.pushState(null, '', window.location.href);
-            return;
-        }
-
-        // Priority 3: Collapse the expanded player view
-        if (isLibraryCollapsed) {
-            setIsLibraryCollapsed(false);
-            window.history.pushState(null, '', window.location.href);
-            return;
-        }
-        
-        // Priority 4: Main screen - Show exit prompt with random mascot
-        const randomExpression = mascotExpressions[Math.floor(Math.random() * mascotExpressions.length)];
-        setExitMascot(randomExpression);
-        setShowExitPrompt(true);
-        window.history.pushState(null, '', window.location.href);
-    };
-
-    // Push initial state once
-    window.history.pushState(null, '', window.location.href);
-    
-    window.addEventListener('popstate', handleBackButton);
-    
-    return () => {
-        window.removeEventListener('popstate', handleBackButton);
-    };
-  }, [showPlanet, showUpload, isLibraryCollapsed, showExitPrompt, showAccountMenu]);
-
-  /* --- PWA: PUSH STATE WHEN VIEWS OPEN (Restored logic block) --- */
-  useEffect(() => {
-    if (!window.matchMedia('(display-mode: standalone)').matches) return;
-    
-    if (showPlanet || showUpload || isLibraryCollapsed || showExitPrompt || showAccountMenu) {
-      window.history.pushState(null, '', window.location.href);
-    }
-  }, [showPlanet, showUpload, isLibraryCollapsed, showExitPrompt, showAccountMenu]);
-  
-  /* --- SLEEP TIMER LOGIC --- */
-  useEffect(() => {
-    if (sleepTime !== null && sleepTime > 0) {
-      sleepIntervalRef.current = setTimeout(() => {
-        setSleepTime(prev => {
-          if (prev <= 1) {
-            setPlaying(false);
-            return null;
-          }
-          return prev - 1;
-        });
-      }, 60000);
-    }
-    return () => clearTimeout(sleepIntervalRef.current);
-  }, [sleepTime]);
-
-  const activateSleepTimer = (minutes) => {
-    setSleepTime(minutes);
-    if(minutes) alert(`Sleep timer set for ${minutes} minutes`);
-    else alert("Sleep timer turned off");
-  };
-
-  /* ---------- util ---------- */
-  function shuffleArray(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
-  /* ---------- fetch ---------- */
-  async function fetchSongs() {
-    setIsLoading(true);
-    try {
-      const API = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/+$/,''); 
-      const requestUrl = `${API}/api/songs`; 
-      
-      const res = await axios.get(requestUrl);
-
-      const data = (res.data || []).map(s => ({
-        ...s,
-        liked: !!s.liked,
-        likeCount: typeof s.likeCount === 'number' ? s.likeCount : 0
-      }));
-
-      // PROGRESSIVE LOADING: Show first 30 songs immediately
-      const INITIAL_BATCH = 30;
-      const initialSongs = data.slice(0, INITIAL_BATCH);
-      const remainingSongs = data.slice(INITIAL_BATCH);
-
-      // Set initial batch immediately - removes loading screen fast!
-      const randomizedInitial = shuffleArray(initialSongs);
-      setSongs(randomizedInitial);
-      
-      // Only set queue if we didn't restore from localStorage
-      if (randomizedInitial.length && queue.length === 0) {
-        setQueue(randomizedInitial.map(d => d.id));
-        setCurrentIndex(0);
-      }
-
-      // ✅ CRITICAL: Turn off loading screen NOW so user sees first batch
-      setIsLoading(false);
-
-      // Load remaining songs in background (if any)
-      if (remainingSongs.length > 0) {
-        setIsLoadingMore(true);
-        
-        // Use setTimeout to let UI render first batch
-        setTimeout(() => {
-          const allSongs = shuffleArray([...initialSongs, ...remainingSongs]);
-          setSongs(allSongs);
-          
-          // Update queue to include all songs (but keep current position)
-          setQueue(prevQueue => {
-            if (prevQueue.length > 0) {
-              const existingIds = new Set(prevQueue);
-              const newSongIds = allSongs
-                .filter(s => !existingIds.has(s.id))
-                .map(s => s.id);
-              return [...prevQueue, ...newSongIds];
-            } else {
-              return allSongs.map(d => d.id);
-            }
-          });
-          
-          setIsLoadingMore(false);
-          console.log(`✅ Loaded ${allSongs.length} songs total`);
-        }, 500); // Half second delay to let UI render smoothly
-      }
-
-    } catch (e) {
-      console.error('fetchSongs', e);
-      setSongs([]);
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => { fetchSongs(); }, []); 
-
-  async function recordListen(durationSeconds, songGenre) {
-    if (!user || !durationSeconds) return;
-
-    const API_BASE = "https://musicapp-o3ow.onrender.com"; 
-    
-    const minutes = Math.ceil(durationSeconds / 60);
-    const genrePayload = songGenre || "Unknown";
-
-    console.log(`Sending Data: ${minutes} mins of ${genrePayload} to user ${user.username}`);
-
-    try {
-      await axios.post(`${API_BASE}/api/users/${user.id}/add-minutes`, { 
-        minutes: minutes,
-        genre: genrePayload 
-      });
-      
-      if (user) {
-          user.totalMinutesListened = (user.totalMinutesListened || 0) + minutes;
-      }
-      console.log("Stats & Evolution Updated!");
-    } catch (e) {
-      console.error("Could not record stats:", e);
-    }
-  }
-
-  const visibleSongs = songs.filter(s => {
-    if (!searchTerm) return true;
-    const q = searchTerm.toLowerCase();
-    return (s.title || '').toLowerCase().includes(q) || (s.artistName || '').toLowerCase().includes(q);
-  });
-
-  // --- MEDIA SESSION ---
-  useEffect(() => {
-    if (!current || !('mediaSession' in navigator)) return;
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: current.title,
-      artist: current.artistName,
-      album: "Rhino Music",
-      artwork: [{ src: current.coverUrl || current.artistImageUrl || PERSON_PLACEHOLDER, sizes: '512x512', type: 'image/png' }]
-    });
-    navigator.mediaSession.setActionHandler('play', () => setPlaying(true));
-    navigator.mediaSession.setActionHandler('pause', () => setPlaying(false));
-    navigator.mediaSession.setActionHandler('previoustrack', () => playPrev());
-    navigator.mediaSession.setActionHandler('nexttrack', () => playNext({ manual: true }));
-  }, [current, playing]); 
-
-  function playSong(song) {
-    if (!song) return;
-    const q = [...queue];
-    const idx = q.indexOf(song.id);
-    if (idx !== -1) {
-      setCurrentIndex(idx);
-    } else {
-      const insertAt = Math.max(0, currentIndex + 1);
-      q.splice(insertAt, 0, song.id);
-      setQueue(q);
-      setCurrentIndex(insertAt);
-    }
-    setPlaying(true);
-    if (window.innerWidth <= 768) { setIsLibraryCollapsed(true); }
-  }
-
-  function toggleLike(songId) {
-    setSongs(prev => prev.map(s => {
-      if (s.id !== songId) return s;
-      const newLiked = !s.liked;
-      const newCount = Math.max(0, (s.likeCount || 0) + (newLiked ? 1 : -1));
-      return { ...s, liked: newLiked, likeCount: newCount };
-    }));
-  }
-
-  function toggleShuffle() {
-    setShuffle(s => {
-      const newS = !s;
-      if (newS) {
-        setQueue(q => shuffleArray(q));
-        setCurrentIndex(0);
-      } else {
-        setQueue(() => songsRef.current.map(s => s.id));
-        setCurrentIndex(() => {
-          const id = current?.id;
-          return id ? (songsRef.current.map(s => s.id).indexOf(id)) : 0;
-        });
-      }
-      return newS;
-    });
-  }
-
-  function toggleRepeat() {
-    setRepeatMode(r => {
-      if (r === 'off') return 'all';
-      if (r === 'all') return 'one';
-      return 'off';
-    });
-  }
-
-  function playNext({ manual = false } = {}) {
-    if (!queue.length) return;
-    if (repeatMode === 'one' && !manual) { setPlaying(true); return; }
-    const nextIdx = currentIndex + 1;
-    if (nextIdx < queue.length) {
-      setCurrentIndex(nextIdx);
-      setPlaying(true);
-    } else {
-      if (repeatMode === 'all') { setCurrentIndex(0); setPlaying(true); } else { setPlaying(false); }
-    }
-  }
-
-  function playPrev() {
-    if (!queue.length) return;
-    if (currentIndex > 0) { setCurrentIndex(ci => ci - 1); setPlaying(true); } 
-    else { if (repeatMode === 'all') { setCurrentIndex(queue.length - 1); setPlaying(true); } else { setPlaying(true); } }
-  }
-
-  function playAtIndex(idx) { if (idx < 0 || idx >= queue.length) return; setCurrentIndex(idx); setPlaying(true); }
-    
-  function removeAtIndex(idx) {
-    setQueue(prev => {
-      const newQ = prev.slice(0, idx).concat(prev.slice(idx + 1));
-      setCurrentIndex(ci => {
-        if (newQ.length === 0) { setPlaying(false); return -1; }
-        if (idx < ci) return ci - 1;
-        if (idx === ci) return Math.min(idx, newQ.length - 1);
-        return ci;
-      });
-      return newQ;
-    });
-  }
-
-  function moveItem(oldIndex, newIndex) {
-    setQueue(prev => {
-      const q = [...prev];
-      if (oldIndex < 0 || oldIndex >= q.length || newIndex < 0 || newIndex >= q.length) return q;
-      const [item] = q.splice(oldIndex, 1);
-      q.splice(newIndex, 0, item);
-      setCurrentIndex(ci => {
-        if (ci === oldIndex) return newIndex;
-        if (oldIndex < ci && newIndex >= ci) return ci - 1;
-        if (oldIndex > ci && newIndex <= ci) return ci + 1;
-        return ci;
-      });
-      return q;
-    });
-  }
-
-  useEffect(() => {
-    function onDocClick(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setOpenMenuSongId(null);
-    }
-    window.addEventListener('click', onDocClick);
-    return () => window.removeEventListener('click', onDocClick);
+    loadFeeds();
   }, []);
 
-  function addToQueue(songId) { if (!songId) return; setQueue(prev => [...prev, songId]); setOpenMenuSongId(null); }
-  function playNextNow(songId) { if (!songId) return; setQueue(prev => { const q = [...prev]; q.splice(Math.max(0, currentIndex + 1), 0, songId); return q; }); setOpenMenuSongId(null); }
+  async function loadFeeds() {
+      setLoading(true);
+      try {
+          const recent = await axios.get(`${API_BASE}/api/songs/recent`, authHeaders);
+          setHomeFeed(recent.data);
+          const random = await axios.get(`${API_BASE}/api/songs/discover`, authHeaders);
+          setDiscoveryFeed(random.data);
+          // Pre-load liked songs so the list is ready
+          const liked = await axios.get(`${API_BASE}/api/songs/liked`, authHeaders);
+          setLikedSongs(liked.data);
+      } catch(e) { console.error(e); }
+      setLoading(false);
+  }
 
-  /* ---------- render ---------- */
+  // --- 2. TAB LOGIC ---
+  useEffect(() => {
+      if (activeTab === 'library') {
+          axios.get(`${API_BASE}/api/songs/liked`, authHeaders).then(r => setLikedSongs(r.data));
+      }
+  }, [activeTab]);
+
+  // --- 3. SEARCH LOGIC ---
+  useEffect(() => {
+      const delay = setTimeout(async () => {
+        if (searchTerm.length > 1) {
+           try {
+             const res = await axios.get(`${API_BASE}/api/songs/search?q=${searchTerm}`, authHeaders);
+             setSearchResults(res.data);
+           } catch(e) { console.error(e); }
+        } else { setSearchResults([]); }
+      }, 500); 
+      return () => clearTimeout(delay);
+  }, [searchTerm]);
+
+  // --- 4. PLAYER HELPERS ---
+  function getSongById(id) {
+      const all = [...homeFeed, ...discoveryFeed, ...searchResults, ...likedSongs];
+      return all.find(s => s.id === id) || { id, title: 'Unknown', artistName: 'Unknown', coverUrl: null };
+  }
+  const currentSong = queue[currentIndex] ? getSongById(queue[currentIndex]) : null;
+
+  const playSong = (song, contextList) => {
+     if(!song) return;
+     let newQueue = contextList && contextList.length > 0 ? contextList.map(s=>s.id) : [song.id];
+     setQueue(newQueue);
+     setCurrentIndex(newQueue.indexOf(song.id));
+     setPlaying(true);
+  };
+
+  const toggleLike = async (songId) => {
+      const update = (list) => list.map(s => s.id === songId ? {...s, liked: !s.liked} : s);
+      setHomeFeed(update); setDiscoveryFeed(update); setSearchResults(update); setLikedSongs(update);
+      try { await axios.post(`${API_BASE}/api/likes/${songId}`, {}, authHeaders); } catch(e) {}
+  };
+
+  const recordListen = async (duration, genre) => {
+      try {
+          const mins = Math.ceil((duration || 180) / 60);
+          await axios.post(`${API_BASE}/api/users/${user.id}/add-minutes`, { minutes: mins, genre: genre || "Unknown" });
+          user.totalMinutesListened += mins; 
+      } catch(e) {}
+  };
+
   return (
-    <div className="app-shell" style={{ alignItems: 'stretch' }}>
+    <div className="glass-shell">
       
-      {/* --- LIBRARY SIDEBAR --- */}
-      <aside 
-        className={`library card-surface ${isLibraryCollapsed ? 'collapsed' : ''}`} 
-        style={{ 
-          width: isLibraryCollapsed ? '80px' : `${sidebarWidth}px`, 
-          minWidth: isLibraryCollapsed ? '80px' : `${sidebarWidth}px`,
-          maxWidth: isLibraryCollapsed ? '80px' : '720px' 
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: isLibraryCollapsed ? 0 : 12 }}>
-          
-          <div 
-            onClick={() => window.location.reload()} 
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', flex: 1, minWidth: 0, userSelect: 'none' }}
-            title={`Logged in as ${user ? user.username : 'Guest'}`}
-          >
-            <img 
-              src="/my-brand.png" 
-              alt="Astronotes" 
-              style={{ height: 33, width: 'auto', maxWidth: '120px', objectFit: 'contain' }}
-            />
-          </div>
+      {/* 1. SCROLLABLE VIEWPORT */}
+      <div className="glass-viewport">
+         
+         {/* --- HOME TAB --- */}
+         {activeTab === 'home' && (
+           <div className="tab-pane home-animate">
+              <header className="glass-header">
+                 <img src="/my-brand.png" alt="Logo" height="32"/>
+                 <div className="header-text">
+                    <h1>Hi, {user.username}</h1>
+                    <p>Welcome to your galaxy.</p>
+                 </div>
+              </header>
 
-          {/* --- RIGHT SIDE: Action Buttons --- */}
-          <div style={{ display: 'flex', gap: 6, flexShrink: 0, position: 'relative' }}>
-              
-              {!isLibraryCollapsed && (
-              <>
-                {/* --- NEW: INSTALL APP BUTTON (Icon Only to fit header) --- */}
-                {isInstallable && (
-                  <button 
-                    className="small-btn icon-only" 
-                    onClick={handleInstallClick} 
-                    title="Install App"
-                    style={{ 
-                      background: 'rgba(0, 255, 128, 0.15)', 
-                      color: '#00ff80', 
-                      borderColor: '#00ff80',
-                      boxShadow: '0 0 10px rgba(0, 255, 128, 0.1)'
-                    }}
-                  >
-                    <Download size={20} />
-                  </button>
-                )}
+              <div className="usp-slider">
+                  {USP_FEATURES.map((feat, i) => (
+                      <div key={i} className="glass-card usp-card" style={{background: feat.accent}}>
+                          <div className="usp-icon">{feat.icon}</div>
+                          <h3>{feat.title}</h3>
+                          <p>{feat.subtitle}</p>
+                      </div>
+                  ))}
+              </div>
 
-                {/* 1. Upload Button */}
-                <button className="small-btn" onClick={() => setShowUpload(v => !v)} title="Upload Song">
-                  {showUpload ? <ArrowLeft size={18}/>: <Rocket size={18} />} 
-                </button>
-                
-                {/* 2. Planet Profile Button */}
-                <button className="small-btn icon-only" onClick={() => setShowPlanet(true)} title="My Planet">
-                   <Orbit size={24} />
-                </button>
-                
-                {/* --- 3. ACCOUNT BUTTON (Replaces Logout/QR) --- */}
-                <button 
-                    id="account-menu-btn"
-                    className={`small-btn icon-only ${showAccountMenu ? 'active' : ''}`} 
-                    onClick={(e) => { e.stopPropagation(); setShowAccountMenu(v => !v); }} 
-                    title={user.username || "Account"}
-                >
-                    <User size={24} />
-                </button>
+              <h2 className="section-title">Fresh Arrivals</h2>
+              <div className="horizontal-scroll">
+                  {homeFeed.map(s => (
+                      <div key={s.id} className="glass-card song-card" onClick={() => playSong(s, homeFeed)}>
+                          <img src={s.coverUrl || PERSON_PLACEHOLDER} onError={e=>e.target.src=PERSON_PLACEHOLDER}/>
+                          <p className="song-title">{s.title}</p>
+                          <p className="song-artist">{s.artistName}</p>
+                      </div>
+                  ))}
+              </div>
 
-                {/* --- ACCOUNT DROPDOWN MENU --- */}
-                {showAccountMenu && (
-                    <div 
-                        id="account-menu" 
-                        className="more-menu" 
-                        style={{ top: '45px', right: 0, width: '180px', padding: '8px 6px', gap: '4px' }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Username Display (Read-Only) */}
-                        <div style={{ 
-                            padding: '6px 12px', 
-                            fontSize: '14px', 
-                            color: '#9146ff', 
-                            fontWeight: 'bold',
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                            marginBottom: '4px'
-                        }}>
-                            {user.username}
+              <h2 className="section-title">Discovery</h2>
+              <div className="horizontal-scroll">
+                  {discoveryFeed.map(s => (
+                      <div key={s.id} className="glass-card song-card" onClick={() => playSong(s, discoveryFeed)}>
+                          <img src={s.coverUrl || PERSON_PLACEHOLDER} onError={e=>e.target.src=PERSON_PLACEHOLDER}/>
+                          <p className="song-title">{s.title}</p>
+                          <p className="song-artist">{s.artistName}</p>
+                      </div>
+                  ))}
+              </div>
+              <div className="spacer"></div>
+           </div>
+         )}
+
+         {/* --- SEARCH TAB --- */}
+         {activeTab === 'search' && (
+            <div className="tab-pane">
+                <div className="search-wrapper">
+                    <Search size={20} className="search-icon"/>
+                    <input 
+                      className="glass-input" 
+                      placeholder="Search songs, artists..." 
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      autoFocus
+                    />
+                </div>
+                <div className="list-vertical">
+                    {searchResults.map(s => (
+                        <div key={s.id} className="glass-row" onClick={() => playSong(s, searchResults)}>
+                            <img src={s.coverUrl || PERSON_PLACEHOLDER} className="row-thumb"/>
+                            <div className="row-info">
+                                <div className="row-title">{s.title}</div>
+                                <div className="row-artist">{s.artistName}</div>
+                            </div>
+                            <button className="icon-btn" onClick={(e)=>{e.stopPropagation(); toggleLike(s.id)}}>
+                                <Heart size={20} fill={s.liked ? "#ff00cc" : "none"} color={s.liked ? "#ff00cc" : "rgba(255,255,255,0.5)"}/>
+                            </button>
                         </div>
+                    ))}
+                </div>
+                <div className="spacer"></div>
+            </div>
+         )}
 
-                        {/* Logout Button */}
-                        <button className="menu-item" onClick={onLogout}>
-                            <LogOut size={16} style={{marginRight: 8}}/> Sign Out
+         {/* --- UPLOAD TAB (NEW) --- */}
+         {activeTab === 'upload' && (
+             <div className="tab-pane">
+                 <h2 className="page-title">Upload Music</h2>
+                 <p style={{color:'#aaa', marginBottom: 20}}>Share your vibes with the galaxy.</p>
+                 <UploadCard onUploaded={loadFeeds} />
+                 <div className="spacer"></div>
+             </div>
+         )}
+
+         {/* --- LIBRARY TAB (LIST VIEW) --- */}
+         {activeTab === 'library' && (
+             <div className="tab-pane">
+                 <h2 className="page-title">Your Library</h2>
+                 
+                 {likedSongs.length === 0 ? (
+                     <div style={{textAlign:'center', marginTop: 50, color: '#666'}}>
+                         <Heart size={48} style={{marginBottom:10, opacity:0.5}}/>
+                         <p>Songs you like will appear here.</p>
+                     </div>
+                 ) : (
+                     <div className="list-vertical">
+                        {likedSongs.map(s => (
+                            <div key={s.id} className="glass-row" onClick={() => playSong(s, likedSongs)}>
+                                <img src={s.coverUrl || PERSON_PLACEHOLDER} className="row-thumb"/>
+                                <div className="row-info">
+                                    <div className="row-title">{s.title}</div>
+                                    <div className="row-artist">{s.artistName}</div>
+                                </div>
+                                <button className="icon-btn" onClick={(e)=>{e.stopPropagation(); toggleLike(s.id)}}>
+                                    <Heart size={20} fill={s.liked ? "#ff00cc" : "none"} color={s.liked ? "#ff00cc" : "rgba(255,255,255,0.5)"}/>
+                                </button>
+                            </div>
+                        ))}
+                     </div>
+                 )}
+                 <div className="spacer"></div>
+             </div>
+         )}
+
+         {/* --- PLANET TAB --- */}
+         {activeTab === 'planet' && (
+             <div className="tab-pane">
+                 <PlanetCard user={user} onClose={()=>{}} />
+                 <button className="glass-btn logout-btn" onClick={onLogout}>Sign Out</button>
+                 <div className="spacer"></div>
+             </div>
+         )}
+      </div>
+
+      {/* 2. PLAYER OVERLAY */}
+      {currentSong && (
+          <>
+            {/* A. FULL SCREEN MODAL */}
+            <div className={`glass-modal ${isFullScreenPlayer ? 'open' : ''}`}>
+                <div className="modal-header">
+                    <button onClick={() => setIsFullScreenPlayer(false)} className="icon-btn"><ChevronDown size={32}/></button>
+                    <span>Now Playing</span>
+                    <button className="icon-btn"><MoreHorizontal size={24}/></button>
+                </div>
+                
+                <div className="modal-scroll-body">
+                    <div className="art-glow-container">
+                        <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} className="art-glow-bg" />
+                        <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} className="art-front" />
+                    </div>
+
+                    <div className="modal-meta">
+                        <h1>{currentSong.title}</h1>
+                        <p>{currentSong.artistName}</p>
+                    </div>
+
+                    <div className="modal-controls-wrapper">
+                        <Player 
+                            song={currentSong}
+                            playing={playing}
+                            onToggle={() => setPlaying(!playing)}
+                            onNext={() => setCurrentIndex((currentIndex + 1) % queue.length)}
+                            onPrev={() => setCurrentIndex((currentIndex - 1 + queue.length) % queue.length)}
+                            onToggleLike={() => toggleLike(currentSong.id)}
+                            onEnded={() => {
+                                recordListen(currentSong.durationSeconds, currentSong.genre);
+                                setCurrentIndex((currentIndex + 1) % queue.length);
+                            }}
+                            hideCover={true} hideMeta={true}
+                            onProgress={(c, t) => setSongProgress(t ? (c/t)*100 : 0)}
+                        />
+                    </div>
+
+                    <div className="modal-section">
+                        <h3>Lyrics</h3>
+                        <div className="glass-inset">
+                             <LyricsPanel song={currentSong} />
+                        </div>
+                    </div>
+
+                    <div className="modal-section">
+                        <div className="section-header">
+                            <h3>Up Next</h3>
+                            <ListMusic size={18} color="#aaa"/>
+                        </div>
+                        <div className="list-vertical">
+                            {queue.slice(currentIndex + 1, currentIndex + 10).map((id, i) => {
+                                const s = getSongById(id);
+                                return (
+                                    <div key={i} className="glass-row compact">
+                                        <img src={s.coverUrl || PERSON_PLACEHOLDER} className="row-thumb small"/>
+                                        <div className="row-info">
+                                            <div className="row-title">{s.title}</div>
+                                            <div className="row-artist">{s.artistName}</div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                    <div className="spacer"></div>
+                </div>
+            </div>
+
+            {/* B. MINI PLAYER DOCK */}
+            {!isFullScreenPlayer && (
+                <div className="glass-dock" onClick={() => setIsFullScreenPlayer(true)}>
+                    {/* LEFT: STATIC IMAGE + INFO */}
+                    <div className="dock-left">
+                        <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} className="dock-thumb"/> {/* No 'spin' class */}
+                        <div className="dock-info">
+                            <div className="dock-title">{currentSong.title}</div>
+                            <div className="dock-artist">{currentSong.artistName}</div>
+                        </div>
+                    </div>
+
+                    {/* RIGHT: CONTROLS PUSHED TO CORNER */}
+                    <div className="dock-right">
+                        <button className="icon-btn" onClick={(e)=>{e.stopPropagation(); toggleLike(currentSong.id)}}>
+                            <Heart size={20} fill={currentSong.liked ? "#ff00cc" : "none"} color={currentSong.liked ? "#ff00cc" : "white"}/>
+                        </button>
+                        <button className="icon-btn dock-play" onClick={(e)=>{e.stopPropagation(); setPlaying(!playing)}}>
+                            {playing ? <Pause size={20} fill="black"/> : <Play size={20} fill="black" style={{marginLeft:2}}/>}
                         </button>
                     </div>
-                )}
-              </>
-            )}
-
-              <button 
-                className="small-btn icon-only collapse-btn" 
-                onClick={() => setIsLibraryCollapsed(v => !v)} 
-              >
-                {isLibraryCollapsed ? <ChevronRight size={22}/> : <ChevronLeft size={22}/>}
-              </button>
-          </div>
-        </div>
-
-        {/* --- NEW WRAPPER FOR SCROLLABLE CONTENT (Applies the flex stretch) --- */}
-        <div 
-            className="library-content"
-            ref={scrollRef} // Attach ref to the scrollable container
-        >
-
-          {!isLibraryCollapsed && (
-            // --- SEARCH BAR AND AD BOX CONTAINER (HIDES/SHOWS) ---
-            <div 
-                style={{ 
-                    marginTop: 10, 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    gap: 10, 
-                    flexShrink: 0, 
-                    /* CRITICAL: Use transition for smooth hide/show */
-                    transition: 'transform 0.3s ease-out, opacity 0.3s ease-out, margin-bottom 0.3s ease-out, height 0.3s ease-out',
-                    transform: showAdBar ? 'translateY(0)' : 'translateY(-100%)',
-                    opacity: showAdBar ? 1 : 0,
-                    marginBottom: showAdBar ? 10 : 0, // Adjust margin when hidden
-                    pointerEvents: showAdBar ? 'auto' : 'none', // Disable interaction when hidden
-                    height: showAdBar ? 'auto' : '0px', // Collapse height when hidden
-                    overflow: 'hidden' // Hide overflow during collapse
-                }}
-            >
-              
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <div style={{ position: 'relative', flex: 1 }}>
-                    <Search size={16} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                    <input
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search..."
-                    className="search-input"
-                    style={{ paddingLeft: 32, width: '100%' }}
-                    />
-                  </div>
-                  {searchTerm && <button className="small-btn" onClick={() => setSearchTerm('')}>Clear</button>}
-                </div>
-
-              {/* --- NEW: MOVING SLIDESHOW AD BOX PLACEMENT --- */}
-              <AdBoxGrid onFeatureClick={handleAdClickLogic} />
-
-            </div>
-          )}
-
-          {/* This container now holds the Upload/Song List. */}
-          {/* FIXED: Removed flex: 1 so the content grows naturally for scrolling */}
-          <div style={{ marginTop: 12, position: 'relative' }}> 
-            {showUpload && !isLibraryCollapsed ? (
-              <div className="upload-area"><UploadCard onUploaded={() => { fetchSongs(); setShowUpload(false); }} /></div>
-            ) : (
-              <div 
-                className="song-list" 
-                style={{ paddingRight: isLibraryCollapsed ? 0 : 4, position: 'relative' }} 
-              >
-                {/*Loading comment out*/}
-                {isLoading ? (
-                  <div className="loading-container">
-                    <svg className="loading-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                    </svg>
-                    <div className="loading-text">Loading Library</div>
-                  </div>
-                ) : 
-                  visibleSongs.length === 0 ? (
-                    <div style={{ padding: 12, color: 'var(--text-secondary)' }}>No songs found.</div>
-                ) : (
-                  <>
-                    {visibleSongs.map(s => (
-                      <div key={s.id} className="song-item" onClick={() => playSong(s)} title={s.title}>
-                        <CoverImage srcs={[s.coverUrl, s.artistImageUrl, PERSON_PLACEHOLDER]} alt={s.title} className="cover" />
-                        
-                        {!isLibraryCollapsed && (
-                          <>
-                            <div className="song-info">
-                              <div className="title" title={s.title}>{s.title}</div>
-                              <div className="artist" title={s.artistName}>{s.artistName}</div>
-                            </div>
-
-                            <div className="like-wrap">
-                              <button className={`icon-btn ${s.liked ? 'liked' : ''}`} onClick={(e) => { e.stopPropagation(); toggleLike(s.id); }}>
-                                <Heart size={18} fill={s.liked ? "currentColor" : "none"} />
-                              </button>
-                            </div>
-
-                            <div className="more-wrap" ref={menuRef}>
-                              <button 
-                                className="icon-btn" 
-                                onClick={(ev) => { ev.stopPropagation(); setOpenMenuSongId(openMenuSongId === s.id ? null : s.id); }}
-                                style={{ 
-                                  width: '80px',              /* 1. Makes the button longer horizontally */
-                                  display: 'flex',            /* 2. Enables flexbox alignment */
-                                  justifyContent: 'flex-start', /* 3. Pushes the icon to the far right end */
-                                  paddingRight: '0px'         /* 4. Ensures it hits the edge */
-                                }}
-                              >
-                                <MoreHorizontal size={20}/>
-                             </button>
-                            {/* The rest of your menu code... */}
-                            {openMenuSongId === s.id && (
-                              <div className="more-menu" onClick={(ev) => ev.stopPropagation()}>
-                                <button className="menu-item" onClick={() => addToQueue(s.id)}>
-                                  <ListPlus size={16} style={{marginRight: 8}}/> Add to queue
-                                </button>
-                                <button className="menu-item" onClick={() => playNextNow(s.id)}>
-                                  <SkipForward size={16} style={{marginRight: 8}}/> Play next
-                                </button>
-                                <button className="menu-item" onClick={() => { playSong(s); setOpenMenuSongId(null); }}>
-                                  <PlayCircle size={16} style={{marginRight: 8}}/> Play now
-                                </button>
-                              </div>
-                          )}
-                          </div>
-                          </>
-                        )}
-                      </div>
-                    ))}
                     
-                    {/* Loading More Indicator */}
-                    {isLoadingMore && (
-                      <div style={{ 
-                        padding: '16px', 
-                        textAlign: 'center', 
-                        color: 'var(--text-secondary)',
-                        fontSize: '13px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px'
-                      }}>
-                        <svg 
-                          style={{ animation: 'spin 1s linear infinite', width: '16px', height: '16px' }} 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2"
-                        >
-                          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                        </svg>
-                        Loading more songs...
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </aside>
-
-      <main className={`player-area ${!isLibraryCollapsed ? 'mobile-hidden' : ''}`} style={{ flex: 1, minWidth: 0 }}>
-        
-        <div className="mobile-only-header">
-           <button className="icon-btn" onClick={() => setIsLibraryCollapsed(false)}>
-             <ChevronDown size={28} />
-           </button>
-        </div>
-
-        <div className="content-split">
-          <div className="nowplaying-left">
-            {current ? (
-              <div className="nowplaying-big">
-                 <div className="glow-container">
-                  <img src={current.artistImageUrl || current.coverUrl || PERSON_PLACEHOLDER} alt="" className="glow-bg" onError={(e) => (e.currentTarget.src = PERSON_PLACEHOLDER)} />
-                  <img src={current.artistImageUrl || current.coverUrl || PERSON_PLACEHOLDER} alt={current.title} className="real-cover" onError={(e) => (e.currentTarget.src = PERSON_PLACEHOLDER)} />
-                </div>
-
-                <div className="big-text">
-                  <div className="big-title">{current.title}</div>
-                  <div className="big-artist">{current.artistName}</div>
-                  <div style={{ marginTop: 12 }}>
-                    
-                    <Player
-                      song={current}
-                      playing={playing}
-                      onToggle={() => setPlaying(p => !p)}
-                      onToggleLike={() => current && toggleLike(current.id)}
-                      onNext={() => playNext({ manual: true })}
-                      onPrev={() => playPrev()}
-                      
-                      onEnded={() => { 
-                          recordListen(current.durationSeconds || 180, current.genre); 
-                          playNext({ manual: false });
-                      }}
-                      
-                      repeatMode={repeatMode}
-                      onToggleRepeat={toggleRepeat}
-                      shuffle={shuffle}
-                      onToggleShuffle={toggleShuffle}
-                      hideCover={true}
-                      hideMeta={true}
-                      onProgress={(curr, total) => setSongProgress(total ? (curr / total) * 100 : 0)}
-                      
-                      sleepTime={sleepTime}
-                      onSetSleepTimer={activateSleepTimer}
-                    />
-
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ color: 'var(--text-secondary)', marginTop: 40 }}>Select a song to play</div>
-            )}
-          </div>
-
-          <div className="lyrics-right">
-            <h2 className="lyrics-heading">Lyrics</h2>
-            <div className="lyrics-box">
-              <LyricsPanel song={current} />
-            </div>
-          </div>
-        </div>
-
-        <div className="queue-panel">
-          <div className="queue-header">
-            <div style={{ fontWeight: 700, display:'flex', alignItems:'center', gap:6 }}>
-                <ListMusic size={18}/> Up Next
-            </div>
-            <div className="queue-controls">
-              <button 
-                className="small-btn icon-only" 
-                title="Clear"
-                onClick={() => {
-                  const hasCurrent = currentIndex >= 0 && queue[currentIndex];
-                  if (hasCurrent) {
-                    setQueue([queue[currentIndex]]);
-                    setCurrentIndex(0);
-                    setPlaying(true);
-                  } else {
-                    if (window.confirm('Clear?')) { setQueue([]); setCurrentIndex(-1); setPlaying(false); }
-                  }
-                }}
-              >
-                <Trash2 size={16}/>
-              </button>
-              
-              <button 
-                className="small-btn icon-only" 
-                onClick={() => { if (songsRef.current) setQueue(songsRef.current.map(s => s.id)); }} 
-                title="Restore"
-              >
-                <RotateCcw size={16}/>
-              </button>
-            </div>
-          </div>
-
-          {/* changing maxHeight to height ensures the container is always tall enough to show the scrollbar */}
-          <div className="queue" style={{ height: '36vh', overflowY: 'auto' }}>
-            {queue.length === 0 && <div style={{ padding: 12, color: 'var(--text-secondary)', fontSize: 13 }}>Queue is empty</div>}
-            {queue.map((id, idx) => {
-              const s = songs.find(x => x.id === id) || { id, title: 'Unknown', artistName: '' };
-              const isCurrent = idx === currentIndex;
-              return (
-                <div key={`${id}-${idx}`} className={`queue-item ${isCurrent ? 'current' : ''}`}>
-                  <div className="q-left">
-                    <img src={s.coverUrl || s.artistImageUrl || PERSON_PLACEHOLDER} alt={s.title} className="q-cover" onError={(e) => e.currentTarget.src = PERSON_PLACEHOLDER} />
-                    <div className="q-meta">
-                      <div className="q-title">{s.title}</div>
-                      <div className="q-artist">{s.artistName}</div>
+                    {/* ANIMATED PROGRESS BAR */}
+                    <div className="dock-progress">
+                        <div className="dock-progress-fill" style={{width: `${songProgress}%`}}></div>
                     </div>
-                  </div>
-                  <div className="q-actions">
-                    {!isCurrent && <button className="icon-btn" onClick={() => playAtIndex(idx)}><Play size={16}/></button>}
-                    <button className="icon-btn" onClick={() => moveItem(idx, Math.max(0, idx - 1))}><ArrowUp size={16}/></button>
-                    <button className="icon-btn" onClick={() => moveItem(idx, Math.min(queue.length - 1, idx + 1))}><ArrowDown size={16}/></button>
-                    <button className="icon-btn danger" onClick={() => removeAtIndex(idx)}><Trash2 size={16}/></button>
-                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </main>
-
-      {/* --- MINI PLAYER (MOBILE ONLY) --- */}
-      {current && !isLibraryCollapsed && (
-        <div className="mini-player" onClick={() => setIsLibraryCollapsed(true)}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-             <img src={current.coverUrl || current.artistImageUrl || PERSON_PLACEHOLDER} className="mini-cover" onError={(e)=>e.currentTarget.src=PERSON_PLACEHOLDER}/>
-             <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-               <div className="mini-title">{current.title}</div>
-               <div className="mini-artist">{current.artistName}</div>
-             </div>
-           </div>
-           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-             <button className="icon-btn" onClick={(e) => { e.stopPropagation(); toggleLike(current.id); }}>
-               <Sparkle size={20} fill={current.liked ? "var(--neon-pink)" : "none"} color={current.liked ? "var(--neon-pink)" : "white"} />
-             </button>
-             <button className="icon-btn" onClick={(e) => { e.stopPropagation(); setPlaying(p => !p); }}>
-               {playing ? <Pause size={24} fill="white"/> : <Play size={24} fill="white"/>}
-             </button>
-           </div>
-           
-           <div className="mini-progress">
-             <div className="mini-progress-fill" style={{ width: `${songProgress}%`, transition: 'width 0.1s linear' }}></div>
-           </div>
-        </div>
+            )}
+          </>
       )}
 
-      {/* PLANET CARD OVERLAY */}
-      {showPlanet && <PlanetCard user={user} onClose={() => setShowPlanet(false)} />}
-
-      {/* EXIT PROMPT OVERLAY */}
-      {showExitPrompt && exitMascot && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '20px',
-            animation: 'fadeIn 0.2s ease-out'
-          }}
-          onClick={() => setShowExitPrompt(false)}
-        >
-          <div 
-            style={{
-              background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-              borderRadius: '24px',
-              padding: '32px',
-              maxWidth: '400px',
-              width: '100%',
-              textAlign: 'center',
-              border: '2px solid rgba(255, 255, 255, 0.1)',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
-              animation: 'slideUp 0.3s ease-out'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Custom Mascot Image - Random Expression */}
-            <div style={{ marginBottom: '20px' }}>
-              <img 
-                src={exitMascot.img}
-                alt="Mascot" 
-                style={{ 
-                  width: '120px', 
-                  height: '120px', 
-                  objectFit: 'contain',
-                  animation: 'float 3s ease-in-out infinite',
-                  filter: 'drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3))'
-                }}
-                onError={(e) => {
-                  // Fallback to emoji if image fails to load
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement.innerHTML = '<div style="font-size: 80px; animation: float 3s ease-in-out infinite">🚀😢</div>';
-                }}
-              />
-            </div>
-            
-            <h2 style={{ 
-              color: 'white', 
-              fontSize: '24px', 
-              fontWeight: 'bold', 
-              marginBottom: '12px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              {exitMascot.msg}
-            </h2>
-            
-            <p style={{ 
-              color: 'rgba(255, 255, 255, 0.7)', 
-              fontSize: '16px', 
-              lineHeight: '1.5',
-              marginBottom: '24px' 
-            }}>
-              {exitMascot.sub}
-            </p>
-
-            <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
-              <button
-                onClick={() => setShowExitPrompt(false)}
-                style={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  padding: '14px 24px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
-                }}
-                onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
-                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                Stay & Keep Listening 🎧
-              </button>
-
-              <p style={{ 
-                color: 'rgba(255, 255, 255, 0.5)', 
-                fontSize: '13px',
-                marginTop: '8px'
-              }}>
-                💡 Use your phone's home button or minimize to put the app in background
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 3. BOTTOM NAVIGATION (5 Items) */}
+      <nav className="glass-nav">
+          <button className={activeTab === 'home' ? 'active' : ''} onClick={() => setActiveTab('home')}>
+              <Home size={24}/><span>Home</span>
+          </button>
+          <button className={activeTab === 'search' ? 'active' : ''} onClick={() => setActiveTab('search')}>
+              <Search size={24}/><span>Search</span>
+          </button>
+          {/* UPLOAD BUTTON IN MIDDLE */}
+          <button className={activeTab === 'upload' ? 'active' : ''} onClick={() => setActiveTab('upload')}>
+              <PlusCircle size={32} color={activeTab === 'upload' ? '#9146ff' : '#ccc'} /><span>Upload</span>
+          </button>
+          <button className={activeTab === 'library' ? 'active' : ''} onClick={() => setActiveTab('library')}>
+              <Library size={24}/><span>Library</span>
+          </button>
+          <button className={activeTab === 'planet' ? 'active' : ''} onClick={() => setActiveTab('planet')}>
+              <User size={24}/><span>Planet</span>
+          </button>
+      </nav>
 
     </div>
   );
