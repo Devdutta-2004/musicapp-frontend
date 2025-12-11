@@ -1,32 +1,35 @@
-/* src/DreamyGalaxy.css - DARK TINT VERSION */
+/* src/DreamyGalaxy.css - BALANCED "TINTED CRYSTAL" VERSION */
 
 :root {
-  /* 🎨 Palette: Deep Night & Neon */
-  --bg-deep: #050414;       /* Darker than before */
-  --cloud-pink: #d86dfc;    
-  --cloud-blue: #5eb3fd;    
+  /* 🎨 Palette: Balanced Space Colors */
+  --bg-deep: #0f0c29;
+  --cloud-pink: #d86dfc;
+  --cloud-blue: #5eb3fd;
   
-  /* 🔮 Dark Glass Variables */
-  --glass-bg: rgba(10, 5, 20, 0.75); /* Much darker base */
-  --glass-border: rgba(140, 100, 255, 0.15); /* Purple-tinted border */
-  --glass-blur: blur(18px);
+  /* 🔮 BALANCED GLASS SETTINGS */
+  /* This is the key: Purple tint (30, 20, 60) at 60% opacity */
+  --glass-bg: rgba(30, 20, 60, 0.6); 
+  --glass-border: rgba(180, 140, 255, 0.25); /* Brighter border defines the shape */
+  --glass-blur: blur(24px); /* Strong blur makes text readable */
 }
 
-/* 1. THE DEEP SPACE BACKGROUND */
+/* 1. THE ATMOSPHERE BACKGROUND */
 body {
   background-color: var(--bg-deep);
   background-image: 
-    /* Subtle Nebula Glows (Lower opacity for darker feel) */
-    radial-gradient(circle at 90% 5%, rgba(216, 109, 252, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 10% 20%, rgba(94, 179, 253, 0.12) 0%, transparent 40%),
-    linear-gradient(0deg, #000000 0%, var(--bg-deep) 100%);
+    /* Pink Cloud Glow (Top Right) - Slightly brighter */
+    radial-gradient(circle at 85% 10%, rgba(216, 109, 252, 0.35) 0%, transparent 50%),
+    /* Blue Nebula (Top Left) */
+    radial-gradient(circle at 15% 25%, rgba(94, 179, 253, 0.3) 0%, transparent 45%),
+    /* Deep Purple Base Reflection */
+    linear-gradient(180deg, #1a0b2e 0%, #050414 100%);
   
   background-attachment: fixed;
   color: white;
   min-height: 100vh;
 }
 
-/* 2. STARS (unchanged, adds depth) */
+/* 2. STARS (Animation stays the same) */
 body::before {
   content: " ";
   position: fixed;
@@ -40,74 +43,69 @@ body::before {
     40vw 30vh 1px #fff, 70vw 70vh 1px #fff,
     25vw 25vh 2px #5eb3fd, 
     85vw 85vh 1px #fff;
-  opacity: 0.5; /* Slightly dimmed stars */
-  animation: twinkle 10s infinite alternate;
+  opacity: 0.7; 
+  animation: twinkle 8s infinite alternate;
 }
 
-@keyframes twinkle {
-  0% { opacity: 0.3; transform: translateY(0); }
-  100% { opacity: 0.7; transform: translateY(-5px); }
-}
-
-/* 3. DARK TINTED GLASS OVERRIDES */
-/* This is the key change: Using black/purple gradients instead of white */
+/* 3. BALANCED GLASS CARDS */
+/* The "Mix": Not white, not black, but glowing indigo glass */
 .glass-card, .glass-nav, .glass-dock, .glass-modal, .upload-card {
-  /* Gradient goes from dark purple tint to almost black */
-  background: linear-gradient(180deg, rgba(30, 20, 45, 0.7) 0%, rgba(5, 5, 10, 0.85) 100%) !important;
+  /* The Gradient: Starts semi-transparent purple, fades to darker purple */
+  background: linear-gradient(145deg, rgba(60, 30, 90, 0.55) 0%, rgba(20, 10, 40, 0.75) 100%) !important;
   
-  /* Standard Blur */
   backdrop-filter: var(--glass-blur) !important;
   -webkit-backdrop-filter: var(--glass-blur) !important;
   
-  /* Border is now subtle purple instead of white */
   border: 1px solid var(--glass-border) !important;
   
-  /* Deep shadow for pop */
-  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.8) !important;
+  /* Soft purple glow shadow instead of harsh black */
+  box-shadow: 0 8px 32px 0 rgba(10, 5, 20, 0.5) !important;
 }
 
-/* Specific fix for the Mini Player Dock to make it stand out */
+/* The Mini Player needs to pop a bit more */
 .glass-dock {
-  background: rgba(15, 10, 25, 0.95) !important; /* Almost solid for readability */
-  border-top: 1px solid rgba(216, 109, 252, 0.3) !important; /* Pink glow on top edge */
+  background: rgba(30, 20, 50, 0.9) !important; 
+  border-top: 1px solid rgba(216, 109, 252, 0.4) !important;
 }
 
-/* 4. TEXT & ICON ADJUSTMENTS FOR DARK THEME */
+/* 4. TEXT & UI POLISH */
 .row-title, .song-title, h1, h2, h3 {
   color: #fff;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.5); /* Shadow for better contrast */
+  text-shadow: 0 0 15px rgba(216, 109, 252, 0.4); /* Dreamy text glow */
 }
 
 .row-artist, .song-artist {
-  color: #aaaaff !important; /* Cool blue-ish grey instead of plain grey */
+  color: #d0c0ff !important; /* Lavender text instead of gray */
 }
 
-/* 5. ACCENTS (Pink & Blue from images) */
+/* 5. INPUT FIELDS (Semi-dark to keep focus) */
+.glass-input, .upload-input, .file-input, select {
+  background: rgba(20, 10, 40, 0.6) !important;
+  border: 1px solid rgba(140, 100, 255, 0.3) !important;
+  color: white !important;
+}
+.glass-input:focus {
+  background: rgba(20, 10, 40, 0.8) !important;
+  border-color: var(--cloud-pink) !important;
+  box-shadow: 0 0 15px rgba(216, 109, 252, 0.25) !important;
+}
+
+/* 6. ACCENT GLOWS */
 .active-dot::after { background: var(--cloud-pink) !important; }
 
-/* Progress Bar */
+/* The Progress Bar Line */
 .dock-progress-fill { 
   background: linear-gradient(90deg, var(--cloud-blue), var(--cloud-pink)) !important;
   box-shadow: 0 0 15px var(--cloud-pink);
 }
 
-/* Active Icons Glow */
+/* Nav Icons */
 .glass-nav button.active {
   color: white !important;
-  text-shadow: 0 0 12px var(--cloud-pink);
+  /* Double text shadow for neon effect */
+  text-shadow: 0 0 10px var(--cloud-pink), 0 0 20px var(--cloud-pink);
 }
 .glass-nav button.active svg {
-  stroke: var(--cloud-pink);
+  stroke: #fff;
   filter: drop-shadow(0 0 8px var(--cloud-pink));
-}
-
-/* Inputs (Search/Upload) - Darker inputs */
-.glass-input, .upload-input, .file-input, select {
-  background: rgba(0, 0, 0, 0.5) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  color: white !important;
-}
-.glass-input:focus {
-  border-color: var(--cloud-blue) !important;
-  box-shadow: 0 0 10px rgba(94, 179, 253, 0.3) !important;
 }
