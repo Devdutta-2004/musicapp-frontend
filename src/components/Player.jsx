@@ -34,6 +34,23 @@ export default function Player({
   const onProgressRef = useRef(onProgress);
   useEffect(() => { onProgressRef.current = onProgress; }, [onProgress]);
 
+  // --- FIX: Handle Play/Pause when 'playing' prop changes ---
+  useEffect(() => {
+    if (audioRef.current) {
+      if (playing) {
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((error) => {
+            console.log("Playback prevented:", error);
+          });
+        }
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [playing]);
+  // -----------------------------------------------------------
+
   // Audio Event Handlers
   const handleLoadedMetadata = () => {
     if (audioRef.current) {
