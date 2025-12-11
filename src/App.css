@@ -347,7 +347,7 @@ body {
 }
 .glass-modal.open { transform: translateY(0); }
 
-.modal-header { padding: 40px 20px 20px; display: flex; justify-content: space-between; align-items: center; }
+.modal-header { padding: 10px 20px 20px; display: flex; justify-content: space-between; align-items: center; }
 .modal-scroll-body { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; }
 
 /* The Premium Glow Effect */
