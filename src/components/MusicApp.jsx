@@ -8,8 +8,7 @@ import PlaylistPanel from './PlaylistPanel';
 import '../App.css';
 import { 
   Home, Search, Library, User, PlusCircle, 
-  Play, Pause, Heart, ChevronDown, 
-  Sparkles, Zap, Mic2, ListMusic, MoreHorizontal, 
+  Play, Pause, Heart, ChevronDown, Zap, Mic2, ListMusic, MoreHorizontal, 
   ListPlus, PlayCircle, ArrowRightCircle,
   Shuffle, Repeat, Repeat1, Trash2, ArrowUp, ArrowDown, Telescope ,Sparkles ,RotateCcw
 } from "lucide-react"; 
