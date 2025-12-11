@@ -138,6 +138,8 @@ body::before {
   height: 8px;
 }
 
+/* ... (Keep the track styles above unchanged) ... */
+
 /* --- THE COMET HEAD --- */
 .seek-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -157,23 +159,24 @@ body::before {
     0 0 35px 10px rgba(216, 109, 252, 0.5);
     
   cursor: grab;
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* Removed rotation transition, just scale */
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
   transform-origin: center;
 }
 
-/* --- INTERACTION: POINTY TAIL (Points LEFT) --- */
+/* --- INTERACTION: PULSING ORB (No Tail) --- */
 .seek-slider:hover::-webkit-slider-thumb,
 .seek-slider:active::-webkit-slider-thumb {
   cursor: grabbing;
   background: #fff;
   
-  /* 1. Scale up for impact
-     2. Rotate 45deg clockwise
-     3. border-radius sets sharp corner at Top-Left (which rotates to Left)
-  */
-  transform: scale(1.3) rotate(45deg);
-  border-radius: 0 50% 50% 50%; /* Top-Left is the sharp corner */
+  /* CHANGE: Just scale up, removed rotate(45deg) */
+  transform: scale(1.3);
   
+  /* CHANGE: Keep it a perfect circle */
+  border-radius: 50%; 
+  
+  /* Intensified Glow */
   box-shadow: 
     0 0 15px 5px var(--cloud-blue), 
     0 0 30px 10px var(--cloud-pink),
@@ -193,6 +196,6 @@ body::before {
 }
 
 .seek-slider:active::-moz-range-thumb {
-  transform: scale(1.3) rotate(45deg);
-  border-radius: 0 50% 50% 50%;
+  transform: scale(1.3); /* Just scale, no rotation */
+  border-radius: 50%;
 }
