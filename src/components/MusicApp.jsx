@@ -380,7 +380,7 @@ export default function MusicApp({ user, onLogout }) {
                   ))}
               </div>
 
-              <h2 className="section-title">Fresh Arrivals</h2>
+              <h2 className="section-title">Cosmic Arrivals</h2>
               <div className="horizontal-scroll">
                   {homeFeed.map(s => (
                       <div key={s.id} className="glass-card song-card" onClick={() => playSong(s, homeFeed)}>
@@ -557,10 +557,10 @@ export default function MusicApp({ user, onLogout }) {
                             {/* QUEUE CONTROLS: CLEAR & RESTORE */}
                             <div style={{display:'flex', gap:10}}>
                                 <button className="icon-btn" onClick={clearQueue} title="Clear Queue (Keep Current)">
-                                    <Trash2 size={18} color="#ff4d7a"/>
+                                    <Trash2 size={18} color="#ffffff"/>
                                 </button>
                                 <button className="icon-btn" onClick={restoreQueue} title="Restore Default Queue">
-                                    <RotateCcw size={18} color="#00ff88"/>
+                                    <RotateCcw size={18} color="#ffffff"/>
                                 </button>
                             </div>
                         </div>
