@@ -4,9 +4,9 @@
   /* 🎨 Palette: Balanced Space Colors */
   --bg-deep: #0f0c29;
   --cloud-pink: #d86dfc;
-  --cloud-blue: #5eb3fd; /* Cyan-Blue for Search Glow */
+  --cloud-blue: #5eb3fd;
   
-  /* 🔮 STANDARD GLASS (For Cards & Modals) */
+  /* 🔮 STANDARD GLASS */
   --glass-bg: rgba(30, 20, 60, 0.6); 
   --glass-border: rgba(180, 140, 255, 0.25);
   --glass-blur: blur(24px); 
@@ -16,20 +16,17 @@
 body {
   background-color: var(--bg-deep);
   background-image: 
-    /* Pink Cloud Glow (Top Right) */
     radial-gradient(circle at 85% 10%, rgba(216, 109, 252, 0.35) 0%, transparent 50%),
-    /* Blue Nebula (Top Left) */
     radial-gradient(circle at 15% 25%, rgba(94, 179, 253, 0.3) 0%, transparent 45%),
-    /* Deep Purple Base Reflection */
     linear-gradient(180deg, #1a0b2e 0%, #050414 100%);
   
   background-attachment: fixed;
   color: white;
   min-height: 100vh;
-  position: relative; /* Needed for pseudo-elements */
+  position: relative;
 }
 
-/* 2. STARS - LAYER 1 (Larger, Slower Blinking) */
+/* 2. STARS - LAYER 1 (SLOWED DOWN: 12s) */
 body::before {
   content: " ";
   position: fixed;
@@ -37,21 +34,20 @@ body::before {
   background: transparent;
   z-index: -1;
   box-shadow: 
-    /* Original Cluster */
     10vw 10vh #fff, 20vw 80vh #fff, 35vw 40vh #fff, 
     50vw 10vh #fff, 60vw 90vh #fff, 80vw 20vh #fff,
     90vw 50vh #fff, 15vw 60vh 2px #d86dfc,
     40vw 30vh 1px #fff, 70vw 70vh 1px #fff,
     25vw 25vh 2px #5eb3fd, 85vw 85vh 1px #fff,
-    /* Additional Stars */
     5vw 5vh #fff, 95vw 95vh #fff, 45vw 15vh #fff,
     22vw 45vh 1px #fff, 78vw 35vh #fff, 12vw 90vh #fff,
     65vw 65vh 1px #fff, 33vw 12vh #d86dfc, 55vw 55vh #5eb3fd;
-  opacity: 0.7; 
-  animation: twinkle 6s infinite alternate ease-in-out;
+  opacity: 0.6; 
+  /* SLOWED DOWN ANIMATION */
+  animation: twinkle 12s infinite alternate ease-in-out; 
 }
 
-/* 2b. STARS - LAYER 2 (Tiny, Dense, Fast Blinking) */
+/* 2b. STARS - LAYER 2 (SLOWED DOWN: 8s) */
 body::after {
   content: " ";
   position: fixed;
@@ -59,22 +55,19 @@ body::after {
   background: transparent;
   z-index: -1;
   box-shadow: 
-    /* Top Section */
     2vw 2vh #fff, 8vw 15vh #fff, 14vw 4vh #fff, 25vw 8vh #fff,
     30vw 22vh #fff, 38vw 5vh #fff, 44vw 18vh #fff, 52vw 9vh #fff,
     60vw 3vh #fff, 68vw 19vh #fff, 75vw 6vh #fff, 82vw 24vh #fff,
-    90vw 2vh #fff, 96vw 12vh #fff, 
-    /* Middle Section */
-    4vw 35vh #fff, 12vw 45vh #fff, 18vw 32vh #fff, 26vw 48vh #fff,
-    34vw 38vh #fff, 42vw 52vh #fff, 50vw 40vh #fff, 58vw 46vh #fff,
-    64vw 35vh #fff, 72vw 55vh #fff, 80vw 42vh #fff, 88vw 50vh #fff,
-    /* Bottom Section */
-    3vw 75vh #fff, 10vw 92vh #fff, 16vw 82vh #fff, 24vw 68vh #fff,
-    32vw 88vh #fff, 40vw 72vh #fff, 48vw 95vh #fff, 56vw 80vh #fff,
-    62vw 90vh #fff, 70vw 78vh #fff, 78vw 96vh #fff, 86vw 84vh #fff,
-    94vw 70vh #fff, 98vw 98vh #fff;
-  opacity: 0.5;
-  animation: twinkle 3s infinite alternate-reverse ease-in-out;
+    90vw 2vh #fff, 96vw 12vh #fff, 4vw 35vh #fff, 12vw 45vh #fff,
+    18vw 32vh #fff, 26vw 48vh #fff, 34vw 38vh #fff, 42vw 52vh #fff,
+    50vw 40vh #fff, 58vw 46vh #fff, 64vw 35vh #fff, 72vw 55vh #fff,
+    80vw 42vh #fff, 88vw 50vh #fff, 3vw 75vh #fff, 10vw 92vh #fff,
+    16vw 82vh #fff, 24vw 68vh #fff, 32vw 88vh #fff, 40vw 72vh #fff,
+    48vw 95vh #fff, 56vw 80vh #fff, 62vw 90vh #fff, 70vw 78vh #fff,
+    78vw 96vh #fff, 86vw 84vh #fff, 94vw 70vh #fff, 98vw 98vh #fff;
+  opacity: 0.4;
+  /* SLOWED DOWN ANIMATION */
+  animation: twinkle 8s infinite alternate-reverse ease-in-out; 
 }
 
 @keyframes twinkle {
@@ -82,7 +75,51 @@ body::after {
   100% { opacity: 0.9; transform: scale(1.1); }
 }
 
-/* 3. STANDARD GLASS CARDS */
+/* 🌠 3. SHOOTING STARS EFFECT */
+/* We attach this to the .glass-shell container to create a shooting star layer */
+.glass-shell::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background: linear-gradient(-45deg, #5eb3fd, rgba(0, 0, 255, 0));
+  border-radius: 999px;
+  filter: drop-shadow(0 0 6px #69c0ff);
+  animation: tail 3000ms ease-in-out infinite, shooting 3000ms ease-in-out infinite;
+  opacity: 0; /* Hidden by default until animation triggers */
+  z-index: -1; /* Behind content */
+}
+
+/* Create a second shooting star with different timing */
+.glass-shell::after {
+  content: "";
+  position: absolute;
+  top: 20%;
+  left: 80%;
+  width: 3px;
+  height: 3px;
+  background: linear-gradient(-45deg, #d86dfc, rgba(0, 0, 255, 0));
+  border-radius: 999px;
+  filter: drop-shadow(0 0 6px #d86dfc);
+  animation: tail 4500ms ease-in-out infinite 1s, shooting 4500ms ease-in-out infinite 1s;
+  opacity: 0;
+  z-index: -1;
+}
+
+@keyframes tail {
+  0% { width: 0; }
+  30% { width: 100px; }
+  100% { width: 0; }
+}
+
+@keyframes shooting {
+  0% { transform: translateX(0) translateY(0) rotate(45deg); opacity: 1; }
+  100% { transform: translateX(300px) translateY(300px) rotate(45deg); opacity: 0; }
+}
+
+/* 4. GLASS UI COMPONENTS */
 .glass-card, .glass-nav, .glass-modal, .upload-card {
   background: linear-gradient(145deg, rgba(60, 30, 90, 0.55) 0%, rgba(20, 10, 40, 0.75) 100%) !important;
   backdrop-filter: var(--glass-blur) !important;
@@ -91,9 +128,8 @@ body::after {
   box-shadow: 0 8px 32px 0 rgba(10, 5, 20, 0.5) !important;
 }
 
-/* --- THE MINI PLAYER (More Transparent & Blue Progress) --- */
+/* MINI PLAYER */
 .glass-dock {
-  /* Reduced opacity (0.8 instead of 0.95) for better glass effect */
   background: linear-gradient(90deg, rgba(15, 12, 41, 0.8), rgba(48, 43, 99, 0.75)) !important;
   backdrop-filter: blur(20px) !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
@@ -101,13 +137,12 @@ body::after {
   box-shadow: 0 -5px 20px rgba(0,0,0,0.5) !important;
 }
 
-/* MINI PLAYER PROGRESS LINE -> BLUE */
 .dock-progress-fill { 
   background: var(--cloud-blue) !important;
   box-shadow: 0 0 10px var(--cloud-blue) !important;
 }
 
-/* 4. SEARCH INPUT GLOW */
+/* SEARCH INPUT */
 .glass-input, .upload-input, .file-input, select {
   background: rgba(20, 10, 40, 0.6) !important;
   border: 1px solid rgba(140, 100, 255, 0.3) !important;
@@ -121,16 +156,12 @@ body::after {
   box-shadow: 0 0 20px rgba(94, 179, 253, 0.4), inset 0 0 10px rgba(94, 179, 253, 0.1) !important;
 }
 
-/* 5. TEXT & ACCENTS */
+/* TEXT & ACCENTS */
 .row-title, .song-title, h1, h2, h3 {
   color: #fff;
   text-shadow: 0 0 15px rgba(216, 109, 252, 0.4);
 }
-
-.row-artist, .song-artist {
-  color: #d0c0ff !important;
-}
-
+.row-artist, .song-artist { color: #d0c0ff !important; }
 .active-dot::after { background: var(--cloud-pink) !important; }
 
 /* Nav Icons */
@@ -143,87 +174,35 @@ body::after {
   filter: drop-shadow(0 0 8px var(--cloud-pink));
 }
 
-/* =========================================
-   ☄️ COMET SEEK SLIDER (GLOWING ORB)
-   ========================================= */
-
+/* SEEK SLIDER (COMET) */
 .seek-slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 6px; 
+  -webkit-appearance: none; width: 100%; height: 6px; 
   background: rgba(255, 255, 255, 0.1); 
-  border-radius: 10px;
-  outline: none;
-  cursor: pointer;
-  position: relative;
-  overflow: visible; 
-  
-  /* Trail Gradient */
+  border-radius: 10px; outline: none; cursor: pointer;
+  position: relative; overflow: visible; 
   background-image: linear-gradient(90deg, var(--cloud-blue), var(--cloud-pink));
-  background-repeat: no-repeat;
-  background-size: 0% 100%; 
+  background-repeat: no-repeat; background-size: 0% 100%; 
   transition: height 0.2s ease;
 }
+.seek-slider:hover { height: 8px; }
 
-.seek-slider:hover {
-  height: 8px;
-}
-
-/* --- THE COMET HEAD (Default: Soft Glow) --- */
 .seek-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  height: 20px; 
-  width: 20px;
-  
-  /* Perfect Center */
-  margin-top: -7px; 
-  
-  background: #ffffff;
-  border-radius: 50%; 
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  
-  /* DEFAULT GLOW: Visible but softer intensity */
-  box-shadow: 
-    0 0 5px 1px var(--cloud-blue), 
-    0 0 12px 3px var(--cloud-pink),
-    0 0 20px 5px rgba(216, 109, 252, 0.3); 
-    
-  cursor: grab;
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  -webkit-appearance: none; height: 20px; width: 20px;
+  margin-top: -7px; background: #ffffff;
+  border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 5px 1px var(--cloud-blue), 0 0 12px 3px var(--cloud-pink), 0 0 20px 5px rgba(216, 109, 252, 0.3); 
+  cursor: grab; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
   transform-origin: center;
 }
 
-/* --- INTERACTION: INTENSE GLOW (When Holding) --- */
-.seek-slider:hover::-webkit-slider-thumb,
-.seek-slider:active::-webkit-slider-thumb {
-  cursor: grabbing;
-  background: #fff;
-  
-  /* Scale up slightly */
-  transform: scale(1.3);
-  
-  /* HIGH INTENSITY GLOW: Expands and brightens */
-  box-shadow: 
-    0 0 15px 4px var(--cloud-blue), 
-    0 0 30px 8px var(--cloud-pink),
-    0 0 50px 15px rgba(94, 179, 253, 0.6); 
+.seek-slider:hover::-webkit-slider-thumb, .seek-slider:active::-webkit-slider-thumb {
+  cursor: grabbing; background: #fff; transform: scale(1.3);
+  box-shadow: 0 0 15px 4px var(--cloud-blue), 0 0 30px 8px var(--cloud-pink), 0 0 50px 15px rgba(94, 179, 253, 0.6); 
 }
-
-/* Firefox Support */
 .seek-slider::-moz-range-thumb {
-  height: 20px; 
-  width: 20px;
-  border: none;
-  border-radius: 50%;
-  background: #fff;
-  /* Default Soft Glow */
-  box-shadow: 0 0 12px 3px var(--cloud-pink);
-  cursor: pointer;
-  transition: all 0.2s ease;
+  height: 20px; width: 20px; border: none; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 12px 3px var(--cloud-pink); cursor: pointer; transition: all 0.2s ease;
 }
-
 .seek-slider:active::-moz-range-thumb {
-  transform: scale(1.3);
-  /* Active Intense Glow */
-  box-shadow: 0 0 30px 8px var(--cloud-pink);
+  transform: scale(1.3); box-shadow: 0 0 30px 8px var(--cloud-pink);
 }
