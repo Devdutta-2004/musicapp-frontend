@@ -448,7 +448,7 @@ export default function MusicApp({ user, onLogout }) {
                       title="All Songs"
                       subtitle="Browse the full database."
                       // CHANGE THIS path below to match your uploaded image name!
-                      image="/planets/nebula.png" 
+                      image="/planets/my-art.jpg" 
                       onClick={() => handleNavClick('all-songs')} 
                   />
               </div>
