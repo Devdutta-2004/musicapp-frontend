@@ -10,7 +10,7 @@ import {
   Home, Search, Library, User, PlusCircle, 
   Play, Pause, Heart, ChevronDown, Zap, Mic2, ListMusic, MoreHorizontal, 
   ListPlus, PlayCircle, ArrowRightCircle,
-  Shuffle, Repeat, Repeat1, Trash2, ArrowUp, ArrowDown, Telescope ,Sparkles ,RotateCcw, ArrowLeft , Rocket,Orbit
+  Shuffle, Repeat, Repeat1, Trash2, ArrowUp, ArrowDown, Telescope ,Sparkles ,RotateCcw, ArrowLeft , Rocket, Orbit
 } from "lucide-react"; 
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -42,11 +42,14 @@ export default function MusicApp({ user, onLogout }) {
   // Library State
   const [libraryTab, setLibraryTab] = useState('liked'); 
   const [openMenuId, setOpenMenuId] = useState(null);
+  
+  // --- NEW: Playlist Selector State ---
+  const [showPlaylistSelector, setShowPlaylistSelector] = useState(null); // Stores ID of song to add
 
   // --- DATA STATE ---
   const [homeFeed, setHomeFeed] = useState([]);      
   const [discoveryFeed, setDiscoveryFeed] = useState([]); 
-  const [allSongs, setAllSongs] = useState([]); // <--- NEW: Stores full DB list
+  const [allSongs, setAllSongs] = useState([]); 
   const [searchResults, setSearchResults] = useState([]);
   const [likedSongs, setLikedSongs] = useState([]);
   const [playlists, setPlaylists] = useState([]); 
@@ -69,7 +72,10 @@ export default function MusicApp({ user, onLogout }) {
 
   // Close menus when clicking anywhere else
   useEffect(() => {
-    const closeMenu = () => setOpenMenuId(null);
+    const closeMenu = () => {
+        setOpenMenuId(null);
+        setShowPlaylistSelector(null); // Close playlist selector on click outside
+    };
     window.addEventListener('click', closeMenu);
     return () => window.removeEventListener('click', closeMenu);
   }, []);
@@ -141,7 +147,7 @@ export default function MusicApp({ user, onLogout }) {
       setLoading(false);
   }
 
-  // --- NEW: Fetch All Songs for the "All Songs" Tab ---
+  // --- Fetch All Songs for the "All Songs" Tab ---
   useEffect(() => {
       if (activeTab === 'all-songs') {
           fetchAllSongs();
@@ -150,7 +156,6 @@ export default function MusicApp({ user, onLogout }) {
 
   async function fetchAllSongs() {
       try {
-          // This calls GET /api/songs. Ensure your backend has this endpoint!
           const res = await axios.get(`${API_BASE}/api/songs`, authHeaders);
           setAllSongs(res.data);
       } catch(e) { 
@@ -183,7 +188,6 @@ export default function MusicApp({ user, onLogout }) {
 
   // --- HELPER: GET SONG ---
   function getSongById(id) {
-      // Look in ALL lists to find the song info
       const all = [...homeFeed, ...discoveryFeed, ...searchResults, ...likedSongs, ...allSongs];
       return all.find(s => s.id === id) || { id, title: 'Unknown', artistName: 'Unknown', coverUrl: null };
   }
@@ -239,6 +243,15 @@ export default function MusicApp({ user, onLogout }) {
       const update = (list) => list.map(s => s.id === songId ? {...s, liked: !s.liked} : s);
       setHomeFeed(update); setDiscoveryFeed(update); setSearchResults(update); setLikedSongs(update); setAllSongs(update);
       try { await axios.post(`${API_BASE}/api/likes/${songId}`, {}, authHeaders); fetchLibraryData(); } catch(e) {}
+  };
+
+  // --- NEW: Add to Playlist Logic ---
+  const addToPlaylist = async (playlistId, songId) => {
+      try {
+          await axios.post(`${API_BASE}/api/playlists/${playlistId}/songs`, { songId }, authHeaders);
+          alert("Added to playlist!");
+          setShowPlaylistSelector(null);
+      } catch(e) { console.error(e); alert("Failed to add."); }
   };
 
   // --- QUEUE ACTIONS ---
@@ -411,10 +424,27 @@ export default function MusicApp({ user, onLogout }) {
                         <button className="menu-item" onClick={() => { addToQueue(s); setOpenMenuId(null); }}>
                             <ListPlus/> Add to Queue
                         </button>
+                        {/* --- NEW: Add to Playlist Option --- */}
+                        <button className="menu-item" onClick={() => { setShowPlaylistSelector(s.id); setOpenMenuId(null); }}>
+                            <ListMusic/> Add to Playlist
+                        </button>
                     </div>
                 )}
             </div>
         </div>
+        
+        {/* --- NEW: Playlist Selector Modal (Appears when active) --- */}
+        {showPlaylistSelector === s.id && (
+            <div className="glass-dropdown-menu" style={{ position: 'fixed', zIndex: 100, top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 250, padding: 10, background: 'rgba(20, 10, 40, 0.95)', border: '1px solid #ffffff44', borderRadius: 10 }}>
+                <div className="menu-header" style={{marginBottom:10, fontWeight:'bold', borderBottom:'1px solid #ffffff22', paddingBottom:5}}>Select Playlist</div>
+                {playlists.length > 0 ? playlists.map(pl => (
+                    <button key={pl.id} className="menu-option" style={{width:'100%', padding:8, textAlign:'left', background:'transparent', border:'none', color:'white', cursor:'pointer'}} onClick={(e) => { e.stopPropagation(); addToPlaylist(pl.id, s.id); }}>
+                        {pl.name}
+                    </button>
+                )) : <div style={{padding:10, color:'#888'}}>No playlists created.</div>}
+                <button className="menu-option danger" style={{width:'100%', marginTop:10, padding:8, background:'#ff0055aa', border:'none', borderRadius:5, color:'white', cursor:'pointer'}} onClick={(e) => { e.stopPropagation(); setShowPlaylistSelector(null); }}>Cancel</button>
+            </div>
+        )}
     </div>
   );
 
@@ -447,7 +477,6 @@ export default function MusicApp({ user, onLogout }) {
                   <ArtisticLinkCard 
                       title="All Songs"
                       subtitle="Browse the full database."
-                      // CHANGE THIS path below to match your uploaded image name!
                       image="/planets/my-art.jpg" 
                       onClick={() => handleNavClick('all-songs')} 
                   />
