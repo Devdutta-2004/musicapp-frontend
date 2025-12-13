@@ -10,7 +10,7 @@ import {
   Home, Search, Library, User, PlusCircle, 
   Play, Pause, Heart, ChevronDown, Zap, Mic2, ListMusic, MoreHorizontal, 
   ListPlus, PlayCircle, ArrowRightCircle,
-  Shuffle, Repeat, Repeat1, Trash2, ArrowUp, ArrowDown, Telescope ,Sparkles ,RotateCcw
+  Shuffle, Repeat, Repeat1, Trash2, ArrowUp, ArrowDown, Telescope ,Sparkles ,RotateCcw, ArrowLeft
 } from "lucide-react"; 
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -21,7 +21,6 @@ const USP_FEATURES = [
     { title: "Lossless Audio", subtitle: "Crystal clear sound.", icon: <Mic2 size={24} color="#00ff88" />, accent: "linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 0, 0, 0))" },
 ];
 
-// --- NEW COMPONENT: ARTISTIC LINK CARD ---
 const ArtisticLinkCard = ({ title, subtitle, image, onClick }) => (
   <div className="artistic-box" onClick={onClick}>
     <div className="artistic-bg" style={{ backgroundImage: `url(${image})` }}></div>
@@ -66,7 +65,6 @@ export default function MusicApp({ user, onLogout }) {
   const [loading, setLoading] = useState(false);
   const sleepIntervalRef = useRef(null);
 
-  // Close menus when clicking anywhere else
   useEffect(() => {
     const closeMenu = () => setOpenMenuId(null);
     window.addEventListener('click', closeMenu);
@@ -76,20 +74,15 @@ export default function MusicApp({ user, onLogout }) {
   const API_BASE = (process.env.REACT_APP_API_BASE_URL || "https://musicapp-o3ow.onrender.com").replace(/\/$/, ""); 
   const authHeaders = { headers: { "X-User-Id": user?.id || 0 } };
 
-  // --- 🚀 NEW: APP-LIKE NAVIGATION LOGIC --- //
-
+  // --- NAVIGATION LOGIC --- //
   useEffect(() => {
-    // 1. Initial Load: Replace any existing state with 'home' root state
-    // This ensures we start at the bottom of the stack.
     if (!window.history.state) {
        window.history.replaceState({ tab: 'home', player: false }, '');
     } else if (window.history.state.tab) {
-       // Restore state if reloading page
        setActiveTab(window.history.state.tab);
        setIsFullScreenPlayer(!!window.history.state.player);
     }
 
-    // 2. Handle Browser/Phone Back Button
     const handlePopState = (event) => {
       const state = event.state || { tab: 'home', player: false };
       setActiveTab(state.tab);
@@ -100,23 +93,15 @@ export default function MusicApp({ user, onLogout }) {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // 3. Smart Tab Switcher
   const handleNavClick = (tab) => {
     if (tab === activeTab) return;
-
     if (tab === 'home') {
-      // If going Home, go BACK in history (to the root).
-      // If we are already near root, this cleans up the stack so the NEXT back press minimizes the app.
       window.history.back();
     } else {
       const newState = { tab, player: false };
-      
-      // If we are currently at Home, PUSH the new tab (Home -> Tab)
       if (activeTab === 'home') {
          window.history.pushState(newState, '');
       } else {
-         // If we are at another tab (e.g. Library), REPLACE it (Home -> NewTab)
-         // This prevents a long history chain. Pressing Back will always go Home.
          window.history.replaceState(newState, '');
       }
       setActiveTab(tab);
@@ -124,21 +109,16 @@ export default function MusicApp({ user, onLogout }) {
     }
   };
 
-  // 4. Player Controls (Synced with History)
   const openPlayer = () => {
     if (isFullScreenPlayer) return;
-    // Push state so "Back" closes player
     window.history.pushState({ tab: activeTab, player: true }, '');
     setIsFullScreenPlayer(true);
   };
 
   const closePlayer = () => {
-    // Trigger browser back to close, keeping history in sync
     window.history.back();
   };
   
-  // ------------------------------------------ //
-
   // --- INITIAL LOAD ---
   useEffect(() => {
     loadFeeds();
@@ -186,7 +166,7 @@ export default function MusicApp({ user, onLogout }) {
   }
   const currentSong = queue[currentIndex] ? getSongById(queue[currentIndex]) : null;
 
-  // --- PLAY LOGIC (Standard - Resets Queue) ---
+  // --- PLAY LOGIC ---
   const playSong = (song, contextList) => {
      if(!song) return;
      let newQueue = contextList && contextList.length > 0 ? contextList.map(s=>s.id) : [song.id];
@@ -196,25 +176,19 @@ export default function MusicApp({ user, onLogout }) {
      setPlaying(true);
   };
 
-  // --- PLAY NOW LOGIC (Preserves Queue) ---
   const playNow = (song) => {
       if (queue.length === 0) {
           playSong(song);
           return;
       }
-      
       const newQueue = [...queue];
       const insertIndex = currentIndex + 1;
-      
-      // Insert right after current song
       newQueue.splice(insertIndex, 0, song.id);
-      
       setQueue(newQueue);
-      setCurrentIndex(insertIndex); // Jump to new song immediately
+      setCurrentIndex(insertIndex); 
       setPlaying(true);
   };
 
-  // Helper: Shuffle
   function shuffleArray(arr) {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
@@ -244,37 +218,26 @@ export default function MusicApp({ user, onLogout }) {
       try { await axios.post(`${API_BASE}/api/likes/${songId}`, {}, authHeaders); fetchLibraryData(); } catch(e) {}
   };
 
-  // --- QUEUE ACTIONS ---
-  
-  // 1. Play Next (Insert after current, don't jump)
   const playNext = (song) => {
       if (queue.length === 0) { playSong(song); return; }
-      
       const newQueue = [...queue];
       const insertIndex = currentIndex + 1;
-      
-      // Remove if already in queue (optional cleanup)
       const existingIdx = newQueue.indexOf(song.id);
       if (existingIdx > -1 && existingIdx !== currentIndex) {
           newQueue.splice(existingIdx, 1);
           if (existingIdx < insertIndex) insertIndex--;
       }
-      
       newQueue.splice(insertIndex, 0, song.id);
       setQueue(newQueue);
-      // Removed alert
   };
 
-  // 2. Add to Queue (Append to end)
   const addToQueue = (song) => {
       if (queue.length === 0) { playSong(song); return; }
       if (!queue.includes(song.id)) {
           setQueue([...queue, song.id]);
-          // Removed alert
       }
   };
 
-  // 3. Clear Queue (Keep playing song)
   const clearQueue = () => {
       if (currentIndex === -1) return;
       if(window.confirm("Clear queue except current song?")) {
@@ -283,7 +246,6 @@ export default function MusicApp({ user, onLogout }) {
       }
   };
 
-  // 4. Restore Queue (Reset to Home Feed)
   const restoreQueue = () => {
       if(homeFeed.length === 0) return;
       if(window.confirm("Restore queue from Fresh Arrivals?")) {
@@ -294,23 +256,19 @@ export default function MusicApp({ user, onLogout }) {
       }
   };
 
-  // 5. Move Item (Up/Down)
   const moveItem = (oldIndex, newIndex) => {
     if (oldIndex < 0 || oldIndex >= queue.length || newIndex < 0 || newIndex >= queue.length) return;
     setQueue(prev => {
         const q = [...prev];
         const [item] = q.splice(oldIndex, 1);
         q.splice(newIndex, 0, item);
-        
         if (currentIndex === oldIndex) setCurrentIndex(newIndex);
         else if (currentIndex >= newIndex && currentIndex < oldIndex) setCurrentIndex(c => c + 1);
         else if (currentIndex <= newIndex && currentIndex > oldIndex) setCurrentIndex(c => c - 1);
-        
         return q;
     });
   };
 
-  // 6. Remove specific item
   const removeAtIndex = (idx) => {
     setQueue(prev => {
       const newQ = [...prev];
@@ -320,7 +278,6 @@ export default function MusicApp({ user, onLogout }) {
     });
   };
 
-  // --- PLAYER CONTROL LOGIC ---
   const handleNextSong = () => {
       const nextIdx = currentIndex + 1;
       if (nextIdx < queue.length) {
@@ -352,10 +309,8 @@ export default function MusicApp({ user, onLogout }) {
       } catch(e) {}
   };
 
-  // --- MEDIA SESSION (Phone Lock Screen Controls) ---
   useEffect(() => {
     if (!currentSong || !('mediaSession' in navigator)) return;
-    
     navigator.mediaSession.metadata = new MediaMetadata({
       title: currentSong.title,
       artist: currentSong.artistName,
@@ -364,14 +319,12 @@ export default function MusicApp({ user, onLogout }) {
         { src: currentSong.coverUrl || PERSON_PLACEHOLDER, sizes: '512x512', type: 'image/png' }
       ]
     });
-
     navigator.mediaSession.setActionHandler('play', () => setPlaying(true));
     navigator.mediaSession.setActionHandler('pause', () => setPlaying(false));
     navigator.mediaSession.setActionHandler('previoustrack', handlePrevSong);
     navigator.mediaSession.setActionHandler('nexttrack', handleNextSong);
-  }, [currentSong, currentIndex, queue]); // Updated dependency array to prevent stale state
+  }, [currentSong, currentIndex, queue]);
 
-  // --- SLEEP TIMER ---
   useEffect(() => {
     if (sleepTime !== null && sleepTime > 0) {
       sleepIntervalRef.current = setTimeout(() => {
@@ -387,8 +340,6 @@ export default function MusicApp({ user, onLogout }) {
     return () => clearTimeout(sleepIntervalRef.current);
   }, [sleepTime]);
 
-
-  // --- SHARED SONG ROW COMPONENT ---
   const SongRow = ({ s, list, onClick }) => (
     <div className="glass-row" onClick={onClick ? onClick : () => playSong(s, list)}>
         <img src={s.coverUrl || PERSON_PLACEHOLDER} className="row-thumb" onError={e=>e.target.src=PERSON_PLACEHOLDER}/>
@@ -401,8 +352,6 @@ export default function MusicApp({ user, onLogout }) {
             <button className="icon-btn" onClick={(e)=>{e.stopPropagation(); toggleLike(s.id)}}>
                 <Heart size={20} fill={s.liked ? "#ff00cc" : "none"} color={s.liked ? "#ff00cc" : "rgba(255,255,255,0.5)"}/>
             </button>
-
-            {/* THREE DOT MENU */}
             <div className="context-menu-container">
                 <button 
                     className="icon-btn" 
@@ -413,7 +362,6 @@ export default function MusicApp({ user, onLogout }) {
                 >
                     <MoreHorizontal size={20} color="rgba(255,255,255,0.7)" />
                 </button>
-
                 {openMenuId === s.id && (
                     <div className="context-menu" onClick={e => e.stopPropagation()}>
                         <button className="menu-item" onClick={() => { playNow(s); setOpenMenuId(null); }}>
@@ -432,10 +380,19 @@ export default function MusicApp({ user, onLogout }) {
     </div>
   );
 
+  // --- MERGE SONGS FOR "ALL SONGS" VIEW ---
+  // Create a unique list of all songs loaded so far
+  const allKnownSongs = [...homeFeed, ...discoveryFeed].reduce((acc, current) => {
+    const x = acc.find(item => item.id === current.id);
+    if (!x) return acc.concat([current]);
+    else return acc;
+  }, []);
+
   return (
     <div className="glass-shell">
       <div className="glass-viewport">
          
+         {/* --- HOME TAB --- */}
          {activeTab === 'home' && (
            <div className="tab-pane home-animate">
               <header className="glass-header">
@@ -456,13 +413,13 @@ export default function MusicApp({ user, onLogout }) {
                   ))}
               </div>
 
-              {/* --- NEW ARTISTIC BOX --- */}
+              {/* ARTISTIC LINK BOX -> LINKS TO 'all-songs' */}
               <div style={{ padding: '0 20px', marginTop: '20px' }}>
                   <ArtisticLinkCard 
-                      title="Explore All Music"
-                      subtitle="Dive into the full collection."
+                      title="All Songs"
+                      subtitle="Browse the full collection."
                       image="/planets/nebula.png" 
-                      onClick={() => handleNavClick('search')} 
+                      onClick={() => handleNavClick('all-songs')} 
                   />
               </div>
 
@@ -489,6 +446,32 @@ export default function MusicApp({ user, onLogout }) {
               </div>
               <div className="spacer"></div>
            </div>
+         )}
+
+         {/* --- NEW: ALL SONGS TAB --- */}
+         {activeTab === 'all-songs' && (
+            <div className="tab-pane">
+                <div className="glass-header">
+                    <button className="icon-btn" onClick={() => handleNavClick('home')}>
+                        <ArrowLeft size={24} color="white"/>
+                    </button>
+                    <div className="header-text">
+                        <h1>All Songs</h1>
+                        <p>{allKnownSongs.length} Tracks Available</p>
+                    </div>
+                </div>
+                
+                <div className="list-vertical">
+                    {allKnownSongs.map(s => (
+                        <SongRow 
+                           key={s.id} 
+                           s={s} 
+                           list={allKnownSongs} 
+                        />
+                    ))}
+                </div>
+                <div className="spacer"></div>
+            </div>
          )}
 
          {activeTab === 'search' && (
@@ -590,9 +573,7 @@ export default function MusicApp({ user, onLogout }) {
                 
                 <div className="modal-scroll-body">
                     <div className="modal-header">
-                       {/* Calls closePlayer to trigger browser back, syncing history */}
                        <button onClick={closePlayer} className="icon-btn"><ChevronDown size={32}/></button>
-                       {/* <button className="icon-btn" onClick={() => setOpenMenuId(openMenuId === 'player' ? null : 'player')}><MoreHorizontal size={24}/></button> */}
                     </div>
                     <div className="art-glow-container">
                         <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} className="art-glow-bg" />
@@ -641,7 +622,6 @@ export default function MusicApp({ user, onLogout }) {
                                 <ListMusic size={20} color="#aaa"/>
                                 <h3>Up Next</h3>
                             </div>
-                            {/* QUEUE CONTROLS: CLEAR & RESTORE */}
                             <div style={{display:'flex', gap:10}}>
                                 <button className="icon-btn" onClick={clearQueue} title="Clear Queue (Keep Current)">
                                     <Trash2 size={18} color="#ffffff"/>
@@ -654,12 +634,9 @@ export default function MusicApp({ user, onLogout }) {
 
                         <div className="list-vertical">
                             {queue.map((id, i) => {
-                                // Only show surrounding songs to improve performance if queue is huge
                                 if (i < currentIndex - 2 || i > currentIndex + 20) return null;
-                                
                                 const s = getSongById(id);
                                 const isCurrent = i === currentIndex;
-                                
                                 return (
                                     <div key={`${id}-${i}`} className={`glass-row compact ${isCurrent ? 'active-row' : ''}`}>
                                         <img src={s.coverUrl || PERSON_PLACEHOLDER} className="row-thumb small"/>
@@ -667,7 +644,6 @@ export default function MusicApp({ user, onLogout }) {
                                             <div className="row-title" style={{color: isCurrent ? 'var(--neon)' : 'white'}}>{s.title}</div>
                                             <div className="row-artist">{s.artistName}</div>
                                         </div>
-                                        {/* QUEUE ITEM ACTIONS */}
                                         <div className="row-actions">
                                             {!isCurrent && (
                                                 <button className="icon-btn" onClick={() => { setCurrentIndex(i); setPlaying(true); }}>
@@ -694,7 +670,6 @@ export default function MusicApp({ user, onLogout }) {
             </div>
 
             {!isFullScreenPlayer && (
-                // Calls openPlayer to push history state
                 <div className="glass-dock" onClick={openPlayer}>
                     <div className="dock-left">
                         <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} className="dock-thumb"/> 
@@ -721,7 +696,6 @@ export default function MusicApp({ user, onLogout }) {
           </>
       )}
 
-      {/* Nav uses updated handleNavClick */}
       <nav className="glass-nav">
           <button className={activeTab === 'home' ? 'active' : ''} onClick={() => handleNavClick('home')}>
               <Home size={24}/><span>Home</span>
