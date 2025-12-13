@@ -21,6 +21,19 @@ const USP_FEATURES = [
     { title: "Lossless Audio", subtitle: "Crystal clear sound.", icon: <Mic2 size={24} color="#00ff88" />, accent: "linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 0, 0, 0))" },
 ];
 
+// --- NEW COMPONENT: ARTISTIC LINK CARD ---
+const ArtisticLinkCard = ({ title, subtitle, image, onClick }) => (
+  <div className="artistic-box" onClick={onClick}>
+    <div className="artistic-bg" style={{ backgroundImage: `url(${image})` }}></div>
+    <div className="artistic-overlay">
+      <div className="artistic-title">
+         {title} <ArrowRightCircle size={24} color="#fff" />
+      </div>
+      <div className="artistic-subtitle">{subtitle}</div>
+    </div>
+  </div>
+);
+
 export default function MusicApp({ user, onLogout }) {
   // --- VIEW STATE ---
   const [activeTab, setActiveTab] = useState('home'); 
@@ -441,6 +454,16 @@ export default function MusicApp({ user, onLogout }) {
                           <p>{feat.subtitle}</p>
                       </div>
                   ))}
+              </div>
+
+              {/* --- NEW ARTISTIC BOX --- */}
+              <div style={{ padding: '0 20px', marginTop: '20px' }}>
+                  <ArtisticLinkCard 
+                      title="Explore All Music"
+                      subtitle="Dive into the full collection."
+                      image="/planets/nebula.png" 
+                      onClick={() => handleNavClick('search')} 
+                  />
               </div>
 
               <h2 className="section-title">Cosmic Arrivals</h2>
