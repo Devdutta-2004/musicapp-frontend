@@ -615,6 +615,7 @@ export default function MusicApp({ user, onLogout }) {
                         playlists={playlists} 
                         onRefresh={fetchLibraryData} 
                         onPlayPlaylist={() => alert("Playlist playback coming soon!")}
+                        user={user}
                      />
                  )}
 
