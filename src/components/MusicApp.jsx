@@ -11,7 +11,7 @@ import {
     Play, Pause, Heart, ChevronDown, Zap, Mic2, ListMusic, MoreHorizontal,
     ListPlus, PlayCircle, ArrowRightCircle,
     Shuffle, Repeat, Repeat1, Trash2, ArrowUp, ArrowDown, Telescope, Sparkles, RotateCcw, ArrowLeft, Rocket, Orbit,
-    X 
+    X, Minimize2 
 } from "lucide-react";
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -22,7 +22,6 @@ const USP_FEATURES = [
     { title: "Lossless Audio", subtitle: "Crystal clear sound.", icon: <Mic2 size={24} color="#00ff88" />, accent: "linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 0, 0, 0))" },
 ];
 
-// --- ARTISTIC LINK CARD ---
 const ArtisticLinkCard = ({ title, subtitle, image, onClick }) => (
     <div className="artistic-box" onClick={onClick}>
         <div className="artistic-bg" style={{ backgroundImage: `url(${image})` }}></div>
@@ -434,6 +433,7 @@ export default function MusicApp({ user, onLogout }) {
     return (
         <div className="glass-shell">
             <div className="glass-viewport">
+                {/* ... (Tabs Content is fine, keeping standard) ... */}
                 {activeTab === 'home' && (
                     <div className="tab-pane home-animate">
                         <header className="glass-header">
@@ -502,11 +502,7 @@ export default function MusicApp({ user, onLogout }) {
                                 </div>
                             ) : (
                                 allSongs.map(s => (
-                                    <SongRow
-                                        key={s.id}
-                                        s={s}
-                                        list={allSongs}
-                                    />
+                                    <SongRow key={s.id} s={s} list={allSongs} />
                                 ))
                             )}
                         </div>
@@ -538,12 +534,7 @@ export default function MusicApp({ user, onLogout }) {
                         </div>
                         <div className="list-vertical">
                             {searchResults.map(s => (
-                                <SongRow
-                                    key={s.id}
-                                    s={s}
-                                    list={searchResults}
-                                    onClick={() => playNow(s)}
-                                />
+                                <SongRow key={s.id} s={s} list={searchResults} onClick={() => playNow(s)} />
                             ))}
                         </div>
                         <div className="spacer"></div>
@@ -623,14 +614,14 @@ export default function MusicApp({ user, onLogout }) {
 
             {currentSong && (
                 <>
-                    {/* MODAL: Changes Transparency if Lyrics Expanded */}
+                    {/* MODAL: Becomes Transparent when Lyrics Expanded */}
                     <div 
                         className={`glass-modal ${isFullScreenPlayer ? 'open' : ''}`}
                         style={isLyricsExpanded ? { background: 'transparent', backdropFilter: 'none', border: 'none', boxShadow: 'none' } : {}}
                     >
                         <div className="modal-scroll-body">
                             
-                            {/* --- 1. NORMAL MODE: Show All Player UI --- */}
+                            {/* --- 1. NORMAL MODE UI: Hidden if Lyrics Expanded --- */}
                             <div style={{ display: isLyricsExpanded ? 'none' : 'block' }}>
                                 <div className="modal-header">
                                     <button onClick={closePlayer} className="icon-btn"><ChevronDown size={32} /></button>
@@ -645,7 +636,7 @@ export default function MusicApp({ user, onLogout }) {
                                 </div>
                             </div>
 
-                            {/* --- PLAYER CONTROLS: Always Mounted, Hidden if Expanded --- */}
+                            {/* --- PLAYER CONTROLS: Hidden Visually but Kept Mounted so Audio Plays --- */}
                             <div className="modal-controls-wrapper" 
                                  style={{ 
                                      opacity: isLyricsExpanded ? 0 : 1, 
@@ -681,13 +672,23 @@ export default function MusicApp({ user, onLogout }) {
                                 <div className={isLyricsExpanded ? '' : 'glass-inset'}>
                                     <LyricsPanel 
                                         song={currentSong} 
-                                        isExpanded={isLyricsExpanded} 
-                                        setExpanded={setIsLyricsExpanded}
+                                        onExpand={() => setIsLyricsExpanded(true)} 
+                                        isFullMode={isLyricsExpanded}
                                     />
+                                    {/* Close Button specifically for Full Mode */}
+                                    {isLyricsExpanded && (
+                                        <button 
+                                            className="icon-btn"
+                                            onClick={() => setIsLyricsExpanded(false)}
+                                            style={{ position: 'fixed', top: 20, right: 20, zIndex: 2001, background: 'rgba(255,255,255,0.1)' }}
+                                        >
+                                            <Minimize2 size={24} color="white"/>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* --- UP NEXT QUEUE: Hide if Expanded --- */}
+                            {/* --- UP NEXT QUEUE: Hidden if Expanded --- */}
                             <div className="modal-section" style={{ display: isLyricsExpanded ? 'none' : 'block' }}>
                                 <div className="section-header">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
