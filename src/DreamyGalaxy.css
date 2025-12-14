@@ -219,6 +219,35 @@ body::after {
   border: none !important;
   backdrop-filter: none !important;
 }
+/* --- FIX LYRICS OVERFLOW --- */
+
+/* 1. Ensure the Full Screen container is centered and clean */
+.lyrics-panel.full-mode {
+  width: 100%;
+  max-width: 900px;  /* Prevents text from stretching too wide */
+  margin: 0 auto;    /* Centers the block */
+  padding: 0 20px;   /* Adds side padding */
+}
+
+/* 2. Force the lyrics text to wrap inside the screen */
+.lyrics-pre {
+  white-space: pre-wrap !important;   /* CRITICAL: Wraps long lines */
+  word-wrap: break-word !important;   /* Breaks super long words */
+  overflow-wrap: break-word !important;
+  font-family: inherit;               /* Uses your cool font */
+  max-width: 100%;
+  overflow-x: hidden;                 /* No horizontal scroll */
+  padding-bottom: 150px;              /* Extra space at bottom for comfortable scrolling */
+}
+
+/* 3. Hide the scrollbar for a cleaner "Space" look (Optional) */
+.modal-section::-webkit-scrollbar {
+  display: none;
+}
+.modal-section {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
 /* REMOVED: The conflicting "FULL SCREEN LYRICS" blocks that created fake backgrounds.
    Now, because MusicApp.jsx hides the other UI elements and sets transparency,
    the original space background from "body" will show through perfectly.
