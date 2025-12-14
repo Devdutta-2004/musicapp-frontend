@@ -432,8 +432,10 @@ export default function MusicApp({ user, onLogout }) {
 
     return (
         <div className="glass-shell">
-            <div className="glass-viewport">
-                {/* ... (Tabs Content is fine, keeping standard) ... */}
+            {/* --- CHANGE #1: HIDE THE MAIN APP CONTENT --- 
+               When lyrics are expanded, we hide the viewport so the body's space background is seen.
+            */}
+            <div className="glass-viewport" style={{ display: isLyricsExpanded ? 'none' : 'block' }}>
                 {activeTab === 'home' && (
                     <div className="tab-pane home-animate">
                         <header className="glass-header">
@@ -502,7 +504,11 @@ export default function MusicApp({ user, onLogout }) {
                                 </div>
                             ) : (
                                 allSongs.map(s => (
-                                    <SongRow key={s.id} s={s} list={allSongs} />
+                                    <SongRow
+                                        key={s.id}
+                                        s={s}
+                                        list={allSongs}
+                                    />
                                 ))
                             )}
                         </div>
@@ -534,7 +540,12 @@ export default function MusicApp({ user, onLogout }) {
                         </div>
                         <div className="list-vertical">
                             {searchResults.map(s => (
-                                <SongRow key={s.id} s={s} list={searchResults} onClick={() => playNow(s)} />
+                                <SongRow
+                                    key={s.id}
+                                    s={s}
+                                    list={searchResults}
+                                    onClick={() => playNow(s)}
+                                />
                             ))}
                         </div>
                         <div className="spacer"></div>
@@ -621,7 +632,7 @@ export default function MusicApp({ user, onLogout }) {
                     >
                         <div className="modal-scroll-body">
                             
-                            {/* --- 1. NORMAL MODE UI: Hidden if Lyrics Expanded --- */}
+                            {/* --- 2. HIDE HEADER/ART IN EXPANDED MODE --- */}
                             <div style={{ display: isLyricsExpanded ? 'none' : 'block' }}>
                                 <div className="modal-header">
                                     <button onClick={closePlayer} className="icon-btn"><ChevronDown size={32} /></button>
@@ -636,7 +647,7 @@ export default function MusicApp({ user, onLogout }) {
                                 </div>
                             </div>
 
-                            {/* --- PLAYER CONTROLS: Hidden Visually but Kept Mounted so Audio Plays --- */}
+                            {/* --- 3. HIDE CONTROLS (But keep logic running) --- */}
                             <div className="modal-controls-wrapper" 
                                  style={{ 
                                      opacity: isLyricsExpanded ? 0 : 1, 
@@ -667,20 +678,20 @@ export default function MusicApp({ user, onLogout }) {
                                 />
                             </div>
 
-                            {/* --- LYRICS SECTION: Adapts to Full Screen --- */}
-                            <div className="modal-section" style={isLyricsExpanded ? { position:'fixed', top:0, left:0, width:'100%', height:'100%', zIndex:2000 } : {}}>
+                            {/* --- 4. LYRICS CONTAINER (Positioned Absolutely in Full Mode) --- */}
+                            <div className="modal-section" style={isLyricsExpanded ? { position:'fixed', top:0, left:0, width:'100%', height:'100%', zIndex:2000, overflowY:'auto' } : {}}>
                                 <div className={isLyricsExpanded ? '' : 'glass-inset'}>
                                     <LyricsPanel 
                                         song={currentSong} 
                                         onExpand={() => setIsLyricsExpanded(true)} 
                                         isFullMode={isLyricsExpanded}
                                     />
-                                    {/* Close Button specifically for Full Mode */}
+                                    {/* Close Button specific to Lyrics Mode */}
                                     {isLyricsExpanded && (
                                         <button 
                                             className="icon-btn"
                                             onClick={() => setIsLyricsExpanded(false)}
-                                            style={{ position: 'fixed', top: 20, right: 20, zIndex: 2001, background: 'rgba(255,255,255,0.1)' }}
+                                            style={{ position: 'fixed', top: 20, right: 20, zIndex: 2001, background: 'rgba(255,255,255,0.1)', padding: 8 }}
                                         >
                                             <Minimize2 size={24} color="white"/>
                                         </button>
@@ -688,7 +699,7 @@ export default function MusicApp({ user, onLogout }) {
                                 </div>
                             </div>
 
-                            {/* --- UP NEXT QUEUE: Hidden if Expanded --- */}
+                            {/* --- 5. HIDE QUEUE IN EXPANDED MODE --- */}
                             <div className="modal-section" style={{ display: isLyricsExpanded ? 'none' : 'block' }}>
                                 <div className="section-header">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -766,7 +777,8 @@ export default function MusicApp({ user, onLogout }) {
                 </>
             )}
 
-            <nav className="glass-nav">
+            {/* --- 6. HIDE NAVBAR IN EXPANDED MODE --- */}
+            <nav className="glass-nav" style={{ display: isLyricsExpanded ? 'none' : 'flex' }}>
                 <button className={activeTab === 'home' ? 'active' : ''} onClick={() => handleNavClick('home')}>
                     <Home size={24} /><span>Home</span>
                 </button>
