@@ -15,7 +15,7 @@ export default function LyricsPanel({ song }) {
   const menuRef = useRef(null);
 
   // 🛑 YOUR BACKEND URL
-  const API_BASE = "https://groove-j0kw.onrender.com"; 
+  const API_BASE = "https://musicapp-o3ow.onrender.com"; 
 
   useEffect(() => {
     let cancelled = false;
@@ -117,19 +117,19 @@ export default function LyricsPanel({ song }) {
       <div className="lyrics-expanded-overlay">
         <div className="lyrics-expanded-header">
             <div style={{ textAlign: 'center', width: '100%' }}>
-                <h2 style={{ fontSize: '2rem', margin: '0 0 5px 0', textShadow: '0 0 10px rgba(255,255,255,0.5)' }}>{song.title}</h2>
-                <span style={{ fontSize: '1.2rem', color: '#d86dfc' }}>{song.artistName}</span>
+                <h2 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', textShadow: '0 0 15px rgba(216, 109, 252, 0.6)' }}>{song.title}</h2>
+                <span style={{ fontSize: '1.4rem', color: '#5eb3fd', letterSpacing: '1px' }}>{song.artistName}</span>
             </div>
             <button 
                 className="icon-btn close-expand" 
                 onClick={() => setIsExpanded(false)}
-                style={{ position: 'absolute', right: 20, top: 20, background: 'rgba(255,255,255,0.1)' }}
+                title="Exit Full Screen"
             >
                 <Minimize2 size={28} color="white" />
             </button>
         </div>
         <div className="lyrics-expanded-content">
-            {lyrics || "No lyrics found."}
+            {lyrics || "No lyrics found in deep space."}
         </div>
       </div>
     );
@@ -149,7 +149,7 @@ export default function LyricsPanel({ song }) {
             <button 
                 className="icon-btn"
                 onClick={() => setIsExpanded(true)}
-                title="Expand Lyrics"
+                title="Full Screen Mode"
             >
                 <Maximize2 size={18} />
             </button>
@@ -159,8 +159,6 @@ export default function LyricsPanel({ song }) {
             <button
                 className={`icon-btn ${menuOpen ? 'active' : ''}`}
                 onClick={() => setMenuOpen(v => !v)}
-                aria-expanded={menuOpen}
-                aria-haspopup="menu"
                 title="Lyrics actions"
             >
                 <Edit2 size={18} />
@@ -168,7 +166,6 @@ export default function LyricsPanel({ song }) {
 
             {menuOpen && (
                 <div
-                role="menu"
                 className="lyrics-actions-menu"
                 style={{
                     position: 'absolute',
