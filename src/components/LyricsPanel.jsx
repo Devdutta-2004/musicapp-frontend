@@ -14,7 +14,7 @@ export default function LyricsPanel({ song }) {
   
   const menuRef = useRef(null);
 
-  // 🛑 PASTE YOUR RENDER BACKEND URL HERE
+  // 🛑 YOUR BACKEND URL
   const API_BASE = "https://groove-j0kw.onrender.com"; 
 
   useEffect(() => {
@@ -31,7 +31,6 @@ export default function LyricsPanel({ song }) {
       try {
         const resp = await fetch(`${API_BASE}/api/lyrics?songId=${encodeURIComponent(song.id)}`);
         
-        // If 404, it just means no lyrics exist yet
         if (!resp.ok && resp.status !== 404) throw new Error("Failed to fetch");
 
         const json = await resp.json();
@@ -117,12 +116,16 @@ export default function LyricsPanel({ song }) {
     return (
       <div className="lyrics-expanded-overlay">
         <div className="lyrics-expanded-header">
-            <div>
-                <h2>{song.title}</h2>
-                <span className="expanded-artist">{song.artistName}</span>
+            <div style={{ textAlign: 'center', width: '100%' }}>
+                <h2 style={{ fontSize: '2rem', margin: '0 0 5px 0', textShadow: '0 0 10px rgba(255,255,255,0.5)' }}>{song.title}</h2>
+                <span style={{ fontSize: '1.2rem', color: '#d86dfc' }}>{song.artistName}</span>
             </div>
-            <button className="icon-btn close-expand" onClick={() => setIsExpanded(false)}>
-                <Minimize2 size={24} color="white" />
+            <button 
+                className="icon-btn close-expand" 
+                onClick={() => setIsExpanded(false)}
+                style={{ position: 'absolute', right: 20, top: 20, background: 'rgba(255,255,255,0.1)' }}
+            >
+                <Minimize2 size={28} color="white" />
             </button>
         </div>
         <div className="lyrics-expanded-content">
