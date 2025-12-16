@@ -798,7 +798,7 @@ export default function MusicApp({ user, onLogout }) {
                     className="icon-btn"
                     onClick={() => setShowAIChat(true)}
                     style={{
-                        position: 'fixed', top: 200px, right: 20, 
+                        position: 'fixed', top: 200, right: 20, 
                         background: 'linear-gradient(45deg, #00ffff, #d86dfc)',
                         boxShadow: '0 0 15px rgba(0,255,255,0.5)',
                         borderRadius: '50%', width: 50, height: 50, zIndex: 100,
