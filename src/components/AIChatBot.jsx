@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, X, Sparkles } from "lucide-react";
+import { Send, Bot, X } from "lucide-react";
 
 export default function AIChatBot({ onClose }) {
   const [messages, setMessages] = useState([
@@ -21,7 +20,7 @@ export default function AIChatBot({ onClose }) {
     setInput('');
     setLoading(true);
 
-    // --- MOCK AI RESPONSE (Replace with fetch call to your backend) ---
+    // --- MOCK RESPONSE (Connect to OpenAI/Gemini API here later) ---
     setTimeout(() => {
       let reply = "That's an interesting question about the cosmos of music!";
       if (userMsg.toLowerCase().includes('lyrics')) reply = "I can help you analyze lyrics! Which song are you thinking of?";
