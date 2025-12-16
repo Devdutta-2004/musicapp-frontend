@@ -5,13 +5,16 @@ import UploadCard from './UploadCard';
 import LyricsPanel from './LyricsPanel';
 import PlanetCard from './PlanetCard';
 import PlaylistPanel from './PlaylistPanel';
+// --- NEW IMPORTS ---
+import Leaderboard from './Leaderboard'; 
+import AIChatBot from './AIChatBot';
 import '../App.css';
 import {
     Home, Search, Library, User, PlusCircle,
     Play, Pause, Heart, ChevronDown, Zap, Mic2, ListMusic, MoreHorizontal,
     ListPlus, PlayCircle, ArrowRightCircle,
     Shuffle, Repeat, Repeat1, Trash2, ArrowUp, ArrowDown, Telescope, Sparkles, RotateCcw, ArrowLeft, Rocket, Orbit,
-    X, Minimize2 
+    X, Minimize2, MessageCircle, Trophy // Added MessageCircle & Trophy
 } from "lucide-react";
 
 const PERSON_PLACEHOLDER = '/person-placeholder.png';
@@ -42,6 +45,12 @@ export default function MusicApp({ user, onLogout }) {
     
     // --- NEW: Lyrics Full Screen State ---
     const [isLyricsExpanded, setIsLyricsExpanded] = useState(false);
+
+    // --- NEW: AI Chat State ---
+    const [showAIChat, setShowAIChat] = useState(false);
+
+    // --- NEW: Song Current Time for Sync ---
+    const [songCurrentTime, setSongCurrentTime] = useState(0);
 
     // Library State
     const [libraryTab, setLibraryTab] = useState('liked');
@@ -433,7 +442,7 @@ export default function MusicApp({ user, onLogout }) {
 
     return (
         <div className="glass-shell">
-            {/* 1. Hide the entire viewport (home, lists, etc) when lyrics are expanded */}
+            {/* Main App Content */}
             <div className="glass-viewport" style={{ display: isLyricsExpanded ? 'none' : 'block' }}>
                 {activeTab === 'home' && (
                     <div className="tab-pane home-animate">
@@ -560,6 +569,11 @@ export default function MusicApp({ user, onLogout }) {
                     </div>
                 )}
 
+                {/* --- NEW LEADERBOARD TAB --- */}
+                {activeTab === 'leaderboard' && (
+                    <Leaderboard user={user} />
+                )}
+
                 {activeTab === 'library' && (
                     <div className="tab-pane">
                         <h2 className="page-title">Your Library</h2>
@@ -624,9 +638,6 @@ export default function MusicApp({ user, onLogout }) {
 
             {currentSong && (
                 <>
-                    {/* CHANGE #2: Add 'transparent-mode' class to glass-modal
-                       This class will be targeted in CSS to force transparency
-                    */}
                     <div 
                         className={`glass-modal ${isFullScreenPlayer ? 'open' : ''} ${isLyricsExpanded ? 'transparent-mode' : ''}`}
                     >
@@ -674,7 +685,11 @@ export default function MusicApp({ user, onLogout }) {
                                     onToggleShuffle={toggleShuffle}
                                     sleepTime={sleepTime}
                                     onSetSleepTimer={(min) => setSleepTime(min)}
-                                    onProgress={(c, t) => setSongProgress(t ? (c / t) * 100 : 0)}
+                                    // --- UPDATED: Track time for lyrics ---
+                                    onProgress={(c, t) => {
+                                        setSongProgress(t ? (c / t) * 100 : 0);
+                                        setSongCurrentTime(c);
+                                    }}
                                 />
                             </div>
 
@@ -683,6 +698,7 @@ export default function MusicApp({ user, onLogout }) {
                                 <div className={isLyricsExpanded ? '' : 'glass-inset'}>
                                     <LyricsPanel 
                                         song={currentSong} 
+                                        currentTime={songCurrentTime} // Pass sync time
                                         onExpand={() => setIsLyricsExpanded(true)} 
                                         isFullMode={isLyricsExpanded}
                                     />
@@ -776,6 +792,25 @@ export default function MusicApp({ user, onLogout }) {
                 </>
             )}
 
+            {/* --- NEW: AI CHAT BUTTON & MODAL --- */}
+            {!isLyricsExpanded && !isFullScreenPlayer && (
+                <button 
+                    className="icon-btn"
+                    onClick={() => setShowAIChat(true)}
+                    style={{
+                        position: 'fixed', bottom: 90, right: 20, 
+                        background: 'linear-gradient(45deg, #00ffff, #d86dfc)',
+                        boxShadow: '0 0 15px rgba(0,255,255,0.5)',
+                        borderRadius: '50%', width: 50, height: 50, zIndex: 100,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                >
+                    <MessageCircle size={28} color="white"/>
+                </button>
+            )}
+            
+            {showAIChat && <AIChatBot onClose={() => setShowAIChat(false)} />}
+
             {/* --- 7. Hide Nav Bar --- */}
             <nav className="glass-nav" style={{ display: isLyricsExpanded ? 'none' : 'flex' }}>
                 <button className={activeTab === 'home' ? 'active' : ''} onClick={() => handleNavClick('home')}>
@@ -787,9 +822,16 @@ export default function MusicApp({ user, onLogout }) {
                 <button className={activeTab === 'upload' ? 'active' : ''} onClick={() => handleNavClick('upload')}>
                     <Rocket size={32} color={activeTab === 'upload' ? '#9146ff' : '#ccc'} /><span>Upload</span>
                 </button>
+                
+                {/* Updated Nav with Leaderboard */}
+                <button className={activeTab === 'leaderboard' ? 'active' : ''} onClick={() => handleNavClick('leaderboard')}>
+                    <Trophy size={24}/><span>Rank</span>
+                </button>
+
                 <button className={activeTab === 'library' ? 'active' : ''} onClick={() => handleNavClick('library')}>
                     <Orbit size={24} /><span>Library</span>
                 </button>
+                {/* Replaced Planet with Leaderboard or add as 6th item */}
                 <button className={activeTab === 'planet' ? 'active' : ''} onClick={() => handleNavClick('planet')}>
                     <Sparkles size={24} /><span>Planet</span>
                 </button>
