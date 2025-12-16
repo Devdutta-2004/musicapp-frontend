@@ -7,7 +7,7 @@ export default function Leaderboard({ user }) {
   const [loading, setLoading] = useState(true);
   
   // This points to your Spring Boot Backend URL
-  const API_BASE = (process.env.REACT_APP_API_BASE_URL || "https://musicapp-o3ow.onrender.com").replace(/\/$/, "");
+  const res = await axios.get(`${API_BASE}/api/users/leaderboard`); // <--- ADD /users/
 
   useEffect(() => {
     fetchLeaderboard();
