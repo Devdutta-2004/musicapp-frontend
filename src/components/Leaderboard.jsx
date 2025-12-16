@@ -6,21 +6,18 @@ export default function Leaderboard({ user }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Use the same API Base as the rest of your app
+  // This points to your Spring Boot Backend URL
   const API_BASE = (process.env.REACT_APP_API_BASE_URL || "https://musicapp-o3ow.onrender.com").replace(/\/$/, "");
 
   useEffect(() => {
     fetchLeaderboard();
-  }, [user]); // Refresh if user changes
+  }, [user]);
 
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
-      // 1. GET REAL DATA FROM BACKEND
+      // Calls your Spring Boot @GetMapping("/api/leaderboard")
       const res = await axios.get(`${API_BASE}/api/leaderboard`);
-      
-      // 2. Ensure the current user is in the list or handle rank calculation
-      // For now, we just show the top 50 returned by the API
       setUsers(res.data);
     } catch (error) {
       console.error("Failed to fetch leaderboard:", error);
@@ -85,12 +82,13 @@ export default function Leaderboard({ user }) {
                     {badge.label} 
                     <span style={{width:4, height:4, borderRadius:'50%', background:'#555'}}></span>
                     <span style={{ color: '#fff' }}>
+                        {/* 'minutes' matches the field name in your Java DTO */}
                         {Math.floor(u.minutes / 60)}h {u.minutes % 60}m
                     </span>
                   </div>
                 </div>
                 
-                {/* Status Icon (Optional: Shows flame for top 3) */}
+                {/* Status Icon */}
                 {index < 3 && <Flame size={20} color={badge.color} fill={badge.color} style={{ opacity: 0.2 + (0.3 * (3-index)) }} />}
               </div>
             );
