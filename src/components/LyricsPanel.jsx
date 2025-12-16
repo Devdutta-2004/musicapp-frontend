@@ -17,23 +17,20 @@ export default function LyricsPanel({ song, currentTime = 0, onExpand, isFullMod
   useEffect(() => {
     if (!song) return;
 
-    let isMounted = true; // Flag to track if this song is still active
+    let isMounted = true; 
 
-    // Reset everything immediately when song changes
     setLyrics('');
     setSyncedLines([]);
-    setEditing(false); // Close edit mode
+    setEditing(false); 
     setLoading(true);
 
     async function load() {
       let foundLyrics = '';
 
-      // A. Try to use lyrics from the song object first
       if (song.lyrics) {
         foundLyrics = song.lyrics;
       }
 
-      // B. Fetch from API
       try {
         const resp = await fetch(`${API_BASE}/api/lyrics?songId=${encodeURIComponent(song.id)}`);
         if (resp.ok) {
@@ -42,9 +39,8 @@ export default function LyricsPanel({ song, currentTime = 0, onExpand, isFullMod
             else if (json.entry && json.entry.lyrics) foundLyrics = json.entry.lyrics;
         }
       } catch (e) { 
-        // Ignore errors, we'll just show empty
+        // Ignore errors
       } finally {
-        // C. Update State ONLY if this is still the current song
         if (isMounted) {
             if (foundLyrics) {
                 setLyrics(foundLyrics);
@@ -56,7 +52,6 @@ export default function LyricsPanel({ song, currentTime = 0, onExpand, isFullMod
     }
     load();
 
-    // Cleanup function: runs if song changes before fetch finishes
     return () => { isMounted = false; };
   }, [song]);
 
@@ -83,7 +78,7 @@ export default function LyricsPanel({ song, currentTime = 0, onExpand, isFullMod
     setSyncedLines(parsed);
   };
 
-  // 3. Sync Logic
+  // 3. Sync Logic (FIXED: Only scroll if Expanded)
   useEffect(() => {
     if (syncedLines.length === 0 || editing) return;
     
@@ -96,14 +91,16 @@ export default function LyricsPanel({ song, currentTime = 0, onExpand, isFullMod
 
     if (index !== -1 && index !== activeLineIndex) {
       setActiveLineIndex(index);
-      if (scrollRef.current) {
+      
+      // FIX: Only auto-scroll if we are in Full Mode
+      if (isFullMode && scrollRef.current) {
         const activeEl = scrollRef.current.children[index];
         if (activeEl) {
           activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }
     }
-  }, [currentTime, syncedLines, editing]);
+  }, [currentTime, syncedLines, editing, isFullMode]); // Added isFullMode dependency
 
   // Close menu on outside click
   useEffect(() => {
@@ -146,9 +143,10 @@ export default function LyricsPanel({ song, currentTime = 0, onExpand, isFullMod
   if (!song) return <div className="lyrics-empty">Select a song</div>;
 
   return (
-    <div className={`lyrics-panel ${isFullMode ? 'full-mode' : ''}`} role="region">
+    <div className={`lyrics-panel ${isFullMode ? 'full-mode' : ''}`} role="region" style={{ position: 'relative' }}>
+      
       {/* Header */}
-      <div className="lyrics-panel-header" style={isFullMode ? { justifyContent: 'center', marginBottom: 30 } : {}}>
+      <div className="lyrics-panel-header" style={isFullMode ? { justifyContent: 'center', marginBottom: 30 } : { paddingRight: 40 }}>
         <div style={{ minWidth: 0, textAlign: isFullMode ? 'center' : 'left' }}>
           <h3 style={{ margin: 0, fontSize: isFullMode ? '2.5rem' : 18 }}>{song.title}</h3>
           <div style={{ color: '#5eb3fd' }}>
@@ -157,10 +155,18 @@ export default function LyricsPanel({ song, currentTime = 0, onExpand, isFullMod
           </div>
         </div>
         
+        {/* BUTTONS: Absolute Positioned Top-Right when Minimized */}
         {!isFullMode && (
-            <div style={{ display:'flex', gap: 10, alignItems: 'center' }}>
+            <div style={{ 
+                position: 'absolute', 
+                top: 10, 
+                right: 10, 
+                display: 'flex', 
+                gap: 5, 
+                alignItems: 'center' 
+            }}>
                 <button className="icon-btn" onClick={onExpand} title="Full Lyrics">
-                    <Maximize2 size={24} /> {/* CHANGED: Bigger Icon (24px) */}
+                    <Maximize2 size={20} /> 
                 </button>
                 
                 <div ref={menuRef} style={{ position: 'relative' }}>
@@ -168,7 +174,7 @@ export default function LyricsPanel({ song, currentTime = 0, onExpand, isFullMod
                         <Edit2 size={18} />
                     </button>
                     {menuOpen && (
-                        <div className="lyrics-actions-menu" style={{ position: 'absolute', left: 10, top: '100%', zIndex: 60, background:'#222', border:'1px solid #444', padding:5, borderRadius:5, minWidth:140 }}>
+                        <div className="lyrics-actions-menu" style={{ position: 'absolute', right: 0, top: '100%', zIndex: 60, background:'#222', border:'1px solid #444', padding:5, borderRadius:5, minWidth:140 }}>
                              <button className="small-btn" onClick={() => { setEditing(!editing); setMenuOpen(false); }}>
                                 {editing ? 'Stop Editing' : 'Edit'}
                              </button>
@@ -188,9 +194,8 @@ export default function LyricsPanel({ song, currentTime = 0, onExpand, isFullMod
             isFullMode 
             ? { textAlign: 'center', paddingBottom: '50vh' } 
             : { 
-                height: '100px', // CHANGED: Very small height
-                overflowY: 'hidden', // CHANGED: Force user to expand (hide scrollbar)
-                // Add a fade-out gradient to show text continues
+                height: '100px', 
+                overflowY: 'hidden', 
                 maskImage: 'linear-gradient(180deg, white 60%, transparent)',
                 WebkitMaskImage: 'linear-gradient(180deg, white 60%, transparent)' 
               }
