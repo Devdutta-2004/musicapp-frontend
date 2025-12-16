@@ -5,9 +5,9 @@ import { Trophy, Medal, Crown, Flame, Zap, Sparkles } from "lucide-react";
 export default function Leaderboard({ user }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // This points to your Spring Boot Backend URL
-  const res = await axios.get(`${API_BASE}/api/users/leaderboard`); // <--- ADD /users/
+
+  // 1. DEFINE API BASE URL
+  const API_BASE = (process.env.REACT_APP_API_BASE_URL || "https://musicapp-o3ow.onrender.com").replace(/\/$/, "");
 
   useEffect(() => {
     fetchLeaderboard();
@@ -16,8 +16,9 @@ export default function Leaderboard({ user }) {
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
-      // Calls your Spring Boot @GetMapping("/api/leaderboard")
-      const res = await axios.get(`${API_BASE}/api/leaderboard`);
+      // 2. CORRECT URL (MOVED INSIDE THE FUNCTION)
+      // Calls your Spring Boot @GetMapping("/api/users/leaderboard")
+      const res = await axios.get(`${API_BASE}/api/users/leaderboard`);
       setUsers(res.data);
     } catch (error) {
       console.error("Failed to fetch leaderboard:", error);
@@ -56,7 +57,7 @@ export default function Leaderboard({ user }) {
         <div className="list-vertical">
           {users.map((u, index) => {
             const badge = getRankBadge(index);
-            const isMe = u.id === user.id;
+            const isMe = user && u.id === user.id;
             
             return (
               <div key={u.id} className={`glass-row ${isMe ? 'active-row' : ''}`} style={{ cursor:'default', padding:'15px' }}>
@@ -82,7 +83,6 @@ export default function Leaderboard({ user }) {
                     {badge.label} 
                     <span style={{width:4, height:4, borderRadius:'50%', background:'#555'}}></span>
                     <span style={{ color: '#fff' }}>
-                        {/* 'minutes' matches the field name in your Java DTO */}
                         {Math.floor(u.minutes / 60)}h {u.minutes % 60}m
                     </span>
                   </div>
