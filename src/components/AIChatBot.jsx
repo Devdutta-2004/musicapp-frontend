@@ -9,8 +9,10 @@ export default function AIChatBot({ onClose }) {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
 
+  // ✅ Points to your Online Backend
   const API_BASE = (process.env.REACT_APP_API_BASE_URL || "https://musicapp-o3ow.onrender.com").replace(/\/$/, "");
 
+  // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
@@ -41,23 +43,24 @@ export default function AIChatBot({ onClose }) {
   };
 
   return (
-    <div className="glass-modal" style={{ 
-      // --- FULL SCREEN STYLES ---
+    // 🔴 CHANGE: Removed 'glass-modal' class to prevent CSS conflicts
+    // 🟢 ADDED: opacity: 1 and visibility: visible just in case
+    <div style={{ 
       position: 'fixed', 
-      top: 0,                 // Snap to top
-      left: 0,                // Snap to left
-      width: '100vw',         // Full Width
-      height: '100vh',        // Full Height
+      top: 0, 
+      left: 0, 
+      width: '100vw', 
+      height: '100vh', 
       zIndex: 3000, 
       
       display: 'flex', 
       flexDirection: 'column', 
       padding: 0,
       
-      // Full screen background
       background: 'rgba(15, 12, 41, 0.98)', 
-      borderRadius: 0,        // No corners for full screen
-      backdropFilter: 'blur(10px)'
+      backdropFilter: 'blur(10px)',
+      opacity: 1,           // Ensure it's visible
+      visibility: 'visible' // Ensure it's visible
     }}>
       
       {/* Header */}
@@ -69,18 +72,18 @@ export default function AIChatBot({ onClose }) {
           <h3 style={{ margin:0, fontSize:18, color:'white' }}>AI Music Assistant</h3>
         </div>
         
-        {/* Close Button - Bigger for easy access */}
+        {/* Close Button */}
         <button onClick={onClose} className="icon-btn" style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', padding: 10, borderRadius: '50%' }}>
             <X size={24}/>
         </button>
       </div>
 
-      {/* Chat Area - Expands to fill screen */}
+      {/* Chat Area */}
       <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '20px 5%', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {messages.map((m, i) => (
           <div key={i} style={{
             alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-            maxWidth: '80%', // Wider bubbles for full screen
+            maxWidth: '80%', 
             display: 'flex', flexDirection: 'column', gap: 4
           }}>
             <div style={{
@@ -107,7 +110,7 @@ export default function AIChatBot({ onClose }) {
         )}
       </div>
 
-      {/* Input Area - Fixed at Bottom */}
+      {/* Input Area */}
       <div style={{ padding: '20px', display: 'flex', gap: 10, borderTop: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', flexShrink: 0 }}>
         <input 
           className="glass-input" 
