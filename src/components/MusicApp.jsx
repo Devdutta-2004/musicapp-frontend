@@ -12,7 +12,7 @@ import {
     Home, Search, Library, User, PlusCircle,
     Play, Pause, Heart, ChevronDown, Zap, Mic2, ListMusic, MoreHorizontal,
     ListPlus, PlayCircle, ArrowRightCircle,
-    Shuffle, Repeat, Repeat1, Trash2, ArrowUp, ArrowDown, Telescope, Sparkles, Sparkles,RotateCcw, ArrowLeft, Rocket, Orbit,
+    Shuffle, Repeat, Repeat1, Trash2, ArrowUp, ArrowDown, Telescope, Sparkles, Sparkle,RotateCcw, ArrowLeft, Rocket, Orbit,
     X, Minimize2, MessageCircle, Trophy, Bot, Globe
 } from "lucide-react";
 
