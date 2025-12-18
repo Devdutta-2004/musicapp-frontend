@@ -861,106 +861,171 @@ body {
   margin-top: 4px;
 }
 /* ============================================================================
-   14. UPDATED AI INTERFACE (Better Spacing)
+   15. COSMIC AI INTERFACE (Final V2)
    ============================================================================ */
 
-/* Main Container: columns, full height */
-.ai-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  position: relative;
+/* Force Full Screen & Remove Padding */
+.tab-pane.ai-container {
+  position: fixed; /* Takes over the view */
+  top: 0; left: 0; width: 100%; height: 100%;
+  padding: 0;
+  display: flex; flex-direction: column;
+  background: #000;
+  z-index: 50; /* Above regular content, below Nav (Nav is 90) */
   overflow: hidden;
-  background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
 }
 
-/* 1. TOP: The Chat Feed (Takes most space now) */
-.ai-chat-feed {
-  flex: 1; /* This pushes controls down and orb up/down */
-  overflow-y: auto;
-  padding: 20px;
-  padding-bottom: 20px;
-  z-index: 2; /* Sit above the orb */
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 5%, black 95%, transparent);
+/* --- ANIMATED SPACE BACKGROUND --- */
+.space-bg {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
 }
+.stars {
+  width: 1px; height: 1px;
+  background: transparent;
+  box-shadow: 10px 10px #FFF, 20px 50px #FFF, 100px 80px #FFF, 150px 200px #FFF, 300px 300px #FFF;
+  animation: animStar 50s linear infinite;
+}
+.stars2 {
+  width: 2px; height: 2px;
+  background: transparent;
+  box-shadow: 15px 15px #FFF, 120px 250px #FFF, 200px 50px #FFF;
+  animation: animStar 100s linear infinite;
+}
+.nebula {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(145, 70, 255, 0.15), transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(0, 255, 255, 0.15), transparent 40%);
+  filter: blur(40px);
+}
+@keyframes animStar { from { transform: translateY(0px); } to { transform: translateY(-2000px); } }
 
-/* 2. MIDDLE: The Siri Orb (Background Visual) */
-/* We position it absolute so it doesn't push text around, it sits behind */
-.siri-orb-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
+/* --- COSMIC CORE (THE ORB) --- */
+.cosmic-core-container {
+  position: absolute; top: 40%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none; /* Let clicks pass through to chat */
   z-index: 1;
-  opacity: 0.6; /* Dim it slightly so text reads better */
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.cosmic-core {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, #00ffff 30%, #000 70%);
+  box-shadow: 0 0 50px #00ffff, inset 0 0 20px #fff;
+  position: relative;
+  transition: all 0.5s ease;
+}
+/* States */
+.cosmic-core.idle { animation: pulseCore 4s infinite ease-in-out; }
+.cosmic-core.listening { transform: scale(1.2); box-shadow: 0 0 80px #ff00cc; background: radial-gradient(circle, #fff 0%, #ff00cc 30%, #000 70%); }
+.cosmic-core.speaking { animation: vibrateCore 0.2s infinite; box-shadow: 0 0 100px #9146ff; }
+.cosmic-core.processing { animation: spinCore 2s linear infinite; border: 2px dashed rgba(255,255,255,0.5); background: #000; }
+
+.status-text {
+  margin-top: 30px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: rgba(0, 255, 255, 0.7);
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
 
-/* 3. BOTTOM: Input Controls (Compact & Fixed) */
-.ai-controls {
-  padding: 15px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(20, 20, 30, 0.95);
-  border-top: 1px solid rgba(255,255,255,0.1);
-  z-index: 10;
-  margin-bottom: 80px; /* Space for the bottom Nav Bar */
+@keyframes pulseCore { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }
+@keyframes vibrateCore { 0% { transform: translate(1px, 1px) scale(1.1); } 50% { transform: translate(-1px, -1px) scale(1.1); } 100% { transform: translate(1px, -1px) scale(1.1); } }
+@keyframes spinCore { 100% { transform: rotate(360deg); } }
+
+/* --- CHAT FEED --- */
+.ai-chat-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 100px 20px 20px; /* Space for top header if any */
+  z-index: 2;
+  display: flex; flex-direction: column;
+  /* Fade out top messages */
+  mask-image: linear-gradient(to bottom, transparent 0%, black 10%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%);
 }
 
-/* Message Bubbles */
+.ai-msg-wrapper { display: flex; width: 100%; margin-bottom: 16px; }
+.ai-msg-wrapper.user { justify-content: flex-end; }
+.ai-msg-wrapper.assistant { justify-content: flex-start; }
+
 .ai-msg {
-  padding: 12px 18px;
-  border-radius: 18px;
-  max-width: 85%;
-  margin-bottom: 12px;
-  line-height: 1.5;
+  max-width: 80%;
+  padding: 14px 20px;
+  border-radius: 20px;
   font-size: 15px;
+  line-height: 1.5;
+  position: relative;
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 .ai-msg.user {
-  align-self: flex-end;
-  background: linear-gradient(135deg, #00ffff22, #0077ff44);
-  border: 1px solid #00ffff44;
-  color: #fff;
+  background: rgba(0, 255, 255, 0.15);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  color: white;
   border-bottom-right-radius: 4px;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
 }
 .ai-msg.assistant {
-  align-self: flex-start;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(145, 70, 255, 0.1);
+  border: 1px solid rgba(145, 70, 255, 0.3);
   color: #ddd;
   border-bottom-left-radius: 4px;
 }
 
-/* Stop Button (Appears when speaking) */
-.stop-btn-overlay {
+/* --- BOTTOM CONTROLS --- */
+.ai-controls-glass {
   position: absolute;
-  bottom: 160px; /* Above the input bar */
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 0, 85, 0.9);
-  color: white;
-  padding: 10px 20px;
-  border-radius: 30px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: bold;
-  font-size: 14px;
-  cursor: pointer;
+  bottom: 85px; /* Sits exactly above Nav Bar (Nav is 80px) */
+  left: 10px; right: 10px; /* Floating style */
+  height: 70px;
+  background: rgba(10, 10, 15, 0.9);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 35px;
+  display: flex; align-items: center; padding: 0 8px;
   z-index: 20;
-  box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
-  animation: popIn 0.3s ease-out;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  backdrop-filter: blur(20px);
 }
 
-@keyframes popIn { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+.input-field-wrapper { flex: 1; margin: 0 10px; }
+.holo-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 16px;
+  outline: none;
+}
+.holo-input::placeholder { color: rgba(255,255,255,0.3); }
+
+.action-btn {
+  width: 54px; height: 54px;
+  border-radius: 50%; border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+}
+.action-btn.send { background: #00ffff; box-shadow: 0 0 15px rgba(0,255,255,0.4); }
+.action-btn.mic { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); }
+.action-btn.mic.active { background: #ff0055; box-shadow: 0 0 20px #ff0055; border-color: #ff0055; animation: pulseMic 1s infinite; }
+
+/* --- FLOATING STOP BUTTON --- */
+.stop-btn-pulse {
+  position: absolute; bottom: 170px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 0, 85, 0.9);
+  color: white; border: none;
+  padding: 12px 24px; border-radius: 30px;
+  font-weight: 700; letter-spacing: 1px; font-size: 12px;
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer; z-index: 30;
+  box-shadow: 0 0 30px rgba(255, 0, 85, 0.4);
+  animation: floatUp 0.3s ease-out;
+}
+@keyframes pulseMic { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+@keyframes floatUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
 /* ============================================================================
    14. SCROLLING TEXT (MARQUEE) & DASHBOARD GRID
    ============================================================================ */
@@ -1029,63 +1094,4 @@ body {
   0% { transform: translateX(0); }
   20% { transform: translateX(0); } /* Pause at start */
   100% { transform: translateX(-100%); }
-}
-/* ============================================================================
-   15. AI LAYOUT FIXES (Input at Bottom & Full Height)
-   ============================================================================ */
-
-/* Force the AI Tab to fill the screen and remove default page padding */
-.tab-pane.ai-container {
-  position: absolute;    /* Break out of the standard flow */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;          /* Full screen height */
-  padding: 0;            /* Remove side padding */
-  display: flex;
-  flex-direction: column;
-  background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
-  z-index: 10;           /* Sit below the Nav Bar (z-index 90) */
-}
-
-/* Chat Feed takes all available space */
-.ai-chat-feed {
-  flex: 1;
-  overflow-y: auto;
-  padding: 80px 20px 20px 20px; /* Top padding for header space */
-  display: flex;
-  flex-direction: column;
-  /* Mask to fade text at the very top */
-  mask-image: linear-gradient(to bottom, transparent, black 10%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%);
-}
-
-/* Controls fixed at the bottom, exactly above the Nav Bar */
-.ai-controls {
-  flex-shrink: 0;        /* Don't let it shrink */
-  padding: 15px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(15, 15, 20, 0.98); /* Solid dark background */
-  border-top: 1px solid rgba(255,255,255,0.1);
-  
-  /* CRITICAL FIX: Position it exactly above the 80px Nav Bar */
-  position: absolute; 
-  bottom: 80px; 
-  left: 0; 
-  width: 100%;
-  z-index: 20;
-}
-
-/* Adjust the Orb to be centered in the view, not the page */
-.siri-orb-container {
-  position: absolute;
-  top: 45%;              /* Slightly higher visually */
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 50%;
-  pointer-events: none;
-  z-index: 0;
 }
