@@ -420,7 +420,7 @@ export default function MusicApp({ user, onLogout }) {
                             <div className="mini-card" onClick={() => handleNavClick('planet')}>
                                 <div className="mini-card-bg" style={{ backgroundImage: `url(/planets/planetscard.jpeg)` }}></div>
                                 <div className="mini-card-overlay">
-                                    <div className="mini-card-title"><Globe size={16}/> Cosmic ID</div>
+                                    <div className="mini-card-title"><Sparkle size={16}/> Your Aura</div>
                                 </div>
                             </div>
                             {/* All Songs Card */}
@@ -603,7 +603,7 @@ export default function MusicApp({ user, onLogout }) {
                 
                 {/* AI BUTTON: Aligned perfectly inside the bar */}
                 <button className={activeTab === 'ai' ? 'active' : ''} onClick={() => handleNavClick('ai')}>
-                    <Bot size={24} /><span>AI Guide</span>
+                    <Bot size={24} /><span>Lyra</span>
                 </button>
 
                 <button className={activeTab === 'upload' ? 'active' : ''} onClick={() => handleNavClick('upload')}>
