@@ -409,18 +409,18 @@ export default function MusicApp({ user, onLogout }) {
 
                         {/* --- TOP DASHBOARD GRID --- */}
                         <div className="dashboard-grid">
+                            {/* Leaderboard Card */}
+                            <div className="mini-card" onClick={() => handleNavClick('leaderboard')}>
+                                <div className="mini-card-bg" style={{ backgroundImage: `url(/planets/trophy.jpeg)` }}></div>
+                                <div className="mini-card-overlay">
+                                    <div className="mini-card-title"><Trophy size={16}/> Rankings</div>
+                                </div>
+                            </div>
                             {/* Planet Card */}
                             <div className="mini-card" onClick={() => handleNavClick('planet')}>
                                 <div className="mini-card-bg" style={{ backgroundImage: `url(/planets/nebula.png)` }}></div>
                                 <div className="mini-card-overlay">
                                     <div className="mini-card-title"><Globe size={16}/> Cosmic ID</div>
-                                </div>
-                            </div>
-                            {/* Leaderboard Card */}
-                            <div className="mini-card" onClick={() => handleNavClick('leaderboard')}>
-                                <div className="mini-card-bg" style={{ background: 'linear-gradient(45deg, #FFD700, #FFA500)' }}></div>
-                                <div className="mini-card-overlay">
-                                    <div className="mini-card-title"><Trophy size={16}/> Rankings</div>
                                 </div>
                             </div>
                             {/* All Songs Card */}
