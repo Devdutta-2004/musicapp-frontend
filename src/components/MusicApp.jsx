@@ -418,7 +418,7 @@ export default function MusicApp({ user, onLogout }) {
                             </div>
                             {/* Planet Card */}
                             <div className="mini-card" onClick={() => handleNavClick('planet')}>
-                                <div className="mini-card-bg" style={{ backgroundImage: `url(/planets/nebula.png)` }}></div>
+                                <div className="mini-card-bg" style={{ backgroundImage: `url(/planets/planetscard.jpeg)` }}></div>
                                 <div className="mini-card-overlay">
                                     <div className="mini-card-title"><Globe size={16}/> Cosmic ID</div>
                                 </div>
