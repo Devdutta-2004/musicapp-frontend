@@ -959,7 +959,7 @@ body {
   font-size: 15px;
   line-height: 1.5;
   position: relative;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(26px);
 }
 .ai-msg.user {
   background: rgba(0, 255, 255, 0.15);
