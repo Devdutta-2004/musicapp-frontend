@@ -27,18 +27,23 @@ const USP_FEATURES = [
 // --- 1. DEVELOPER CONFIG: HANDPICKED ARTISTS ---
 // Tip: Ensure these names match what is in your DB (e.g. "Arijit Singh" vs "Arijit")
 const FEATURED_ARTISTS = [
-    { name: "Ariana Grande", image: "/artists/ariana.jpg" },
     { name: "Arijit Singh", image: "/artists/arijit.jpg" }, 
+    { name: "Shreya Ghoshal", image: "/artists/shreya.jpg" },
     { name: "Sonu Nigam", image: "/artists/sonu.jpg" },
+    { name: "Sunidhi Chauhan", image:"/artists/sunidhi.jpg"},
+    { name: "K.K.", image:"/artists/kk.jpg"},
+    { name: "Taylor Swift", image:"/artists/taylor.jpg" },
+    { name: "Atif Aslam", image:"/artists/atif.jpg"},
+    { name: "Pritam", image:"/artists/pritam.jpg"}, 
+    { name: "Mohit Chauhan", image:"/artists/mohit.jpg"}, 
+    { name: "Ariana Grande", image: "/artists/ariana.jpg" },
     { name: "The Weeknd", image: "/artists/weeknd.jpg" },
-    { name: "Taylor Swift", image: PERSON_PLACEHOLDER },
-    { name: "A.R. Rahman", image: PERSON_PLACEHOLDER },
-    { name: "Atif Aslam", image: PERSON_PLACEHOLDER },
-    { name: "Justin Bieber", image: PERSON_PLACEHOLDER },
+    { name: "A.R. Rahman", image: "/artists/ar.jpg"},
+    { name: "Justin Bieber", image:"/artists/justin.jpg" },
 ];
 
 // --- 2. DEVELOPER CONFIG: SPECIAL SONG IDs ---
-const SPECIAL_IDS = [15, 22, 101, 4]; 
+const SPECIAL_IDS = [250, 277, 248, 470]; 
 
 export default function MusicApp({ user, onLogout }) {
     // --- VIEW STATE ---
@@ -511,13 +516,62 @@ export default function MusicApp({ user, onLogout }) {
                             ))}
                         </div>
 
-                        {/* --- SPECIAL BANNER (MANUAL IDs) --- */}
+                        {/* --- SPECIAL BANNER (HOME SCREEN CARD) --- */}
                         <h2 className="section-title">Specials</h2>
-                        <div className="artistic-box" onClick={() => { setSpecialView('christmas'); setActiveTab('special-view'); }}>
-                            <div className="artistic-bg" style={{ backgroundImage: 'url(/banners/christmas-bg.jpg)' }}></div>
-                            <div className="artistic-overlay">
-                                <div className="artistic-title"><Sparkles color="#00ffff"/> Christmas Hits</div>
-                                <div className="artistic-subtitle">Feel the magic of the season</div>
+                        <div 
+                            className="artistic-box" 
+                            onClick={() => { setSpecialView('christmas'); setActiveTab('special-view'); }}
+                            style={{
+                                position: 'relative',
+                                height: '140px',
+                                borderRadius: '16px',
+                                overflow: 'hidden',
+                                cursor: 'pointer',
+                                /* USE YOUR NEW BANNER IMAGE HERE */
+                                backgroundImage: 'url(/banners/christmas-banner.png)', 
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center right', /* Keeps the main image on the right */
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center', /* Vertically centers text */
+                                alignItems: 'flex-start', /* Aligns text to the LEFT */
+                                paddingLeft: '20px', /* Spacing from left edge */
+                                boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                                marginTop: '10px'
+                            }}
+                        >
+                            {/* Dark Gradient Overlay for readability on left */}
+                            <div style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                background: 'linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 60%)',
+                                zIndex: 1
+                            }}></div>
+
+                            {/* Text Content */}
+                            <div style={{ zIndex: 2, position: 'relative', textAlign: 'left' }}>
+                                <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '8px', 
+                                    fontSize: '1.2rem', 
+                                    fontWeight: 'bold', 
+                                    color: 'white',
+                                    textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                                }}>
+                                    <Sparkles size={18} color="#00ffff"/> Christmas Hits
+                                </div>
+                                <div style={{ 
+                                    fontSize: '0.8rem', 
+                                    color: '#ddd', 
+                                    marginTop: '4px',
+                                    fontWeight: '400'
+                                }}>
+                                    Feel the magic of the season
+                                </div>
                             </div>
                         </div>
 
