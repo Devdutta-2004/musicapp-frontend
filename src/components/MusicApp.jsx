@@ -25,8 +25,9 @@ const USP_FEATURES = [
 ];
 
 // --- 1. DEVELOPER CONFIG: HANDPICKED ARTISTS ---
+// Tip: Ensure these names match what is in your DB (e.g. "Arijit Singh" vs "Arijit")
 const FEATURED_ARTISTS = [
-    { name: "Ariana Grande", image:"/artists/ariana.jpg" },
+    { name: "Ariana Grande", image: "/artists/ariana.jpg" },
     { name: "Arijit Singh", image: "/artists/arijit.jpg" }, 
     { name: "Sonu Nigam", image: "/artists/sonu.jpg" },
     { name: "The Weeknd", image: "/artists/weeknd.jpg" },
@@ -37,7 +38,6 @@ const FEATURED_ARTISTS = [
 ];
 
 // --- 2. DEVELOPER CONFIG: SPECIAL SONG IDs ---
-// REPLACE these numbers with the actual IDs from your database
 const SPECIAL_IDS = [15, 22, 101, 4]; 
 
 export default function MusicApp({ user, onLogout }) {
@@ -46,7 +46,7 @@ export default function MusicApp({ user, onLogout }) {
     const [isFullScreenPlayer, setIsFullScreenPlayer] = useState(false);
     const [isLyricsExpanded, setIsLyricsExpanded] = useState(false);
     
-    // --- NEW: Sub-View State ---
+    // --- SUB-VIEW STATE ---
     const [selectedArtist, setSelectedArtist] = useState(null);
     const [specialView, setSpecialView] = useState(null); 
     
@@ -100,13 +100,11 @@ export default function MusicApp({ user, onLogout }) {
     const authHeaders = useMemo(() => ({ headers: { "X-User-Id": user?.id || 0 } }), [user?.id]);
 
     // --- LOGIC: FETCH ARTIST SONGS FROM DB ---
-    // This runs whenever 'selectedArtist' changes.
     useEffect(() => {
         if (selectedArtist && selectedArtist.name) {
             setIsArtistLoading(true);
-            setArtistSongsFromDb([]); // Clear previous results immediately
+            setArtistSongsFromDb([]); 
 
-            // Call the Search API with the artist's name
             axios.get(`${API_BASE}/api/songs/search?q=${encodeURIComponent(selectedArtist.name)}`, authHeaders)
                 .then(res => {
                     setArtistSongsFromDb(res.data);
@@ -116,10 +114,9 @@ export default function MusicApp({ user, onLogout }) {
         }
     }, [selectedArtist, API_BASE, authHeaders]);
 
-    // --- FILTER LOGIC (For Special Banner Only) ---
+    // --- FILTER LOGIC (For Special Banner) ---
     const specialSongsList = useMemo(() => {
         const pool = [...allSongs, ...homeFeed, ...discoveryFeed];
-        // Remove duplicates
         const uniquePool = Array.from(new Map(pool.map(item => [item.id, item])).values());
         return uniquePool.filter(s => SPECIAL_IDS.includes(s.id));
     }, [allSongs, homeFeed, discoveryFeed]);
@@ -143,6 +140,7 @@ export default function MusicApp({ user, onLogout }) {
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
+    // FIX: Safe Go Home function
     const goHome = () => {
         setActiveTab('home');
         setSelectedArtist(null);
@@ -193,7 +191,7 @@ export default function MusicApp({ user, onLogout }) {
             const random = await axios.get(`${API_BASE}/api/songs/discover`, authHeaders);
             setDiscoveryFeed(random.data);
             fetchLibraryData();
-            fetchAllSongs(); // Fetch all in background
+            fetchAllSongs(); 
         } catch (e) { console.error(e); }
         setLoading(false);
     }
@@ -273,9 +271,7 @@ export default function MusicApp({ user, onLogout }) {
     const toggleLike = async (songId) => {
         const update = (list) => list.map(s => s.id === songId ? { ...s, liked: !s.liked } : s);
         setHomeFeed(update); setDiscoveryFeed(update); setSearchResults(update); setLikedSongs(update); setAllSongs(update);
-        // Also update artist songs state so the heart updates instantly
         setArtistSongsFromDb(update);
-        
         try { await axios.post(`${API_BASE}/api/likes/${songId}`, {}, authHeaders); fetchLibraryData(); } catch (e) { }
     };
 
@@ -491,13 +487,26 @@ export default function MusicApp({ user, onLogout }) {
                             </div>
                         </div>
 
-                        {/* --- ARTISTS ROW (MANUAL) --- */}
+                        {/* --- ARTISTS ROW (SQUARE / NO FRAME) --- */}
                         <h2 className="section-title">Top Artists</h2>
                         <div className="horizontal-scroll">
                             {FEATURED_ARTISTS.map((artist, i) => (
-                                <div key={i} className="glass-card song-card" onClick={() => { setSelectedArtist(artist); setActiveTab('artist-view'); }}>
-                                    <img src={artist.image} style={{ borderRadius: '50%', aspectRatio: '1/1', objectFit: 'cover', width: '100%', marginBottom: 10 }} alt={artist.name}/>
-                                    <p className="song-title" style={{ textAlign: 'center', fontSize: 13 }}>{artist.name}</p>
+                                <div 
+                                    key={i} 
+                                    className="song-card" /* Removed glass-card */
+                                    onClick={() => { setSelectedArtist(artist); setActiveTab('artist-view'); }}
+                                    style={{ width: 120, marginRight: 16, cursor: 'pointer' }}
+                                >
+                                    <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', marginBottom: 8 }}>
+                                        <img 
+                                            src={artist.image} 
+                                            alt={artist.name}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 0 }}
+                                        />
+                                    </div>
+                                    <p className="song-title" style={{ textAlign: 'center', fontSize: 13 }}>
+                                        {artist.name}
+                                    </p>
                                 </div>
                             ))}
                         </div>
@@ -526,48 +535,30 @@ export default function MusicApp({ user, onLogout }) {
                 )}
 
                 {/* --- 2. ARTIST VIEW (FETCHED FROM DB) --- */}
-                {/* --- ARTISTS ROW (SQUARE IMAGES / NO FRAMES) --- */}
-                        <h2 className="section-title">Top Artists</h2>
-                        <div className="horizontal-scroll" style={{ paddingBottom: 10 }}>
-                            {FEATURED_ARTISTS.map((artist, i) => (
-                                <div 
-                                    key={i} 
-                                    onClick={() => { setSelectedArtist(artist); setActiveTab('artist-view'); }}
-                                    style={{ 
-                                        flex: '0 0 auto', 
-                                        width: 110,  /* Slightly wider for square cards */
-                                        marginRight: 15, 
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        flexDirection: 'column'
-                                    }}
-                                >
-                                    <img 
-                                        src={artist.image} 
-                                        alt={artist.name}
-                                        style={{ 
-                                            width: '100%', 
-                                            aspectRatio: '1/1', /* Forces a perfect square */
-                                            objectFit: 'cover', 
-                                            borderRadius: '4px', /* Tiny rounded corner for polish, set to 0px for sharp corners */
-                                            marginBottom: 8
-                                        }} 
-                                    />
-                                    <p style={{ 
-                                        fontSize: 13, 
-                                        color: '#eee',
-                                        margin: 0,
-                                        width: '100%',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                        fontWeight: '500'
-                                    }}>
-                                        {artist.name}
-                                    </p>
-                                </div>
-                            ))}
+                {activeTab === 'artist-view' && selectedArtist && (
+                    <div className="tab-pane">
+                        <div className="glass-header">
+                            <button className="icon-btn" onClick={goHome}><ArrowLeft size={24} color="white" /></button>
+                            <div className="header-text">
+                                <h1>{selectedArtist.name}</h1>
+                                <p>Artist Discography</p>
+                            </div>
                         </div>
+                        <div className="list-vertical">
+                            {isArtistLoading && <div style={{textAlign:'center', padding:20, color:'#888'}}>Loading tracks...</div>}
+                            
+                            {!isArtistLoading && artistSongsFromDb.length > 0 ? (
+                                artistSongsFromDb.map(s => <SongRow key={s.id} s={s} list={artistSongsFromDb} />)
+                            ) : !isArtistLoading && (
+                                <div style={{textAlign:'center', color:'#888', marginTop: 20}}>
+                                    No songs found matching "{selectedArtist.name}".<br/>
+                                    <span style={{fontSize:12}}>Ensure artist name matches exactly in your database.</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="spacer"></div>
+                    </div>
+                )}
 
                 {/* --- 3. SPECIAL VIEW --- */}
                 {activeTab === 'special-view' && specialView === 'christmas' && (
