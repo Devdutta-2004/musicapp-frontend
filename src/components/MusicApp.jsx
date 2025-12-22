@@ -34,10 +34,10 @@ const FEATURED_ARTISTS = [
     { name: "K.K.", image:"/artists/kk.jpg"},
     { name: "Taylor Swift", image:"/artists/taylor.jpg" },
     { name: "Atif Aslam", image:"/artists/atif.jpg"},
-    { name: "Pritam", image:"/artists/pritam.jpg"}, 
+    { name: "Kishore Kumar", image:"/artists/kishore.jpg"}, 
     { name: "Mohit Chauhan", image:"/artists/mohit.jpg"}, 
     { name: "Ariana Grande", image: "/artists/ariana.jpg" },
-    { name: "The Weeknd", image: "/artists/weeknd.jpg" },
+    { name: "Armaan Malik", image: "/artists/armaan.jpg" },
     { name: "A.R. Rahman", image: "/artists/ar.jpg"},
     { name: "Justin Bieber", image:"/artists/justin.jpg" },
 ];
