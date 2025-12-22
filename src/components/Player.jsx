@@ -28,7 +28,8 @@ export default function Player({
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [showMenu, setShowMenu] = useState(false); 
+  const [showMenu, setShowMenu] = useState(false);
+  const [buffering, setBuffering] = useState(false); // New Buffering State
 
   const onProgressRef = useRef(onProgress);
   useEffect(() => { onProgressRef.current = onProgress; }, [onProgress]);
@@ -67,10 +68,11 @@ export default function Player({
     }
   };
 
+  // UPDATED: Uses CSS variable to allow multiple background layers (progress + buffering)
   const updateRangeBackground = (c, d) => {
     if (rangeRef.current) {
         const percent = (c / d) * 100 || 0;
-        rangeRef.current.style.backgroundSize = `${percent}% 100%`;
+        rangeRef.current.style.setProperty('--seek-pos', `${percent}%`);
     }
   };
 
@@ -105,20 +107,61 @@ export default function Player({
     return `${min}:${sec < 10 ? '0' + sec : sec}`;
   };
 
-  // --- FIX: Custom Handler for Song End ---
   const handleAudioEnded = () => {
     if (repeatMode === 'one' && audioRef.current) {
-      // If Repeat One is active, reset time and play again immediately
       audioRef.current.currentTime = 0;
       audioRef.current.play();
     } else {
-      // Otherwise, tell the parent app to go to next song or stop
       onEnded(); 
     }
   };
 
   return (
     <div className="player-container">
+      {/* INJECTED STYLES for Centering Fix + Buffering Animation 
+          (This ensures it works without editing external CSS files)
+      */}
+      <style>{`
+        /* 1. Fix Center Alignment */
+        .progress-section {
+          display: flex !important;
+          flex-direction: column;
+          justify-content: center;
+          height: auto;
+          min-height: 40px; /* Ensure enough touch space */
+        }
+        
+        .seek-slider {
+          align-self: center; /* Forces horizontal center if column */
+          margin: 10px 0 !important; /* Balanced margins */
+          
+          /* Prepare for CSS Variable usage */
+          background-image: linear-gradient(90deg, var(--cloud-blue), var(--cloud-pink));
+          background-size: var(--seek-pos, 0%) 100%;
+          background-repeat: no-repeat;
+        }
+
+        /* 2. Buffering Animation Class */
+        .seek-slider.buffering-active {
+          background-image: 
+            linear-gradient(90deg, var(--cloud-blue), var(--cloud-pink)), /* Layer 1: Progress */
+            repeating-linear-gradient(
+              45deg, 
+              rgba(255,255,255,0.1) 0px, 
+              rgba(255,255,255,0.1) 10px, 
+              rgba(255,255,255,0.3) 10px, 
+              rgba(255,255,255,0.3) 20px
+            ); /* Layer 2: Stripes */
+            
+          background-size: var(--seek-pos, 0%) 100%, 200% 100%;
+          animation: buffer-move 1s linear infinite;
+        }
+
+        @keyframes buffer-move {
+          0% { background-position: 0 0, 0 0; }
+          100% { background-position: 0 0, -28px 0; }
+        }
+      `}</style>
       
       {/* 1. TOP HEADER */}
       <div className="player-header-row">
@@ -159,7 +202,7 @@ export default function Player({
             min="0" 
             max={duration || 0} 
             value={time} 
-            className="seek-slider"
+            className={`seek-slider ${buffering ? 'buffering-active' : ''}`} 
             ref={rangeRef}
             onChange={handleSeek}
             onMouseDown={() => setIsDragging(true)}
@@ -196,14 +239,18 @@ export default function Player({
          </button>
       </div>
 
-      {/* Hidden Audio Element with FIX applied */}
+      {/* Hidden Audio Element with Buffering Events */}
       <audio
         ref={audioRef}
         src={song?.streamUrl} 
         autoPlay={playing}
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdate}
-        onEnded={handleAudioEnded} // CHANGED: Points to new handler
+        onEnded={handleAudioEnded}
+        // BUFFFERING LOGIC
+        onWaiting={() => setBuffering(true)} 
+        onPlaying={() => setBuffering(false)}
+        onCanPlay={() => setBuffering(false)}
       />
     </div>
   );
