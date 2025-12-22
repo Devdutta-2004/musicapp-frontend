@@ -71,6 +71,7 @@ export default function Player({
   const updateRangeBackground = (c, d) => {
     if (rangeRef.current) {
         const percent = (c / d) * 100 || 0;
+        // We set the CSS variable on the input, which inherits to the track pseudo-element
         rangeRef.current.style.setProperty('--seek-pos', `${percent}%`);
     }
   };
@@ -117,9 +118,9 @@ export default function Player({
 
   return (
     <div className="player-container">
-      {/* INJECTED STYLES: 
-          1. Fixes Vertical Alignment (Circle centered on line)
-          2. Adds "Shimmer" Buffering Animation (White beam moving across)
+      {/* UPDATED STYLES: 
+          1. Moves styles to ::-webkit-slider-runnable-track to allow border-radius (Curves!).
+          2. Updates animation to cubic-bezier for "Fast then Slow" organic feel.
       */}
       <style>{`
         .progress-section {
@@ -129,65 +130,85 @@ export default function Player({
           height: auto;
           min-height: 40px; 
         }
-        
-        /* Reset defaults to ensure perfect alignment */
+
+        /* 1. RESET INPUT */
         .seek-slider {
           -webkit-appearance: none;
           appearance: none;
-          height: 20px !important; /* MATCH THUMB HEIGHT */
-          margin: 0 !important;
-          padding: 0 !important;
-          background-color: transparent !important; /* We draw track via gradient */
-          border: none !important;
+          width: 100%;
+          background: transparent; 
+          cursor: pointer;
+          margin: 0;
+          height: 20px; /* Thumb height container */
         }
 
-        /* Background Layer Stack:
-           1. Shimmer (Top) - Only visible when buffering
-           2. Progress (Middle) - The gradient fill
-           3. Base Track (Bottom) - The grey background line
-        */
-        .seek-slider {
-          background-image: 
-            /* Layer 1: Shimmer (Hidden by default) */
-            linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent),
-            /* Layer 2: Progress Bar */
-            linear-gradient(90deg, var(--cloud-blue), var(--cloud-pink)),
-            /* Layer 3: Base Track */
-            linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15));
+        /* 2. STYLE THE TRACK (WEBKIT) - Gives us Rounded Corners */
+        .seek-slider::-webkit-slider-runnable-track {
+          width: 100%;
+          height: 6px; /* Line height */
+          border-radius: 999px; /* CURVED EDGES */
           
+          /* LAYERS: Shimmer, Progress, Base */
+          background-image: 
+            linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent),
+            linear-gradient(90deg, var(--cloud-blue), var(--cloud-pink)),
+            linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15));
+            
           background-size: 
-            0% 100%,                 /* Shimmer size (0 when not buffering) */
-            var(--seek-pos, 0%) 6px, /* Progress size */
-            100% 6px;                /* Base track size */
+            0% 100%, /* Hidden shimmer default */
+            var(--seek-pos, 0%) 100%, 
+            100% 100%;
             
           background-repeat: no-repeat;
-          background-position: 
-            -100% center,   /* Shimmer start pos */
-            left center,    /* Progress pos */
-            left center;    /* Base track pos */
+          background-position: -100% center, left center, left center;
         }
 
-        /* FIX THUMB ALIGNMENT: 
-           Since input height (20px) = thumb height (20px), 
-           we remove the negative margin hack. 
-        */
+        /* 3. STYLE THE THUMB (WEBKIT) */
         .seek-slider::-webkit-slider-thumb {
-          margin-top: 0 !important; 
+          -webkit-appearance: none;
+          height: 20px; width: 20px;
+          border-radius: 50%;
+          background: white;
+          box-shadow: 0 0 10px rgba(0,0,0,0.5);
+          /* Center thumb on the 6px track: (6 - 20) / 2 = -7px */
+          margin-top: -7px; 
+          transition: transform 0.1s;
+        }
+        .seek-slider:active::-webkit-slider-thumb {
+          transform: scale(1.2);
+        }
+
+        /* 4. FIREFOX SUPPORT (Duplicate styles required for separate vendor) */
+        .seek-slider::-moz-range-track {
+          width: 100%;
+          height: 6px;
+          border-radius: 999px;
+          background-image: 
+            linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent),
+            linear-gradient(90deg, var(--cloud-blue), var(--cloud-pink)),
+            linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15));
+          background-size: 0% 100%, var(--seek-pos, 0%) 100%, 100% 100%;
+          background-repeat: no-repeat;
+          background-position: -100% center, left center, left center;
         }
         .seek-slider::-moz-range-thumb {
-          transform: none !important;
+          height: 20px; width: 20px;
+          border-radius: 50%;
+          background: white;
+          border: none;
         }
 
-        /* BUFFERING ANIMATION STATE */
-        .seek-slider.buffering-active {
-          /* Animate the Shimmer Layer */
-          animation: shimmer 1.5s infinite linear;
-          
-          /* Make shimmer visible (50% width of bar) */
-          background-size: 
-            50% 6px, 
-            var(--seek-pos, 0%) 6px, 
-            100% 6px;
+        /* 5. BUFFERING ANIMATION - Organic Speed */
+        /* Applied to WebKit Track */
+        .seek-slider.buffering-active::-webkit-slider-runnable-track {
+          /* fast-out, slow-in curve */
+          animation: shimmer 1.5s infinite cubic-bezier(0.4, 0, 0.2, 1); 
+          background-size: 50% 100%, var(--seek-pos, 0%) 100%, 100% 100%;
+        }
+        /* Applied to Firefox Track */
+        .seek-slider.buffering-active::-moz-range-track {
+          animation: shimmer 1.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+          background-size: 50% 100%, var(--seek-pos, 0%) 100%, 100% 100%;
         }
 
         @keyframes shimmer {
@@ -196,7 +217,6 @@ export default function Player({
         }
       `}</style>
       
-      {/* 1. TOP HEADER */}
       <div className="player-header-row">
           <button className="icon-btn" onClick={onToggleLike}>
             <Heart 
@@ -228,7 +248,6 @@ export default function Player({
           </div>
       </div>
 
-      {/* 2. PROGRESS BAR AREA */}
       <div className="progress-section">
           <input 
             type="range" 
@@ -249,7 +268,6 @@ export default function Player({
           </div>
       </div>
 
-      {/* 3. CONTROLS AREA */}
       <div className="controls-row">
          <button className={`icon-btn ${shuffle ? 'active-dot' : ''}`} onClick={onToggleShuffle}>
             <Shuffle size={20} color={shuffle ? "#7c2cf2" : "white"} />
