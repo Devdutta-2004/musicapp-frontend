@@ -28,7 +28,8 @@ export default function Player({
   const [time, setTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [showMenu, setShowMenu] = useState(false); 
+  const [showMenu, setShowMenu] = useState(false);
+  const [buffering, setBuffering] = useState(false);
 
   const onProgressRef = useRef(onProgress);
   useEffect(() => { onProgressRef.current = onProgress; }, [onProgress]);
@@ -70,7 +71,8 @@ export default function Player({
   const updateRangeBackground = (c, d) => {
     if (rangeRef.current) {
         const percent = (c / d) * 100 || 0;
-        rangeRef.current.style.backgroundSize = `${percent}% 100%`;
+        // We set the CSS variable on the input, which inherits to the track pseudo-element
+        rangeRef.current.style.setProperty('--seek-pos', `${percent}%`);
     }
   };
 
@@ -105,22 +107,116 @@ export default function Player({
     return `${min}:${sec < 10 ? '0' + sec : sec}`;
   };
 
-  // --- FIX: Custom Handler for Song End ---
   const handleAudioEnded = () => {
     if (repeatMode === 'one' && audioRef.current) {
-      // If Repeat One is active, reset time and play again immediately
       audioRef.current.currentTime = 0;
       audioRef.current.play();
     } else {
-      // Otherwise, tell the parent app to go to next song or stop
       onEnded(); 
     }
   };
 
   return (
     <div className="player-container">
+      {/* UPDATED STYLES: 
+          1. Moves styles to ::-webkit-slider-runnable-track to allow border-radius (Curves!).
+          2. Updates animation to cubic-bezier for "Fast then Slow" organic feel.
+      */}
+      <style>{`
+        .progress-section {
+          display: flex !important;
+          flex-direction: column;
+          justify-content: center;
+          height: auto;
+          min-height: 40px; 
+        }
+
+        /* 1. RESET INPUT */
+        .seek-slider {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          background: transparent; 
+          cursor: pointer;
+          margin: 0;
+          height: 20px; /* Thumb height container */
+        }
+
+        /* 2. STYLE THE TRACK (WEBKIT) - Gives us Rounded Corners */
+        .seek-slider::-webkit-slider-runnable-track {
+          width: 100%;
+          height: 6px; /* Line height */
+          border-radius: 999px; /* CURVED EDGES */
+          
+          /* LAYERS: Shimmer, Progress, Base */
+          background-image: 
+            linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent),
+            linear-gradient(90deg, var(--cloud-blue), var(--cloud-pink)),
+            linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15));
+            
+          background-size: 
+            0% 100%, /* Hidden shimmer default */
+            var(--seek-pos, 0%) 100%, 
+            100% 100%;
+            
+          background-repeat: no-repeat;
+          background-position: -100% center, left center, left center;
+        }
+
+        /* 3. STYLE THE THUMB (WEBKIT) */
+        .seek-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          height: 20px; width: 20px;
+          border-radius: 50%;
+          background: white;
+          box-shadow: 0 0 10px rgba(0,0,0,0.5);
+          /* Center thumb on the 6px track: (6 - 20) / 2 = -7px */
+          margin-top: -7px; 
+          transition: transform 0.1s;
+        }
+        .seek-slider:active::-webkit-slider-thumb {
+          transform: scale(1.2);
+        }
+
+        /* 4. FIREFOX SUPPORT (Duplicate styles required for separate vendor) */
+        .seek-slider::-moz-range-track {
+          width: 100%;
+          height: 6px;
+          border-radius: 999px;
+          background-image: 
+            linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent),
+            linear-gradient(90deg, var(--cloud-blue), var(--cloud-pink)),
+            linear-gradient(rgba(255,255,255,0.15), rgba(255,255,255,0.15));
+          background-size: 0% 100%, var(--seek-pos, 0%) 100%, 100% 100%;
+          background-repeat: no-repeat;
+          background-position: -100% center, left center, left center;
+        }
+        .seek-slider::-moz-range-thumb {
+          height: 20px; width: 20px;
+          border-radius: 50%;
+          background: white;
+          border: none;
+        }
+
+        /* 5. BUFFERING ANIMATION - Organic Speed */
+        /* Applied to WebKit Track */
+        .seek-slider.buffering-active::-webkit-slider-runnable-track {
+          /* fast-out, slow-in curve */
+          animation: shimmer 1.5s infinite cubic-bezier(0.4, 0, 0.2, 1); 
+          background-size: 50% 100%, var(--seek-pos, 0%) 100%, 100% 100%;
+        }
+        /* Applied to Firefox Track */
+        .seek-slider.buffering-active::-moz-range-track {
+          animation: shimmer 1.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+          background-size: 50% 100%, var(--seek-pos, 0%) 100%, 100% 100%;
+        }
+
+        @keyframes shimmer {
+          0% { background-position: -100% center, left center, left center; }
+          100% { background-position: 200% center, left center, left center; }
+        }
+      `}</style>
       
-      {/* 1. TOP HEADER */}
       <div className="player-header-row">
           <button className="icon-btn" onClick={onToggleLike}>
             <Heart 
@@ -152,14 +248,13 @@ export default function Player({
           </div>
       </div>
 
-      {/* 2. PROGRESS BAR AREA */}
       <div className="progress-section">
           <input 
             type="range" 
             min="0" 
             max={duration || 0} 
             value={time} 
-            className="seek-slider"
+            className={`seek-slider ${buffering ? 'buffering-active' : ''}`} 
             ref={rangeRef}
             onChange={handleSeek}
             onMouseDown={() => setIsDragging(true)}
@@ -173,7 +268,6 @@ export default function Player({
           </div>
       </div>
 
-      {/* 3. CONTROLS AREA */}
       <div className="controls-row">
          <button className={`icon-btn ${shuffle ? 'active-dot' : ''}`} onClick={onToggleShuffle}>
             <Shuffle size={20} color={shuffle ? "#7c2cf2" : "white"} />
@@ -196,14 +290,17 @@ export default function Player({
          </button>
       </div>
 
-      {/* Hidden Audio Element with FIX applied */}
       <audio
         ref={audioRef}
         src={song?.streamUrl} 
         autoPlay={playing}
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdate}
-        onEnded={handleAudioEnded} // CHANGED: Points to new handler
+        onEnded={handleAudioEnded}
+        onLoadStart={() => setBuffering(true)}
+        onWaiting={() => setBuffering(true)} 
+        onPlaying={() => setBuffering(false)}
+        onCanPlay={() => setBuffering(false)}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-/* src/DreamyGalaxy.css - FINAL POLISHED VERSION */
+/* src/DreamyGalaxy.css - OPTIMIZED PERFORMANCE VERSION */
 
 :root {
   /* 🎨 Palette: Balanced Space Colors */
@@ -7,6 +7,7 @@
   --cloud-blue: #5eb3fd;
   
   /* 🔮 STANDARD GLASS */
+  /* optimization: blur(24px) is heavy. If lag persists, try lowering to 16px */
   --glass-bg: rgba(30, 20, 60, 0.6); 
   --glass-border: rgba(180, 140, 255, 0.25);
   --glass-blur: blur(24px); 
@@ -24,9 +25,12 @@ body {
   color: white;
   min-height: 100vh;
   position: relative;
+  overflow-x: hidden; /* Prevent scrollbars from stars */
+  margin: 0;
 }
 
-/* 2. STARS - LAYER 1 (SLOWED DOWN: 12s) */
+/* 2. STARS - LAYER 1 */
+/* Optimization: Added will-change to hint browser */
 body::before {
   content: " ";
   position: fixed;
@@ -43,11 +47,11 @@ body::before {
     22vw 45vh 1px #fff, 78vw 35vh #fff, 12vw 90vh #fff,
     65vw 65vh 1px #fff, 33vw 12vh #d86dfc, 55vw 55vh #5eb3fd;
   opacity: 0.6; 
-  /* SLOWED DOWN ANIMATION */
   animation: twinkle 12s infinite alternate ease-in-out; 
+  will-change: opacity; 
 }
 
-/* 2b. STARS - LAYER 2 (SLOWED DOWN: 8s) */
+/* 2b. STARS - LAYER 2 */
 body::after {
   content: " ";
   position: fixed;
@@ -66,63 +70,64 @@ body::after {
     48vw 95vh #fff, 56vw 80vh #fff, 62vw 90vh #fff, 70vw 78vh #fff,
     78vw 96vh #fff, 86vw 84vh #fff, 94vw 70vh #fff, 98vw 98vh #fff;
   opacity: 0.4;
-  /* SLOWED DOWN ANIMATION */
   animation: twinkle 8s infinite alternate-reverse ease-in-out; 
+  will-change: opacity;
 }
 
+/* OPTIMIZATION: Removed transform: scale() */
+/* Scaling a box-shadow layer is the #1 cause of lag. 
+   We keep opacity to maintain the "Twinkle" look without the heavy cost. */
 @keyframes twinkle {
-  0% { opacity: 0.3; transform: scale(0.8); }
-  100% { opacity: 0.9; transform: scale(1.1); }
+  0% { opacity: 0.3; }
+  100% { opacity: 0.9; }
 }
 
-/* 🌠 3. SHOOTING STARS - OPTIMIZED (Less Frequent, More Spread) */
+/* 🌠 3. SHOOTING STARS - OPTIMIZED */
 
 /* Star 1: Top Left to Bottom Right */
 .glass-shell::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 20%; /* Starts more to the left */
-  width: 4px;
-  height: 4px;
+  top: 0; left: 20%;
+  width: 4px; height: 4px;
   background: linear-gradient(-45deg, #5eb3fd, rgba(0, 0, 255, 0));
-  border-radius: 999px;
-  filter: drop-shadow(0 0 6px #69c0ff);
-  /* Duration 15s (Very slow cycle), Delay 2s */
+  border-radius: 50%;
+  /* OPTIMIZATION: Use box-shadow instead of filter: drop-shadow */
+  box-shadow: 0 0 6px #69c0ff;
   animation: tail 6s ease-in-out infinite 2s, shooting 6s ease-in-out infinite 2s;
   opacity: 0; 
   z-index: -1;
+  will-change: transform, opacity;
 }
 
 /* Star 2: Top Right (Purple) */
 .glass-shell::after {
   content: "";
   position: absolute;
-  top: 10%;
-  left: 80%;
-  width: 3px;
-  height: 3px;
+  top: 10%; left: 80%;
+  width: 3px; height: 3px;
   background: linear-gradient(-45deg, #d86dfc, rgba(0, 0, 255, 0));
-  border-radius: 999px;
-  filter: drop-shadow(0 0 6px #d86dfc);
-  /* Duration 23s (Prime number avoids syncing), Delay 8s */
+  border-radius: 50%;
+  /* OPTIMIZATION: Use box-shadow instead of filter: drop-shadow */
+  box-shadow: 0 0 6px #d86dfc;
   animation: tail 9s ease-in-out infinite 3s, shooting 9s ease-in-out infinite 3s;
   opacity: 0;
   z-index: -1;
+  will-change: transform, opacity;
 }
 
-/* Updated Keyframes for "Long Wait, Fast Shoot" */
+/* Keyframes kept identical, just verified for performance */
 @keyframes tail {
   0% { width: 0; }
-  5% { width: 100px; } /* Only visible for first 5% of time */
+  5% { width: 100px; } 
   10% { width: 0; }
-  100% { width: 0; }   /* Invisible for the rest 90% */
+  100% { width: 0; }   
 }
 
 @keyframes shooting {
   0% { transform: translateX(0) translateY(0) rotate(45deg); opacity: 1; }
   10% { transform: translateX(400px) translateY(400px) rotate(45deg); opacity: 0; }
-  100% { transform: translateX(0) translateY(0) rotate(45deg); opacity: 0; } /* Reset */
+  100% { transform: translateX(0) translateY(0) rotate(45deg); opacity: 0; }
 }
 
 /* 4. GLASS UI COMPONENTS */
@@ -146,6 +151,8 @@ body::after {
 .dock-progress-fill { 
   background: var(--cloud-blue) !important;
   box-shadow: 0 0 10px var(--cloud-blue) !important;
+  /* OPTIMIZATION: Ensure smooth progress movement */
+  transition: width 0.1s linear;
 }
 
 /* SEARCH INPUT */
@@ -196,14 +203,15 @@ body::after {
   -webkit-appearance: none; height: 20px; width: 20px;
   margin-top: -7px; background: #ffffff;
   border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 5px 1px var(--cloud-blue), 0 0 12px 3px var(--cloud-pink), 0 0 20px 5px rgba(216, 109, 252, 0.3); 
+  /* OPTIMIZATION: Reduced spread of box-shadow slightly for performance */
+  box-shadow: 0 0 5px 1px var(--cloud-blue), 0 0 12px 3px var(--cloud-pink); 
   cursor: grab; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
   transform-origin: center;
 }
 
 .seek-slider:hover::-webkit-slider-thumb, .seek-slider:active::-webkit-slider-thumb {
   cursor: grabbing; background: #fff; transform: scale(1.3);
-  box-shadow: 0 0 15px 4px var(--cloud-blue), 0 0 30px 8px var(--cloud-pink), 0 0 50px 15px rgba(94, 179, 253, 0.6); 
+  box-shadow: 0 0 15px 4px var(--cloud-blue), 0 0 30px 8px var(--cloud-pink); 
 }
 .seek-slider::-moz-range-thumb {
   height: 20px; width: 20px; border: none; border-radius: 50%; background: #fff;
@@ -212,43 +220,37 @@ body::after {
 .seek-slider:active::-moz-range-thumb {
   transform: scale(1.3); box-shadow: 0 0 30px 8px var(--cloud-pink);
 }
-/* --- FORCE TRANSPARENCY WHEN LYRICS ARE EXPANDED --- */
+
+/* FORCE TRANSPARENCY WHEN LYRICS ARE EXPANDED */
 .glass-modal.transparent-mode {
   background: transparent !important;
   box-shadow: none !important;
   border: none !important;
   backdrop-filter: none !important;
 }
-/* --- FIX LYRICS OVERFLOW --- */
 
-/* 1. Ensure the Full Screen container is centered and clean */
+/* FIX LYRICS OVERFLOW */
 .lyrics-panel.full-mode {
   width: 100%;
-  max-width: 900px;  /* Prevents text from stretching too wide */
-  margin: 0 auto;    /* Centers the block */
-  padding: 0 20px;   /* Adds side padding */
+  max-width: 900px; 
+  margin: 0 auto; 
+  padding: 0 20px; 
 }
 
-/* 2. Force the lyrics text to wrap inside the screen */
 .lyrics-pre {
-  white-space: pre-wrap !important;   /* CRITICAL: Wraps long lines */
-  word-wrap: break-word !important;   /* Breaks super long words */
+  white-space: pre-wrap !important; 
+  word-wrap: break-word !important; 
   overflow-wrap: break-word !important;
-  font-family: inherit;               /* Uses your cool font */
+  font-family: inherit; 
   max-width: 100%;
-  overflow-x: hidden;                 /* No horizontal scroll */
-  padding-bottom: 150px;              /* Extra space at bottom for comfortable scrolling */
+  overflow-x: hidden; 
+  padding-bottom: 150px; 
 }
 
-/* 3. Hide the scrollbar for a cleaner "Space" look (Optional) */
 .modal-section::-webkit-scrollbar {
   display: none;
 }
 .modal-section {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none; 
+  scrollbar-width: none; 
 }
-/* REMOVED: The conflicting "FULL SCREEN LYRICS" blocks that created fake backgrounds.
-   Now, because MusicApp.jsx hides the other UI elements and sets transparency,
-   the original space background from "body" will show through perfectly.
-*/

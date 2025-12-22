@@ -1095,3 +1095,4 @@ body {
   20% { transform: translateX(0); } /* Pause at start */
   100% { transform: translateX(-100%); }
 }
+

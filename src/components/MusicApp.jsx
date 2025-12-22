@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import axios from 'axios';
 import Player from './Player';
 import UploadCard from './UploadCard';
@@ -72,7 +72,9 @@ export default function MusicApp({ user, onLogout }) {
     }, []);
 
     const API_BASE = (process.env.REACT_APP_API_BASE_URL || "https://musicapp-o3ow.onrender.com").replace(/\/$/, "");
-    const authHeaders = { headers: { "X-User-Id": user?.id || 0 } };
+    
+    // OPTIMIZATION: Memoize headers to prevent recreation on every render
+    const authHeaders = useMemo(() => ({ headers: { "X-User-Id": user?.id || 0 } }), [user?.id]);
 
     // --- NAVIGATION ---
     useEffect(() => {
@@ -333,7 +335,7 @@ export default function MusicApp({ user, onLogout }) {
     // --- REUSABLE COMPONENTS ---
     const SongRow = ({ s, list, onClick }) => (
         <div className="glass-row" onClick={onClick ? onClick : () => playSong(s, list)}>
-            <img src={s.coverUrl || PERSON_PLACEHOLDER} className="row-thumb" onError={e => e.target.src = PERSON_PLACEHOLDER} />
+            <img src={s.coverUrl || PERSON_PLACEHOLDER} className="row-thumb" onError={e => e.target.src = PERSON_PLACEHOLDER} alt={s.title} />
             <div className="row-info">
                 <div className="row-title">{s.title}</div>
                 <div className="row-artist">{s.artistName}</div>
@@ -368,10 +370,9 @@ export default function MusicApp({ user, onLogout }) {
         </div>
     );
 
-    // --- HOME SCREEN CARD WITH MARQUEE ---
     const HomeSongCard = ({ s, list }) => (
         <div className="glass-card song-card" onClick={() => playSong(s, list)}>
-            <img src={s.coverUrl || PERSON_PLACEHOLDER} onError={e => e.target.src = PERSON_PLACEHOLDER} />
+            <img src={s.coverUrl || PERSON_PLACEHOLDER} onError={e => e.target.src = PERSON_PLACEHOLDER} alt={s.title} />
             <div className="marquee-container">
                 <p className={`song-title ${s.title.length > 15 ? 'marquee-text' : ''}`}>{s.title}</p>
             </div>
@@ -381,11 +382,12 @@ export default function MusicApp({ user, onLogout }) {
         </div>
     );
 
-    return (
-        <div className="glass-shell">
-            <div className="glass-viewport" style={{ display: isLyricsExpanded ? 'none' : 'block' }}>
-                
-                {/* --- HOME TAB --- */}
+    // --- OPTIMIZATION: MEMOIZE MAIN CONTENT ---
+    // This ensures the main view (Home, Library, Search) does NOT re-render
+    // when the Player updates 'songCurrentTime' (which happens 4 times a second).
+    const MainViewContent = useMemo(() => {
+        return (
+            <>
                 {activeTab === 'home' && (
                     <div className="tab-pane home-animate">
                         <header className="glass-header">
@@ -396,7 +398,6 @@ export default function MusicApp({ user, onLogout }) {
                             </div>
                         </header>
 
-                        {/* USP Features Slider */}
                         <div className="usp-slider">
                             {USP_FEATURES.map((feat, i) => (
                                 <div key={i} className="glass-card usp-card" style={{ background: feat.accent }}>
@@ -407,28 +408,18 @@ export default function MusicApp({ user, onLogout }) {
                             ))}
                         </div>
 
-                        {/* --- TOP DASHBOARD GRID --- */}
                         <div className="dashboard-grid">
-                            {/* Leaderboard Card */}
                             <div className="mini-card" onClick={() => handleNavClick('leaderboard')}>
                                 <div className="mini-card-bg" style={{ backgroundImage: `url(/planets/trophy.jpeg)` }}></div>
-                                <div className="mini-card-overlay">
-                                    <div className="mini-card-title"><Trophy size={16}/> Rankings</div>
-                                </div>
+                                <div className="mini-card-overlay"><div className="mini-card-title"><Trophy size={16}/> Rankings</div></div>
                             </div>
-                            {/* Planet Card */}
                             <div className="mini-card" onClick={() => handleNavClick('planet')}>
                                 <div className="mini-card-bg" style={{ backgroundImage: `url(/planets/planetscard.jpeg)` }}></div>
-                                <div className="mini-card-overlay">
-                                    <div className="mini-card-title"><Sparkle size={16}/> Your Aura</div>
-                                </div>
+                                <div className="mini-card-overlay"><div className="mini-card-title"><Sparkle size={16}/> Your Aura</div></div>
                             </div>
-                            {/* All Songs Card */}
                             <div className="mini-card full-width" onClick={() => handleNavClick('all-songs')}>
                                 <div className="mini-card-bg" style={{ backgroundImage: `url(/planets/my-art.jpg)` }}></div>
-                                <div className="mini-card-overlay">
-                                    <div className="mini-card-title"><ListMusic size={16}/> Browse All Music</div>
-                                </div>
+                                <div className="mini-card-overlay"><div className="mini-card-title"><ListMusic size={16}/> Browse All Music</div></div>
                             </div>
                         </div>
 
@@ -445,7 +436,6 @@ export default function MusicApp({ user, onLogout }) {
                     </div>
                 )}
 
-                {/* --- ALL SONGS TAB --- */}
                 {activeTab === 'all-songs' && (
                     <div className="tab-pane">
                         <div className="glass-header">
@@ -459,7 +449,6 @@ export default function MusicApp({ user, onLogout }) {
                     </div>
                 )}
 
-                {/* --- SEARCH TAB --- */}
                 {activeTab === 'search' && (
                     <div className="tab-pane">
                         <div className="search-wrapper" style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
@@ -474,7 +463,6 @@ export default function MusicApp({ user, onLogout }) {
                     </div>
                 )}
 
-                {/* --- UPLOAD TAB --- */}
                 {activeTab === 'upload' && (
                     <div className="tab-pane">
                         <h2 className="page-title">Upload Music</h2>
@@ -483,13 +471,10 @@ export default function MusicApp({ user, onLogout }) {
                     </div>
                 )}
 
-                {/* --- AI TAB (Fixed Layout) --- */}
                 {activeTab === 'ai' && <AIChatBot />}
 
-                {/* --- LEADERBOARD TAB --- */}
                 {activeTab === 'leaderboard' && <Leaderboard user={user} />}
 
-                {/* --- LIBRARY TAB --- */}
                 {activeTab === 'library' && (
                     <div className="tab-pane">
                         <h2 className="page-title">Your Library</h2>
@@ -515,7 +500,6 @@ export default function MusicApp({ user, onLogout }) {
                     </div>
                 )}
 
-                {/* --- PLANET TAB --- */}
                 {activeTab === 'planet' && (
                     <div className="tab-pane">
                         <PlanetCard user={user} onClose={() => handleNavClick('home')} />
@@ -523,6 +507,15 @@ export default function MusicApp({ user, onLogout }) {
                         <div className="spacer"></div>
                     </div>
                 )}
+            </>
+        );
+        // Dependencies: We include everything EXCEPT songCurrentTime/songProgress
+    }, [activeTab, homeFeed, discoveryFeed, allSongs, searchResults, libraryTab, likedSongs, playlists, user, searchTerm, openMenuId, showPlaylistSelector, queue, currentIndex, shuffle, repeatMode]);
+
+    return (
+        <div className="glass-shell">
+            <div className="glass-viewport" style={{ display: isLyricsExpanded ? 'none' : 'block' }}>
+                {MainViewContent}
             </div>
 
             {currentSong && (
@@ -533,13 +526,15 @@ export default function MusicApp({ user, onLogout }) {
                             <div style={{ display: isLyricsExpanded ? 'none' : 'block' }}>
                                 <div className="modal-header"><button onClick={closePlayer} className="icon-btn"><ChevronDown size={32} /></button></div>
                                 <div className="art-glow-container">
-                                    <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} className="art-glow-bg" />
-                                    <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} className="art-front" />
+                                    <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} className="art-glow-bg" alt="" />
+                                    <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} className="art-front" alt="" />
                                 </div>
                                 <div className="modal-meta"><h1>{currentSong.title}</h1><p>{currentSong.artistName}</p></div>
                             </div>
                             <div className="modal-controls-wrapper" style={{ opacity: isLyricsExpanded ? 0 : 1, pointerEvents: isLyricsExpanded ? 'none' : 'auto', height: isLyricsExpanded ? 0 : 'auto', overflow: 'hidden' }}>
-                                <Player song={currentSong} playing={playing} onToggle={() => setPlaying(!playing)} onNext={handleNextSong} onPrev={handlePrevSong} onToggleLike={() => toggleLike(currentSong.id)} onEnded={() => { recordListen(currentSong.durationSeconds, currentSong.genre); handleNextSong(); }} hideCover={true} hideMeta={true} repeatMode={repeatMode} onToggleRepeat={toggleRepeat} shuffle={shuffle} onToggleShuffle={toggleShuffle} sleepTime={sleepTime} onSetSleepTimer={setSleepTime} onProgress={(c, t) => { setSongProgress(t ? (c / t) * 100 : 0); setSongCurrentTime(c); }} />
+                                <Player song={currentSong} playing={playing} onToggle={() => setPlaying(!playing)} onNext={handleNextSong} onPrev={handlePrevSong} onToggleLike={() => toggleLike(currentSong.id)} onEnded={() => { recordListen(currentSong.durationSeconds, currentSong.genre); handleNextSong(); }} hideCover={true} hideMeta={true} repeatMode={repeatMode} onToggleRepeat={toggleRepeat} shuffle={shuffle} onToggleShuffle={toggleShuffle} sleepTime={sleepTime} onSetSleepTimer={setSleepTime} 
+                                // Player controls this state, but MainViewContent ignores it now!
+                                onProgress={(c, t) => { setSongProgress(t ? (c / t) * 100 : 0); setSongCurrentTime(c); }} />
                             </div>
                             <div className="modal-section" style={isLyricsExpanded ? { position:'fixed', top:0, left:0, width:'100%', height:'100%', zIndex:2000, overflowY:'auto' } : {}}>
                                 <div className={isLyricsExpanded ? '' : 'glass-inset'}>
@@ -559,7 +554,7 @@ export default function MusicApp({ user, onLogout }) {
                                         const isCurrent = i === currentIndex;
                                         return (
                                             <div key={`${id}-${i}`} className={`glass-row compact ${isCurrent ? 'active-row' : ''}`}>
-                                                <img src={s.coverUrl || PERSON_PLACEHOLDER} className="row-thumb small" />
+                                                <img src={s.coverUrl || PERSON_PLACEHOLDER} className="row-thumb small" alt="" />
                                                 <div className="row-info"><div className="row-title" style={{ color: isCurrent ? 'var(--neon)' : 'white' }}>{s.title}</div><div className="row-artist">{s.artistName}</div></div>
                                                 <div className="row-actions">
                                                     {!isCurrent && <button className="icon-btn" onClick={() => { setCurrentIndex(i); setPlaying(true); }}><Play size={14} /></button>}
@@ -579,7 +574,7 @@ export default function MusicApp({ user, onLogout }) {
                     {!isFullScreenPlayer && (
                         <div className="glass-dock" onClick={openPlayer}>
                             <div className="dock-left">
-                                <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} className="dock-thumb" />
+                                <img src={currentSong.coverUrl || PERSON_PLACEHOLDER} className="dock-thumb" alt="" />
                                 <div className="dock-info"><div className="dock-title">{currentSong.title}</div><div className="dock-artist">{currentSong.artistName}</div></div>
                             </div>
                             <div className="dock-right">
@@ -600,16 +595,12 @@ export default function MusicApp({ user, onLogout }) {
                 <button className={activeTab === 'search' ? 'active' : ''} onClick={() => handleNavClick('search')}>
                     <Search size={24} /><span>Search</span>
                 </button>
-                
-                {/* AI BUTTON: Aligned perfectly inside the bar */}
                 <button className={activeTab === 'ai' ? 'active' : ''} onClick={() => handleNavClick('ai')}>
                     <Bot size={24} /><span>Lyra</span>
                 </button>
-
                 <button className={activeTab === 'upload' ? 'active' : ''} onClick={() => handleNavClick('upload')}>
                     <Rocket size={24} /><span>Upload</span>
                 </button>
-
                 <button className={activeTab === 'library' ? 'active' : ''} onClick={() => handleNavClick('library')}>
                     <Library size={24} /><span>Library</span>
                 </button>
