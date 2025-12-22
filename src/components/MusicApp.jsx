@@ -560,16 +560,70 @@ export default function MusicApp({ user, onLogout }) {
                     </div>
                 )}
 
-                {/* --- 3. SPECIAL VIEW --- */}
+                {/* --- 3. SPECIAL VIEW (Updated Layout) --- */}
                 {activeTab === 'special-view' && specialView === 'christmas' && (
                     <div className="tab-pane">
-                        <div className="glass-header">
-                            <button className="icon-btn" onClick={goHome}><ArrowLeft size={24} color="white" /></button>
-                            <div className="header-text">
-                                <h1>Christmas Specials</h1>
-                                <p>Curated for the Holidays</p>
+                        <div style={{
+                            position: 'relative',
+                            height: '160px', /* Height for the banner */
+                            width: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center', /* Vertically center the text */
+                            alignItems: 'flex-start', /* Align text to the LEFT */
+                            padding: '20px',
+                            marginBottom: '20px',
+                            boxSizing: 'border-box',
+                            /* REPLACE THIS URL WITH YOUR GRADIENT IMAGE */
+                            backgroundImage: 'url(/banners/christmas-banner.png)', 
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center right', /* Anchors image to right */
+                            borderRadius: '0 0 20px 20px',
+                            overflow: 'hidden'
+                        }}>
+                            {/* Back Button (Floating) */}
+                            <button 
+                                className="icon-btn" 
+                                onClick={goHome} 
+                                style={{ 
+                                    position: 'absolute', 
+                                    top: '15px', 
+                                    left: '15px', 
+                                    zIndex: 10,
+                                    background: 'rgba(0,0,0,0.2)', /* Subtle backing for visibility */
+                                    borderRadius: '50%',
+                                    padding: '5px'
+                                }}
+                            >
+                                <ArrowLeft size={20} color="white" />
+                            </button>
+
+                            {/* Text Container - Left side & Smaller */}
+                            <div style={{ 
+                                zIndex: 2, 
+                                marginTop: '20px', /* Push down slightly below back button */
+                                maxWidth: '60%', /* Limit width so it doesn't hit the right image */
+                                textAlign: 'left'
+                            }}>
+                                <h1 style={{ 
+                                    fontSize: '1.5rem', /* Smaller Title */
+                                    fontWeight: '700', 
+                                    margin: '0 0 4px 0', 
+                                    textShadow: '0 2px 4px rgba(0,0,0,0.5)' /* Ensures readability */
+                                }}>
+                                    Christmas Specials
+                                </h1>
+                                <p style={{ 
+                                    fontSize: '0.85rem', /* Smaller Subtitle */
+                                    margin: 0, 
+                                    opacity: 0.9, 
+                                    fontWeight: '400' 
+                                }}>
+                                    Curated for the Holidays
+                                </p>
                             </div>
                         </div>
+
                         <div className="list-vertical">
                             {specialSongsList.length > 0 ? (
                                 specialSongsList.map(s => <SongRow key={s.id} s={s} list={specialSongsList} />)
