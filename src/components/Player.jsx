@@ -297,6 +297,7 @@ export default function Player({
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdate}
         onEnded={handleAudioEnded}
+        onLoadStart={() => setBuffering(true)}
         onWaiting={() => setBuffering(true)} 
         onPlaying={() => setBuffering(false)}
         onCanPlay={() => setBuffering(false)}
