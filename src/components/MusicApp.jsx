@@ -24,11 +24,36 @@ const USP_FEATURES = [
     { title: "Lossless Audio", subtitle: "Crystal clear sound.", icon: <Mic2 size={24} color="#00ff88" />, accent: "linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 0, 0, 0))" },
 ];
 
+// --- 1. DEVELOPER CONFIG: HANDPICKED ARTISTS ---
+// Tip: Ensure these names match what is in your DB (e.g. "Arijit Singh" vs "Arijit")
+const FEATURED_ARTISTS = [
+    { name: "Arijit Singh", image: "/artists/arijit.jpg" }, 
+    { name: "Shreya Ghoshal", image: "/artists/shreya.jpg" },
+    { name: "Sonu Nigam", image: "/artists/sonu.jpg" },
+    { name: "Sunidhi Chauhan", image:"/artists/sunidhi.jpg"},
+    { name: "K.K.", image:"/artists/kk.jpg"},
+    { name: "Taylor Swift", image:"/artists/taylor.jpg" },
+    { name: "Atif Aslam", image:"/artists/atif.jpg"},
+    { name: "Kishore Kumar", image:"/artists/kishore.jpg"}, 
+    { name: "Mohit Chauhan", image:"/artists/mohit.jpg"}, 
+    { name: "Ariana Grande", image: "/artists/ariana.jpg" },
+    { name: "Armaan Malik", image: "/artists/armaan.jpg" },
+    { name: "A.R. Rahman", image: "/artists/ar.jpg"},
+    { name: "Justin Bieber", image:"/artists/justin.jpg" },
+];
+
+// --- 2. DEVELOPER CONFIG: SPECIAL SONG IDs ---
+const SPECIAL_IDS = [250, 277, 248, 470]; 
+
 export default function MusicApp({ user, onLogout }) {
     // --- VIEW STATE ---
     const [activeTab, setActiveTab] = useState('home');
     const [isFullScreenPlayer, setIsFullScreenPlayer] = useState(false);
     const [isLyricsExpanded, setIsLyricsExpanded] = useState(false);
+    
+    // --- SUB-VIEW STATE ---
+    const [selectedArtist, setSelectedArtist] = useState(null);
+    const [specialView, setSpecialView] = useState(null); 
     
     // --- SYNC STATE ---
     const [songCurrentTime, setSongCurrentTime] = useState(0);
@@ -46,6 +71,10 @@ export default function MusicApp({ user, onLogout }) {
     const [likedSongs, setLikedSongs] = useState([]);
     const [playlists, setPlaylists] = useState([]);
     const [songCache, setSongCache] = useState({});
+
+    // --- NEW STATE FOR DB RESULTS ---
+    const [artistSongsFromDb, setArtistSongsFromDb] = useState([]);
+    const [isArtistLoading, setIsArtistLoading] = useState(false);
 
     // --- PLAYER ---
     const [queue, setQueue] = useState([]);
@@ -73,8 +102,30 @@ export default function MusicApp({ user, onLogout }) {
 
     const API_BASE = (process.env.REACT_APP_API_BASE_URL || "https://musicapp-o3ow.onrender.com").replace(/\/$/, "");
     
-    // OPTIMIZATION: Memoize headers to prevent recreation on every render
     const authHeaders = useMemo(() => ({ headers: { "X-User-Id": user?.id || 0 } }), [user?.id]);
+
+    // --- LOGIC: FETCH ARTIST SONGS FROM DB ---
+    useEffect(() => {
+        if (selectedArtist && selectedArtist.name) {
+            setIsArtistLoading(true);
+            setArtistSongsFromDb([]); 
+
+            axios.get(`${API_BASE}/api/songs/search?q=${encodeURIComponent(selectedArtist.name)}`, authHeaders)
+                .then(res => {
+                    setArtistSongsFromDb(res.data);
+                })
+                .catch(err => console.error("Failed to fetch artist songs", err))
+                .finally(() => setIsArtistLoading(false));
+        }
+    }, [selectedArtist, API_BASE, authHeaders]);
+
+    // --- FILTER LOGIC (For Special Banner) ---
+    const specialSongsList = useMemo(() => {
+        const pool = [...allSongs, ...homeFeed, ...discoveryFeed];
+        const uniquePool = Array.from(new Map(pool.map(item => [item.id, item])).values());
+        return uniquePool.filter(s => SPECIAL_IDS.includes(s.id));
+    }, [allSongs, homeFeed, discoveryFeed]);
+
 
     // --- NAVIGATION ---
     useEffect(() => {
@@ -84,20 +135,39 @@ export default function MusicApp({ user, onLogout }) {
             const state = event.state || { tab: 'home', player: false };
             setActiveTab(state.tab);
             setIsFullScreenPlayer(!!state.player);
+            
+            if (state.tab === 'home') {
+                setSelectedArtist(null);
+                setSpecialView(null);
+            }
         };
         window.addEventListener('popstate', handlePopState);
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
+    // FIX: Safe Go Home function
+    const goHome = () => {
+        setActiveTab('home');
+        setSelectedArtist(null);
+        setSpecialView(null);
+        window.history.replaceState({ tab: 'home' }, '');
+    };
+
     const handleNavClick = (tab) => {
-        if (tab === activeTab) return;
-        if (tab === 'home') window.history.back();
-        else {
+        if (tab === activeTab && !selectedArtist && !specialView) return;
+        
+        if (tab === 'home') {
+             window.history.back();
+             setSelectedArtist(null);
+             setSpecialView(null);
+        } else {
             const newState = { tab, player: false };
             if (activeTab === 'home') window.history.pushState(newState, '');
             else window.history.replaceState(newState, '');
             setActiveTab(tab);
             setIsFullScreenPlayer(false);
+            setSelectedArtist(null);
+            setSpecialView(null);
         }
     };
 
@@ -126,11 +196,10 @@ export default function MusicApp({ user, onLogout }) {
             const random = await axios.get(`${API_BASE}/api/songs/discover`, authHeaders);
             setDiscoveryFeed(random.data);
             fetchLibraryData();
+            fetchAllSongs(); 
         } catch (e) { console.error(e); }
         setLoading(false);
     }
-
-    useEffect(() => { if (activeTab === 'all-songs') fetchAllSongs(); }, [activeTab]);
 
     async function fetchAllSongs() {
         try {
@@ -165,7 +234,7 @@ export default function MusicApp({ user, onLogout }) {
 
     function getSongById(id) {
         if (songCache[id]) return songCache[id];
-        const all = [...homeFeed, ...discoveryFeed, ...searchResults, ...likedSongs, ...allSongs];
+        const all = [...homeFeed, ...discoveryFeed, ...searchResults, ...likedSongs, ...allSongs, ...artistSongsFromDb];
         return all.find(s => s.id === id) || { id, title: 'Unknown', artistName: 'Unknown', coverUrl: null };
     }
     const currentSong = queue[currentIndex] ? getSongById(queue[currentIndex]) : null;
@@ -207,6 +276,7 @@ export default function MusicApp({ user, onLogout }) {
     const toggleLike = async (songId) => {
         const update = (list) => list.map(s => s.id === songId ? { ...s, liked: !s.liked } : s);
         setHomeFeed(update); setDiscoveryFeed(update); setSearchResults(update); setLikedSongs(update); setAllSongs(update);
+        setArtistSongsFromDb(update);
         try { await axios.post(`${API_BASE}/api/likes/${songId}`, {}, authHeaders); fetchLibraryData(); } catch (e) { }
     };
 
@@ -383,11 +453,10 @@ export default function MusicApp({ user, onLogout }) {
     );
 
     // --- OPTIMIZATION: MEMOIZE MAIN CONTENT ---
-    // This ensures the main view (Home, Library, Search) does NOT re-render
-    // when the Player updates 'songCurrentTime' (which happens 4 times a second).
     const MainViewContent = useMemo(() => {
         return (
             <>
+                {/* --- 1. HOME TAB --- */}
                 {activeTab === 'home' && (
                     <div className="tab-pane home-animate">
                         <header className="glass-header">
@@ -423,6 +492,89 @@ export default function MusicApp({ user, onLogout }) {
                             </div>
                         </div>
 
+                        {/* --- ARTISTS ROW (SQUARE / NO FRAME) --- */}
+                        <h2 className="section-title">Top Artists</h2>
+                        <div className="horizontal-scroll">
+                            {FEATURED_ARTISTS.map((artist, i) => (
+                                <div 
+                                    key={i} 
+                                    className="song-card" /* Removed glass-card */
+                                    onClick={() => { setSelectedArtist(artist); setActiveTab('artist-view'); }}
+                                    style={{ width: 120, marginRight: 16, cursor: 'pointer' }}
+                                >
+                                    <div style={{ width: '100%', aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden', marginBottom: 8 }}>
+                                        <img 
+                                            src={artist.image} 
+                                            alt={artist.name}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 0 }}
+                                        />
+                                    </div>
+                                    <p className="song-title" style={{ textAlign: 'center', fontSize: 13 }}>
+                                        {artist.name}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* --- SPECIAL BANNER (HOME SCREEN CARD) --- */}
+                        <h2 className="section-title">Specials</h2>
+                        <div 
+                            className="artistic-box" 
+                            onClick={() => { setSpecialView('christmas'); setActiveTab('special-view'); }}
+                            style={{
+                                position: 'relative',
+                                height: '140px',
+                                borderRadius: '16px',
+                                overflow: 'hidden',
+                                cursor: 'pointer',
+                                /* USE YOUR NEW BANNER IMAGE HERE */
+                                backgroundImage: 'url(/banners/christmas-banner.png)', 
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center right', /* Keeps the main image on the right */
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center', /* Vertically centers text */
+                                alignItems: 'flex-start', /* Aligns text to the LEFT */
+                                paddingLeft: '20px', /* Spacing from left edge */
+                                boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                                marginTop: '10px'
+                            }}
+                        >
+                            {/* Dark Gradient Overlay for readability on left */}
+                            <div style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                background: 'linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 60%)',
+                                zIndex: 1
+                            }}></div>
+
+                            {/* Text Content */}
+                            <div style={{ zIndex: 2, position: 'relative', textAlign: 'left' }}>
+                                <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    gap: '8px', 
+                                    fontSize: '1.2rem', 
+                                    fontWeight: 'bold', 
+                                    color: 'white',
+                                    textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                                }}>
+                                    <Sparkles size={18} color="#00ffff"/> Christmas Hits
+                                </div>
+                                <div style={{ 
+                                    fontSize: '0.8rem', 
+                                    color: '#ddd', 
+                                    marginTop: '4px',
+                                    fontWeight: '400'
+                                }}>
+                                    Feel the magic of the season
+                                </div>
+                            </div>
+                        </div>
+
                         <h2 className="section-title">Cosmic Arrivals</h2>
                         <div className="horizontal-scroll">
                             {homeFeed.map(s => <HomeSongCard key={s.id} s={s} list={homeFeed} />)}
@@ -436,6 +588,111 @@ export default function MusicApp({ user, onLogout }) {
                     </div>
                 )}
 
+                {/* --- 2. ARTIST VIEW (FETCHED FROM DB) --- */}
+                {activeTab === 'artist-view' && selectedArtist && (
+                    <div className="tab-pane">
+                        <div className="glass-header">
+                            <button className="icon-btn" onClick={goHome}><ArrowLeft size={24} color="white" /></button>
+                            <div className="header-text">
+                                <h1>{selectedArtist.name}</h1>
+                                <p>Artist Discography</p>
+                            </div>
+                        </div>
+                        <div className="list-vertical">
+                            {isArtistLoading && <div style={{textAlign:'center', padding:20, color:'#888'}}>Loading tracks...</div>}
+                            
+                            {!isArtistLoading && artistSongsFromDb.length > 0 ? (
+                                artistSongsFromDb.map(s => <SongRow key={s.id} s={s} list={artistSongsFromDb} />)
+                            ) : !isArtistLoading && (
+                                <div style={{textAlign:'center', color:'#888', marginTop: 20}}>
+                                    No songs found matching "{selectedArtist.name}".<br/>
+                                    <span style={{fontSize:12}}>Ensure artist name matches exactly in your database.</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="spacer"></div>
+                    </div>
+                )}
+
+                {/* --- 3. SPECIAL VIEW (Updated Layout) --- */}
+                {activeTab === 'special-view' && specialView === 'christmas' && (
+                    <div className="tab-pane">
+                        <div style={{
+                            position: 'relative',
+                            height: '160px', /* Height for the banner */
+                            width: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center', /* Vertically center the text */
+                            alignItems: 'flex-start', /* Align text to the LEFT */
+                            padding: '20px',
+                            marginBottom: '20px',
+                            boxSizing: 'border-box',
+                            /* REPLACE THIS URL WITH YOUR GRADIENT IMAGE */
+                            backgroundImage: 'url(/banners/christmas-banner.png)', 
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center right', /* Anchors image to right */
+                            borderRadius: '0 0 20px 20px',
+                            overflow: 'hidden'
+                        }}>
+                            {/* Back Button (Floating) */}
+                            <button 
+                                className="icon-btn" 
+                                onClick={goHome} 
+                                style={{ 
+                                    position: 'absolute', 
+                                    top: '15px', 
+                                    left: '15px', 
+                                    zIndex: 10,
+                                    background: 'rgba(0,0,0,0.2)', /* Subtle backing for visibility */
+                                    borderRadius: '50%',
+                                    padding: '5px'
+                                }}
+                            >
+                                <ArrowLeft size={20} color="white" />
+                            </button>
+
+                            {/* Text Container - Left side & Smaller */}
+                            <div style={{ 
+                                zIndex: 2, 
+                                marginTop: '20px', /* Push down slightly below back button */
+                                maxWidth: '60%', /* Limit width so it doesn't hit the right image */
+                                textAlign: 'left'
+                            }}>
+                                <h1 style={{ 
+                                    fontSize: '1.5rem', /* Smaller Title */
+                                    fontWeight: '700', 
+                                    margin: '0 0 4px 0', 
+                                    textShadow: '0 2px 4px rgba(0,0,0,0.5)' /* Ensures readability */
+                                }}>
+                                    Christmas Specials
+                                </h1>
+                                <p style={{ 
+                                    fontSize: '0.85rem', /* Smaller Subtitle */
+                                    margin: 0, 
+                                    opacity: 0.9, 
+                                    fontWeight: '400' 
+                                }}>
+                                    Curated for the Holidays
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="list-vertical">
+                            {specialSongsList.length > 0 ? (
+                                specialSongsList.map(s => <SongRow key={s.id} s={s} list={specialSongsList} />)
+                            ) : (
+                                <div style={{textAlign:'center', padding:20, color:'#aaa', fontSize: 14}}>
+                                    No songs found matching IDs.<br/>
+                                    <span style={{fontSize:12, opacity:0.7}}>Check SPECIAL_IDS in MusicApp.jsx</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="spacer"></div>
+                    </div>
+                )}
+
+                {/* --- 4. EXISTING VIEWS --- */}
                 {activeTab === 'all-songs' && (
                     <div className="tab-pane">
                         <div className="glass-header">
@@ -509,8 +766,7 @@ export default function MusicApp({ user, onLogout }) {
                 )}
             </>
         );
-        // Dependencies: We include everything EXCEPT songCurrentTime/songProgress
-    }, [activeTab, homeFeed, discoveryFeed, allSongs, searchResults, libraryTab, likedSongs, playlists, user, searchTerm, openMenuId, showPlaylistSelector, queue, currentIndex, shuffle, repeatMode]);
+    }, [activeTab, homeFeed, discoveryFeed, allSongs, searchResults, libraryTab, likedSongs, playlists, user, searchTerm, openMenuId, showPlaylistSelector, queue, currentIndex, shuffle, repeatMode, specialSongsList, artistSongsFromDb, isArtistLoading, selectedArtist, specialView]);
 
     return (
         <div className="glass-shell">
@@ -533,7 +789,6 @@ export default function MusicApp({ user, onLogout }) {
                             </div>
                             <div className="modal-controls-wrapper" style={{ opacity: isLyricsExpanded ? 0 : 1, pointerEvents: isLyricsExpanded ? 'none' : 'auto', height: isLyricsExpanded ? 0 : 'auto', overflow: 'hidden' }}>
                                 <Player song={currentSong} playing={playing} onToggle={() => setPlaying(!playing)} onNext={handleNextSong} onPrev={handlePrevSong} onToggleLike={() => toggleLike(currentSong.id)} onEnded={() => { recordListen(currentSong.durationSeconds, currentSong.genre); handleNextSong(); }} hideCover={true} hideMeta={true} repeatMode={repeatMode} onToggleRepeat={toggleRepeat} shuffle={shuffle} onToggleShuffle={toggleShuffle} sleepTime={sleepTime} onSetSleepTimer={setSleepTime} 
-                                // Player controls this state, but MainViewContent ignores it now!
                                 onProgress={(c, t) => { setSongProgress(t ? (c / t) * 100 : 0); setSongCurrentTime(c); }} />
                             </div>
                             <div className="modal-section" style={isLyricsExpanded ? { position:'fixed', top:0, left:0, width:'100%', height:'100%', zIndex:2000, overflowY:'auto' } : {}}>
